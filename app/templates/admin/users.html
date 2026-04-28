@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Users • Admin{% endblock %}
+{% block content %}
+  <div class="flex items-end justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-black">Users</h1>
+      <p class="text-slate-400 mt-2">Assign roles safely (audited).</p>
+    </div>
+    <a class="px-4 py-2 rounded-xl border border-white/15 hover:bg-white/10" href="{{ url_for('main.admin_inventory_upload') }}">Inventory</a>
+  </div>
+
+  <div class="mt-6 rounded-3xl border border-white/10 bg-white/5 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-white/5 text-slate-300">
+        <tr>
+          <th class="text-left px-4 py-3">ID</th>
+          <th class="text-left px-4 py-3">Email</th>
+          <th class="text-left px-4 py-3">Roles</th>
+          <th class="text-left px-4 py-3">Grant role</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr class="border-t border-white/10">
+            <td class="px-4 py-3">{{ u.id }}</td>
+            <td class="px-4 py-3">{{ u.email }}</td>
+            <td class="px-4 py-3 text-slate-300">
+              {% if u.roles %}
+                {% for r in u.roles %}
+                  <span class="inline-flex px-2 py-1 rounded-lg bg-white/10 border border-white/10 mr-1">{{ r.name }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="text-slate-500">none</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3">
+              <form method="post" action="{{ url_for('main.admin_user_roles_update', user_id=u.id) }}" class="flex gap-2 items-center">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="role" class="rounded-xl bg-slate-950/60 border border-white/10 px-3 py-2">
+                  <option value="user">user</option>
+                  <option value="inventory_manager">inventory_manager</option>
+                  <option value="admin">admin</option>
+                  <option value="superadmin">superadmin</option>
+                </select>
+                <button class="px-3 py-2 rounded-xl bg-white text-slate-950 font-black" type="submit">Grant</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+

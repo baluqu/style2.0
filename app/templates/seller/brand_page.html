@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ profile.brand_name }} | StyleBridge{% endblock %}
+{% block content %}
+  <div class="space-y-6">
+    <section class="overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/85">
+      <div class="relative min-h-[260px]">
+        <img src="{{ profile.banner_url or profile.logo_url or url_for('static', filename='img/scene-poster.svg') }}" alt="{{ profile.brand_name }}" class="absolute inset-0 h-full w-full object-cover" referrerpolicy="no-referrer">
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-slate-950/10"></div>
+        <div class="relative z-10 flex h-full min-h-[260px] flex-col justify-end px-6 py-6 md:px-8">
+          <div class="flex flex-wrap items-end justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <img src="{{ profile.logo_url or profile.banner_url or url_for('static', filename='img/scene-poster.svg') }}" alt="{{ profile.brand_name }} logo" class="h-20 w-20 rounded-[1.5rem] border border-white/15 object-cover" referrerpolicy="no-referrer">
+              <div>
+                <div class="text-xs font-black uppercase tracking-[0.22em] text-emerald-200">Brand storefront</div>
+                <h1 class="mt-2 text-4xl font-black text-white">{{ profile.brand_name }}</h1>
+                <div class="mt-2 text-sm text-slate-300">{{ profile.business_type or 'Seller' }} | {{ profile.location or 'Location not set' }}</div>
+              </div>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="rounded-3xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-black text-white">{{ products|length + outfits|length }} live listings</div>
+              <div class="rounded-3xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-black text-white">{{ delivered_orders }} fulfilled orders</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+      <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">About this brand</div>
+      <div class="mt-3 text-sm leading-8 text-slate-300">{{ profile.about or 'This brand is new to StyleBridge and is building its first live storefront.' }}</div>
+    </section>
+
+    <section class="space-y-4">
+      <div>
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Outfits</div>
+        <div class="mt-2 text-2xl font-black text-white">Shoppable looks</div>
+      </div>
+      <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {% for product in outfits %}
+          <a href="{{ url_for('seller.brand_product_detail', slug=profile.slug, product_id=product.id) }}" class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5 transition hover:-translate-y-1 hover:border-emerald-300/30">
+            <img src="{{ product.image_url }}" alt="{{ product.title }}" class="h-72 w-full rounded-[1.5rem] object-cover" loading="lazy" referrerpolicy="no-referrer">
+            <div class="mt-4 text-xs font-black uppercase tracking-[0.18em] text-emerald-200">Outfit</div>
+            <div class="mt-2 text-2xl font-black text-white">{{ product.title }}</div>
+            <div class="mt-2 text-sm leading-7 text-slate-300">{{ product.description or 'Multi-piece look built from this brand catalog.' }}</div>
+            <div class="mt-4 flex items-center justify-between"><div class="text-sm text-slate-300">{{ product.stock_quantity }} in stock</div><div class="text-sm font-black text-white">${{ '%.2f'|format(product.price) }}</div></div>
+          </a>
+        {% else %}
+          <div class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-6 text-slate-300">No outfits published yet.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <div>
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Products</div>
+        <div class="mt-2 text-2xl font-black text-white">Ready to shop</div>
+      </div>
+      <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {% for product in products %}
+          <a href="{{ url_for('seller.brand_product_detail', slug=profile.slug, product_id=product.id) }}" class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5 transition hover:-translate-y-1 hover:border-cyan-300/30">
+            <img src="{{ product.image_url }}" alt="{{ product.title }}" class="h-72 w-full rounded-[1.5rem] object-cover" loading="lazy" referrerpolicy="no-referrer">
+            <div class="mt-4 text-xs font-black uppercase tracking-[0.18em] text-slate-400">{{ product.category }}</div>
+            <div class="mt-2 text-2xl font-black text-white">{{ product.title }}</div>
+            <div class="mt-2 text-sm leading-7 text-slate-300">{{ product.description or 'Fresh inventory from this brand storefront.' }}</div>
+            <div class="mt-4 flex items-center justify-between"><div class="text-sm text-slate-300">{{ product.stock_quantity }} in stock</div><div class="text-sm font-black text-white">${{ '%.2f'|format(product.price) }}</div></div>
+          </a>
+        {% else %}
+          <div class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-6 text-slate-300">No products live yet.</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}StyleBridge | Free 3D Fashion Preview Tool{% endblock %}
+
+{% block content %}
+  <div class="space-y-6">
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/85 p-6 md:p-8">
+      <h1 class="text-3xl font-black leading-tight text-white md:text-5xl">Free 3D Fashion Preview Tool - Upload GLB -> See it move. Built by a 17yo in Kenya.</h1>
+      <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300">No pitch deck language. Open the demo, load a model, test motion, lighting, and palette, then share or export.</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href="{{ url_for('main.demo') }}" class="rounded-full bg-cyan-300 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200">Try Demo Now</a>
+      </div>
+    </section>
+
+    <section class="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Social proof</div>
+      <div class="mt-2 text-lg font-black text-white">Early testers: [placeholder until real]</div>
+      <p class="mt-2 text-sm text-slate-400">Keeping this section honest until there are verified numbers worth showing.</p>
+    </section>
+
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Sample GLB demos</div>
+      <div class="mt-4 grid gap-3 md:grid-cols-3">
+        <a href="{{ url_for('main.demo', model='/static/models/toji-reference.glb') }}" class="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
+          <div class="text-sm font-black text-white">Reference Character</div>
+          <div class="mt-1 text-xs text-slate-400">Fast starter model</div>
+        </a>
+        <a href="{{ url_for('main.demo', model='/static/models/formal-olive-look.glb') }}" class="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
+          <div class="text-sm font-black text-white">Formal Olive Look</div>
+          <div class="mt-1 text-xs text-slate-400">Balanced silhouette test</div>
+        </a>
+        <a href="{{ url_for('main.demo', model='/static/models/satin-slip-dress.glb') }}" class="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
+          <div class="text-sm font-black text-white">Satin Slip Dress</div>
+          <div class="mt-1 text-xs text-slate-400">Dress movement test</div>
+        </a>
+      </div>
+    </section>
+
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <div class="text-sm text-slate-300">Built by a 17yo Kenyan dev - feedback welcome.</div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <a href="{{ url_for('main.feedback') }}" class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">Feedback form</a>
+        <a href="https://x.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">X</a>
+        <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">TikTok</a>
+        <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">Instagram</a>
+        <a href="https://discord.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">Discord</a>
+      </div>
+    </section>
+  </div>
+{% endblock %}

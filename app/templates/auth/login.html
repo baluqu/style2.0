@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Login | StyleBridge{% endblock %}
+{% block content %}
+  <div class="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+    <section class="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Login / Entry Point</div>
+      <h1 class="mt-3 text-4xl font-black text-white">Get back into the 3D demo fast.</h1>
+      <p class="mt-4 text-base leading-8 text-slate-300">
+        Login takes you straight to the live GLB workspace. Use email or username.
+      </p>
+      <div class="mt-6 grid gap-3">
+        <a href="{{ url_for('main.demo') }}" class="rounded-2xl border border-white/10 bg-white px-5 py-4 text-center text-sm font-black text-slate-950 transition hover:bg-slate-100">Try guest demo now</a>
+        <a href="{{ url_for('auth.seller_register') }}" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-center text-sm font-black text-white transition hover:bg-white/10">Create seller account</a>
+      </div>
+      <div class="mt-6 rounded-3xl border border-emerald-300/20 bg-emerald-400/10 p-4">
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-100">What happens next</div>
+        <div class="mt-2 text-sm leading-7 text-slate-200">Open the workspace, load a sample model or upload your own GLB, preview movement, then share or export.</div>
+      </div>
+    </section>
+
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <h2 class="text-2xl font-black text-white">Login</h2>
+      <p class="mt-2 text-sm text-slate-400">Email or username works.</p>
+
+      <form method="post" class="mt-6 space-y-4">
+        {{ form.csrf_token }}
+        <div>
+          <label class="text-sm font-bold text-slate-300">{{ form.identity.label.text }}</label>
+          {{ form.identity(class_="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white", placeholder="e.g. asmaa or asmaa@email.com") }}
+          {% for e in form.identity.errors %}<div class="mt-1 text-sm text-rose-300">{{ e }}</div>{% endfor %}
+        </div>
+        <div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-bold text-slate-300">{{ form.password.label.text }}</label>
+            <a href="{{ url_for('auth.forgot_password') }}" class="text-sm font-bold text-cyan-200 hover:text-cyan-100">Forgot password?</a>
+          </div>
+          {{ form.password(class_="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white") }}
+          {% for e in form.password.errors %}<div class="mt-1 text-sm text-rose-300">{{ e }}</div>{% endfor %}
+        </div>
+        <button class="w-full rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200" type="submit">Login</button>
+      </form>
+
+      <div class="mt-5 text-sm text-slate-400">
+        No account yet?
+        <a class="font-bold text-white underline-offset-4 hover:underline" href="{{ url_for('auth.register') }}">Create one</a>
+      </div>
+      <div class="mt-3 text-sm text-slate-400">
+        Need the seller portal instead?
+        <a class="font-bold text-emerald-200 underline-offset-4 hover:underline" href="{{ url_for('auth.seller_register') }}">Start a seller account</a>
+      </div>
+    </section>
+  </div>
+{% endblock %}

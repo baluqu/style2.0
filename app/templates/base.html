@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{% block title %}StyleBridge{% endblock %}</title>
+    <meta
+      name="description"
+      content="StyleBridge helps shoppers discover outfits, shop complete looks, and return for personalized recommendations."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        const root = document.documentElement;
+        const splashAllowed = {{ "true" if show_intro_splash else "false" }};
+        const forceSplash = {{ "true" if force_intro_splash else "false" }};
+        const storageKey = "sb-intro-seen-v4";
+        const minimumDelay = 3000;
+        let shouldShow = forceSplash;
+
+        function cleanSplashUrl() {
+          const url = new URL(window.location.href);
+          if (!url.searchParams.has("splash")) {
+            return;
+          }
+
+          url.searchParams.delete("splash");
+          const nextUrl = url.pathname + (url.search ? url.search : "") + url.hash;
+          window.history.replaceState({}, document.title, nextUrl);
+        }
+
+        function removeSplashNode() {
+          const splash = document.getElementById("sb-splash");
+          if (splash) {
+            splash.remove();
+          }
+        }
+
+        function revealSite() {
+          if (root.dataset.sbSplashRevealed === "1") {
+            return;
+          }
+
+          root.dataset.sbSplashRevealed = "1";
+
+          try {
+            window.sessionStorage.setItem(storageKey, "1");
+          } catch (error) {
+            // Ignore session storage failures and keep the splash functional.
+          }
+
+          root.classList.add("sb-ready");
+          root.classList.remove("sb-loading");
+          cleanSplashUrl();
+
+          const removalDelay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 180 : 580;
+          window.setTimeout(removeSplashNode, removalDelay);
+        }
+
+        if (!shouldShow && splashAllowed) {
+          try {
+            shouldShow = window.sessionStorage.getItem(storageKey) !== "1";
+          } catch (error) {
+            shouldShow = splashAllowed;
+          }
+        }
+
+        root.dataset.sbSplash = shouldShow ? "show" : "skip";
+        root.dataset.sbForceSplash = forceSplash ? "1" : "0";
+        window.__sbRevealSplash = revealSite;
+
+        if (shouldShow) {
+          root.classList.add("sb-loading");
+          window.setTimeout(revealSite, minimumDelay);
+        } else {
+          cleanSplashUrl();
+        }
+      })();
+    </script>
+    <style>
+      html.sb-loading body {
+        overflow: hidden;
+      }
+
+      #sb-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 120;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.98), rgba(250, 251, 253, 0.98) 44%, rgba(234, 239, 245, 0.98) 100%);
+        opacity: 1;
+        visibility: visible;
+        pointer-events: none;
+        transition: opacity 560ms ease, visibility 0s linear 560ms;
+      }
+
+      html.sb-loading #sb-splash {
+        display: flex;
+        pointer-events: auto;
+      }
+
+      html.sb-ready #sb-splash {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .sb-splash-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(0.85rem, 2.4vw, 1.45rem);
+        width: 100%;
+        min-height: 100vh;
+        padding: clamp(1.75rem, 5vw, 4rem);
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        transition: transform 560ms ease, opacity 560ms ease;
+      }
+
+      html.sb-ready .sb-splash-card {
+        transform: scale(1.015);
+        opacity: 0;
+      }
+
+      .sb-splash-glow {
+        position: absolute;
+        inset: 50% auto auto 50%;
+        width: min(88vw, 58rem);
+        height: min(88vw, 58rem);
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0) 70%);
+        filter: blur(30px);
+        transform: translate(-50%, -50%);
+      }
+
+      .sb-splash-mark {
+        position: relative;
+        width: min(94vw, 44rem);
+      }
+
+      .sb-splash-logo {
+        position: relative;
+        display: block;
+        width: 100%;
+        max-width: none;
+        height: auto;
+        object-fit: contain;
+        object-position: center;
+        filter: none;
+        mix-blend-mode: multiply;
+        transform: scale(1.02);
+        animation: sb-float 2200ms ease-in-out infinite alternate;
+      }
+
+      .sb-splash-copy {
+        margin: 0;
+        font-size: clamp(0.7rem, 1.2vw, 0.92rem);
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: rgba(15, 23, 42, 0.58);
+        text-align: center;
+      }
+
+      @keyframes sb-float {
+        from {
+          transform: translateY(0) scale(1.02);
+        }
+        to {
+          transform: translateY(-8px) scale(1.05);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #sb-splash,
+        .sb-splash-card {
+          transition-duration: 220ms;
+        }
+
+        .sb-splash-logo,
+        .sb-splash-glow {
+          animation: none;
+        }
+      }
+    </style>
+    <noscript>
+      <style>
+        #sb-splash {
+          display: none !important;
+        }
+
+        html.sb-loading body {
+          overflow: auto;
+        }
+      </style>
+    </noscript>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-full bg-slate-950 text-slate-100" style="font-family: 'Space Grotesk', sans-serif;">
+    {% set endpoint = request.endpoint or '' %}
+    {% if current_user.is_authenticated and is_seller_account %}
+      {% set brand_home = url_for('seller.dashboard') if has_completed_seller_onboarding else url_for('seller.onboarding') %}
+    {% elif current_user.is_authenticated %}
+      {% set brand_home = url_for('main.demo') %}
+    {% else %}
+      {% set brand_home = url_for('main.home') %}
+    {% endif %}
+
+    <div id="sb-splash" aria-hidden="true">
+      <div class="sb-splash-card">
+        <div class="sb-splash-glow"></div>
+        <div class="sb-splash-mark" aria-hidden="true">
+          <img
+            src="{{ url_for('static', filename='images/stylebridge-logo.png', v='20260402-splash1') }}"
+            alt="StyleBridge"
+            class="sb-splash-logo"
+          >
+        </div>
+        <p class="sb-splash-copy">Enter your style universe</p>
+      </div>
+    </div>
+
+    <div class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
+      <div class="mx-auto max-w-7xl px-4 py-3 md:px-6">
+        <div class="flex items-center justify-between gap-4">
+          <a href="{{ brand_home }}" class="text-lg font-black tracking-[0.18em] text-white">
+            STYLEBRIDGE
+          </a>
+
+          {% if current_user.is_authenticated and is_seller_account %}
+            <nav class="hidden items-center gap-2 text-sm font-bold text-slate-300 md:flex">
+              <a class="rounded-full px-4 py-2 transition {% if endpoint == 'seller.dashboard' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('seller.dashboard') if has_completed_seller_onboarding else url_for('seller.onboarding') }}">Dashboard</a>
+              {% if has_completed_seller_onboarding %}
+                <a class="rounded-full px-4 py-2 transition {% if endpoint == 'seller.product_create' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('seller.product_create') }}">Add Product</a>
+                {% if seller_brand_slug %}
+                  <a class="rounded-full px-4 py-2 transition {% if endpoint in ['seller.brand_page', 'seller.brand_product_detail'] %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('seller.brand_page', slug=seller_brand_slug) }}">Storefront</a>
+                {% endif %}
+              {% endif %}
+            </nav>
+          {% elif current_user.is_authenticated and has_completed_onboarding %}
+            <nav class="hidden items-center gap-2 text-sm font-bold text-slate-300 md:flex">
+              <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.feed' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.feed') }}">Feed</a>
+              <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.discover' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.discover') }}">Discover</a>
+              <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.accessories' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.accessories') }}">Accessories</a>
+              <a class="rounded-full px-4 py-2 transition {% if endpoint in ['main.cart', 'main.checkout'] %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.cart') }}">Cart{% if cart_count %} ({{ cart_count }}){% endif %}</a>
+              <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.profile' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.profile') }}">Profile</a>
+            </nav>
+          {% elif current_user.is_authenticated %}
+            <nav class="hidden items-center gap-2 text-sm font-bold text-slate-300 md:flex">
+              <a class="rounded-full px-4 py-2 transition {% if endpoint in ['main.onboarding', 'seller.onboarding'] %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('seller.onboarding') if is_seller_account else url_for('main.onboarding') }}">{{ 'Seller setup' if is_seller_account else 'Onboarding' }}</a>
+            </nav>
+          {% else %}
+            <nav class="hidden items-center gap-2 text-sm font-bold text-slate-300 md:flex">
+              <a class="rounded-full px-4 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('main.demo') }}">Try Demo</a>
+              <a class="rounded-full px-4 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('main.feedback') }}">Feedback</a>
+              <a class="rounded-full px-4 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('auth.register') }}">Create Account</a>
+            </nav>
+          {% endif %}
+
+          <div class="flex items-center gap-2">
+            {% if current_user.is_authenticated %}
+              <a class="hidden rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10 md:inline-flex" href="{{ url_for('main.demo') }}">3D Demo</a>
+              <form method="post" action="{{ url_for('auth.logout') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10" type="submit">Logout</button>
+              </form>
+            {% else %}
+              <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10" href="{{ url_for('auth.login') }}">Login</a>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if current_user.is_authenticated and is_seller_account and has_completed_seller_onboarding %}
+          <div class="mt-3 hidden items-center justify-between rounded-3xl border border-white/10 bg-white/5 px-4 py-3 md:flex">
+            <div>
+              <div class="text-xs font-black uppercase tracking-[0.2em] text-emerald-200">Build your storefront. Manage your orders.</div>
+              <div class="mt-1 text-sm text-slate-400">Track sales, add products, publish outfits, and fulfill orders from one seller workspace.</div>
+            </div>
+            <a href="{{ url_for('seller.product_create') }}" class="rounded-full bg-emerald-300 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-emerald-200">
+              Add product
+            </a>
+          </div>
+        {% elif current_user.is_authenticated and has_completed_onboarding %}
+          <div class="mt-3 hidden items-center justify-between rounded-3xl border border-white/10 bg-white/5 px-4 py-3 md:flex">
+            <div>
+              <div class="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Find your style. Wear it better.</div>
+              <div class="mt-1 text-sm text-slate-400">Your feed, saved looks, cart, and profile now follow one clear shopper loop.</div>
+            </div>
+            <a href="{{ url_for('main.checkout') if cart_count else url_for('main.discover') }}" class="rounded-full bg-cyan-300 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-cyan-200">
+              {{ 'Finish checkout' if cart_count else 'Discover looks' }}
+            </a>
+          </div>
+        {% elif not current_user.is_authenticated %}
+          <nav class="mt-3 flex gap-2 overflow-x-auto text-xs font-black uppercase tracking-[0.18em] text-slate-400 md:hidden">
+            <a class="whitespace-nowrap rounded-full border border-white/10 px-3 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('main.demo') }}">Try Demo</a>
+            <a class="whitespace-nowrap rounded-full border border-white/10 px-3 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('main.feedback') }}">Feedback</a>
+            <a class="whitespace-nowrap rounded-full border border-white/10 px-3 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('auth.register') }}">Create Account</a>
+          </nav>
+        {% endif %}
+      </div>
+    </div>
+
+    <main class="mx-auto max-w-7xl px-4 py-8 pb-28 md:px-6 md:py-10 md:pb-10">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="mb-6 space-y-2">
+            {% for cat,msg in messages %}
+              <div class="rounded-2xl border border-white/10 px-4 py-3 {% if cat in ['success','info'] %}bg-emerald-500/10{% else %}bg-rose-500/10{% endif %}">
+                <div class="text-sm">{{ msg }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+
+      <section class="mt-10 rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-300">
+        <div class="flex flex-wrap items-center gap-2">
+          <span>Built by a 17yo Kenyan dev - feedback welcome.</span>
+          <a href="{{ url_for('main.feedback') }}" class="font-bold text-cyan-200 hover:text-cyan-100">Feedback form</a>
+          <a href="https://x.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-cyan-200 hover:text-cyan-100">X</a>
+          <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-cyan-200 hover:text-cyan-100">TikTok</a>
+          <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-cyan-200 hover:text-cyan-100">Instagram</a>
+          <a href="https://discord.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-cyan-200 hover:text-cyan-100">Discord</a>
+        </div>
+      </section>
+    </main>
+
+    {% if current_user.is_authenticated and is_seller_account and has_completed_seller_onboarding %}
+      <nav class="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 items-center justify-between rounded-full border border-white/10 bg-slate-950/90 px-3 py-2 shadow-2xl backdrop-blur-xl md:hidden">
+        <a href="{{ url_for('seller.dashboard') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'seller.dashboard' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Dash</a>
+        <a href="{{ url_for('seller.product_create') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'seller.product_create' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Add</a>
+        {% if seller_brand_slug %}
+          <a href="{{ url_for('seller.brand_page', slug=seller_brand_slug) }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint in ['seller.brand_page', 'seller.brand_product_detail'] %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Store</a>
+        {% else %}
+          <div class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">Store</div>
+        {% endif %}
+        <a href="{{ url_for('seller.onboarding') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'seller.onboarding' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Setup</a>
+      </nav>
+    {% elif current_user.is_authenticated and has_completed_onboarding %}
+      <nav class="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 items-center justify-between rounded-full border border-white/10 bg-slate-950/90 px-3 py-2 shadow-2xl backdrop-blur-xl md:hidden">
+        <a href="{{ url_for('main.feed') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.feed' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Feed</a>
+        <a href="{{ url_for('main.discover') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.discover' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Search</a>
+        <a href="{{ url_for('main.accessories') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.accessories' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Accs</a>
+        <a href="{{ url_for('main.cart') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint in ['main.cart', 'main.checkout'] %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Cart{% if cart_count %} {{ cart_count }}{% endif %}</a>
+        <a href="{{ url_for('main.profile') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.profile' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Profile</a>
+      </nav>
+    {% endif %}
+
+    <div id="toast" class="fixed bottom-24 left-1/2 hidden -translate-x-1/2">
+      <div class="rounded-2xl bg-emerald-400 px-4 py-3 font-extrabold text-emerald-950 shadow-2xl">
+        <span id="toastText">Saved</span>
+      </div>
+    </div>
+
+    <script>
+      window.sbToast = function(message) {
+        const el = document.getElementById('toast');
+        const text = document.getElementById('toastText');
+        text.textContent = message;
+        el.classList.remove('hidden');
+        clearTimeout(window.__sbToastTimer);
+        window.__sbToastTimer = setTimeout(() => el.classList.add('hidden'), 2400);
+      };
+    </script>
+  </body>
+</html>

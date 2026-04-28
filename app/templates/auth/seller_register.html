@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Seller Sign Up | StyleBridge{% endblock %}
+{% block content %}
+  <div class="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1fr_0.95fr]">
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.22em] text-emerald-200">Seller account</div>
+      <h1 class="mt-3 text-4xl font-black text-white">Start selling on StyleBridge.</h1>
+      <p class="mt-4 text-base leading-8 text-slate-300">
+        Create a separate seller account for your brand so products, orders, payouts, and storefront settings stay clean and manageable.
+      </p>
+      <div class="mt-6 grid gap-3 sm:grid-cols-3">
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-4"><div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Step 1</div><div class="mt-2 text-sm font-bold text-white">Create seller login</div></div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-4"><div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Step 2</div><div class="mt-2 text-sm font-bold text-white">Set up storefront</div></div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-4"><div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Step 3</div><div class="mt-2 text-sm font-bold text-white">Add products and outfits</div></div>
+      </div>
+    </section>
+
+    <section class="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
+      <h2 class="text-2xl font-black text-white">Create seller account</h2>
+      <form method="post" class="mt-6 space-y-4">
+        {{ form.csrf_token }}
+        <div>
+          <label class="text-sm font-bold text-slate-300">{{ form.business_name.label.text }}</label>
+          {{ form.business_name(class_="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white") }}
+          {% for e in form.business_name.errors %}<div class="mt-1 text-sm text-rose-300">{{ e }}</div>{% endfor %}
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">{{ form.email.label.text }}</label>
+          {{ form.email(class_="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white") }}
+          {% for e in form.email.errors %}<div class="mt-1 text-sm text-rose-300">{{ e }}</div>{% endfor %}
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">{{ form.phone.label.text }}</label>
+          {{ form.phone(class_="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white") }}
+          {% for e in form.phone.errors %}<div class="mt-1 text-sm text-rose-300">{{ e }}</div>{% endfor %}
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">{{ form.password.label.text }}</label>
+          {{ form.password(class_="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white") }}
+          {% for e in form.password.errors %}<div class="mt-1 text-sm text-rose-300">{{ e }}</div>{% endfor %}
+        </div>
+        <button class="w-full rounded-2xl bg-emerald-300 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-emerald-200" type="submit">Start selling</button>
+      </form>
+
+      <div class="mt-5 text-sm text-slate-400">
+        Already have a seller account?
+        <a class="font-bold text-white underline-offset-4 hover:underline" href="{{ url_for('auth.login') }}">Login</a>
+      </div>
+    </section>
+  </div>
+{% endblock %}

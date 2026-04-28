@@ -1,0 +1,373 @@
+[
+  {
+    "sku": "jewel-brownthobeportrait",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-02",
+    "variant_index": 0
+  },
+  {
+    "sku": "jewel-cargogymstreet",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-03",
+    "variant_index": 1
+  },
+  {
+    "sku": "jewel-charcoalkanduranight",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-04",
+    "variant_index": 2
+  },
+  {
+    "sku": "jewel-citywhitekandura",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-05",
+    "variant_index": 3
+  },
+  {
+    "sku": "jewel-creamjubbaweekend",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-06",
+    "variant_index": 4
+  },
+  {
+    "sku": "jewel-espressofridayfit",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-07",
+    "variant_index": 5
+  },
+  {
+    "sku": "jewel-midnightrunnerlayers",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-08",
+    "variant_index": 6
+  },
+  {
+    "sku": "jewel-monochrometracksuiting",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-02",
+    "variant_index": 7
+  },
+  {
+    "sku": "jewel-nighttailoringdark",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-03",
+    "variant_index": 8
+  },
+  {
+    "sku": "jewel-prayerbeadsthobe",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-04",
+    "variant_index": 9
+  },
+  {
+    "sku": "jewel-precisiontravelflex",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-05",
+    "variant_index": 10
+  },
+  {
+    "sku": "jewel-streetthobeurban",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-06",
+    "variant_index": 11
+  },
+  {
+    "sku": "jewel-utilitytrackset",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-07",
+    "variant_index": 12
+  },
+  {
+    "sku": "jewel-thobesunsetedit",
+    "title": "Brushed signet ring",
+    "family": "ring",
+    "base_name": "ring-08",
+    "variant_index": 13
+  },
+  {
+    "sku": "earring-37",
+    "title": "Crystal drop earrings",
+    "family": "earring",
+    "base_name": "earring-01",
+    "variant_index": 0
+  },
+  {
+    "sku": "earring-13",
+    "title": "Emerald drop earring",
+    "family": "earring",
+    "base_name": "earring-02",
+    "variant_index": 1
+  },
+  {
+    "sku": "ring-47",
+    "title": "Etched silver ring",
+    "family": "ring",
+    "base_name": "ring-02",
+    "variant_index": 14
+  },
+  {
+    "sku": "jewel-citybuibuiinblack",
+    "title": "Layered chain bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-01",
+    "variant_index": 0
+  },
+  {
+    "sku": "jewel-citylayeredmodest",
+    "title": "Layered chain bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-02",
+    "variant_index": 1
+  },
+  {
+    "sku": "jewel-denimsprintclub",
+    "title": "Layered chain bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-03",
+    "variant_index": 2
+  },
+  {
+    "sku": "jewel-denimvintageedit",
+    "title": "Layered chain bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-04",
+    "variant_index": 3
+  },
+  {
+    "sku": "jewel-downtownmeshmotion",
+    "title": "Layered chain bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-05",
+    "variant_index": 4
+  },
+  {
+    "sku": "jewel-graffititrainingday",
+    "title": "Layered chain bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-06",
+    "variant_index": 5
+  },
+  {
+    "sku": "jewel-retrotrackweekend",
+    "title": "Layered chain bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-01",
+    "variant_index": 6
+  },
+  {
+    "sku": "jewel-streetwearweekend",
+    "title": "Layered chain bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-02",
+    "variant_index": 7
+  },
+  {
+    "sku": "jewel-throwbacksneakerrush",
+    "title": "Layered chain bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-03",
+    "variant_index": 8
+  },
+  {
+    "sku": "jewel-washedhoodiecircuit",
+    "title": "Layered chain bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-04",
+    "variant_index": 9
+  },
+  {
+    "sku": "jewel-desertrosemodest",
+    "title": "Minimal bangle bracelet",
+    "family": "bangle",
+    "base_name": "bangle-01",
+    "variant_index": 0
+  },
+  {
+    "sku": "jewel-campusathleisure",
+    "title": "Minimal bangle bracelet",
+    "family": "bangle",
+    "base_name": "bangle-02",
+    "variant_index": 1
+  },
+  {
+    "sku": "jewel-cityknitneutral",
+    "title": "Minimal bangle bracelet",
+    "family": "bangle",
+    "base_name": "bangle-03",
+    "variant_index": 2
+  },
+  {
+    "sku": "jewel-citywindbreakerloop",
+    "title": "Minimal bangle bracelet",
+    "family": "bangle",
+    "base_name": "bangle-01",
+    "variant_index": 3
+  },
+  {
+    "sku": "jewel-desertbreezebuibui",
+    "title": "Minimal bangle bracelet",
+    "family": "bangle",
+    "base_name": "bangle-02",
+    "variant_index": 4
+  },
+  {
+    "sku": "jewel-modesteverydayindigo",
+    "title": "Minimal bangle bracelet",
+    "family": "bangle",
+    "base_name": "bangle-03",
+    "variant_index": 5
+  },
+  {
+    "sku": "jewel-vintagecourtwarmup",
+    "title": "Minimal bangle bracelet",
+    "family": "bangle",
+    "base_name": "bangle-01",
+    "variant_index": 6
+  },
+  {
+    "sku": "jewel-studioloungetailoredactive",
+    "title": "Minimal bangle bracelet",
+    "family": "bangle",
+    "base_name": "bangle-02",
+    "variant_index": 7
+  },
+  {
+    "sku": "jewel-varsityjoggerstack",
+    "title": "Minimal bangle bracelet",
+    "family": "bangle",
+    "base_name": "bangle-03",
+    "variant_index": 8
+  },
+  {
+    "sku": "ring-22",
+    "title": "Minimal signet ring",
+    "family": "ring",
+    "base_name": "ring-03",
+    "variant_index": 15
+  },
+  {
+    "sku": "earring-33",
+    "title": "Pearl cluster earrings",
+    "family": "earring",
+    "base_name": "earring-03",
+    "variant_index": 2
+  },
+  {
+    "sku": "jewel-aeroblazermove",
+    "title": "Polished gold cuff",
+    "family": "bracelet",
+    "base_name": "bracelet-05",
+    "variant_index": 10
+  },
+  {
+    "sku": "jewel-afterhourssatin",
+    "title": "Polished gold cuff",
+    "family": "bracelet",
+    "base_name": "bracelet-06",
+    "variant_index": 11
+  },
+  {
+    "sku": "jewel-cleanstudiowarmup",
+    "title": "Polished gold cuff",
+    "family": "bracelet",
+    "base_name": "bracelet-01",
+    "variant_index": 12
+  },
+  {
+    "sku": "jewel-courtlineminimalmotion",
+    "title": "Polished gold cuff",
+    "family": "bracelet",
+    "base_name": "bracelet-02",
+    "variant_index": 13
+  },
+  {
+    "sku": "jewel-luxecommuteset",
+    "title": "Polished gold cuff",
+    "family": "bracelet",
+    "base_name": "bracelet-03",
+    "variant_index": 14
+  },
+  {
+    "sku": "jewel-midnightminimalmodest",
+    "title": "Polished gold cuff",
+    "family": "bracelet",
+    "base_name": "bracelet-04",
+    "variant_index": 15
+  },
+  {
+    "sku": "jewel-monochromerunway",
+    "title": "Polished gold cuff",
+    "family": "bracelet",
+    "base_name": "bracelet-05",
+    "variant_index": 16
+  },
+  {
+    "sku": "jewel-softtailoringstudio",
+    "title": "Polished gold cuff",
+    "family": "bracelet",
+    "base_name": "bracelet-06",
+    "variant_index": 17
+  },
+  {
+    "sku": "cuff-34",
+    "title": "Polished gold cuff",
+    "family": "bracelet",
+    "base_name": "bracelet-01",
+    "variant_index": 18
+  },
+  {
+    "sku": "jewel-tailoredtennisedit",
+    "title": "Polished gold cuff",
+    "family": "bracelet",
+    "base_name": "bracelet-02",
+    "variant_index": 19
+  },
+  {
+    "sku": "ring-42",
+    "title": "Silver square signet ring",
+    "family": "ring",
+    "base_name": "ring-04",
+    "variant_index": 16
+  },
+  {
+    "sku": "ring-31",
+    "title": "Slim gold stacking ring",
+    "family": "ring",
+    "base_name": "ring-05",
+    "variant_index": 17
+  },
+  {
+    "sku": "bangle-36",
+    "title": "Slim stacked bangles",
+    "family": "bangle",
+    "base_name": "bangle-01",
+    "variant_index": 9
+  },
+  {
+    "sku": "bracelet-16",
+    "title": "Stacked gold bangles",
+    "family": "bangle",
+    "base_name": "bangle-02",
+    "variant_index": 10
+  },
+  {
+    "sku": "bracelet-32",
+    "title": "Textured cuff bracelet",
+    "family": "bracelet",
+    "base_name": "bracelet-03",
+    "variant_index": 20
+  }
+]

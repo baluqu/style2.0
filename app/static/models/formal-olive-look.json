@@ -1,0 +1,214 @@
+{
+  "inspiration": "premium men's formal outfit",
+  "reference_image": "formal-olive-reference.jpg",
+  "segments": 11,
+  "total_scene_triangles": 22,
+  "meshes": 11,
+  "nodes": 13,
+  "animations": 1,
+  "duration_seconds": 10.0,
+  "render_style": "layered image rig derived from uploaded reference",
+  "asset_mode": "rig",
+  "cutout_image": "formal-olive-cutout.png",
+  "cutout_bbox": [
+    10,
+    0,
+    402,
+    1055
+  ],
+  "cutout_width": 392,
+  "cutout_height": 1055,
+  "cutout_plane_width": 1.0478,
+  "cutout_plane_height": 2.82,
+  "segments_data": [
+    {
+      "name": "Head",
+      "image": "formal-rig/Head.png",
+      "bbox": [
+        119,
+        2,
+        292,
+        168
+      ],
+      "plane_width": 0.4624,
+      "plane_height": 0.4437,
+      "position": [
+        -0.0013,
+        1.1828,
+        0.018
+      ]
+    },
+    {
+      "name": "Torso",
+      "image": "formal-rig/Torso.png",
+      "bbox": [
+        82,
+        105,
+        329,
+        464
+      ],
+      "plane_width": 0.6602,
+      "plane_height": 0.9596,
+      "position": [
+        -0.0013,
+        0.6495,
+        0.012
+      ]
+    },
+    {
+      "name": "Hip",
+      "image": "formal-rig/Hip.png",
+      "bbox": [
+        74,
+        443,
+        337,
+        633
+      ],
+      "plane_width": 0.703,
+      "plane_height": 0.5079,
+      "position": [
+        -0.0013,
+        -0.0281,
+        0.015
+      ]
+    },
+    {
+      "name": "LeftArm",
+      "image": "formal-rig/LeftArm.png",
+      "bbox": [
+        12,
+        147,
+        131,
+        696
+      ],
+      "plane_width": 0.3181,
+      "plane_height": 1.4675,
+      "position": [
+        -0.3595,
+        0.2833,
+        0.022
+      ]
+    },
+    {
+      "name": "RightArm",
+      "image": "formal-rig/RightArm.png",
+      "bbox": [
+        280,
+        147,
+        399,
+        696
+      ],
+      "plane_width": 0.3181,
+      "plane_height": 1.4675,
+      "position": [
+        0.3568,
+        0.2833,
+        0.022
+      ]
+    },
+    {
+      "name": "LeftUpperLeg",
+      "image": "formal-rig/LeftUpperLeg.png",
+      "bbox": [
+        74,
+        580,
+        206,
+        822
+      ],
+      "plane_width": 0.3528,
+      "plane_height": 0.6469,
+      "position": [
+        -0.1764,
+        -0.4638,
+        0.007
+      ]
+    },
+    {
+      "name": "RightUpperLeg",
+      "image": "formal-rig/RightUpperLeg.png",
+      "bbox": [
+        206,
+        580,
+        322,
+        822
+      ],
+      "plane_width": 0.3101,
+      "plane_height": 0.6469,
+      "position": [
+        0.155,
+        -0.4638,
+        0.007
+      ]
+    },
+    {
+      "name": "LeftLowerLeg",
+      "image": "formal-rig/LeftLowerLeg.png",
+      "bbox": [
+        57,
+        812,
+        172,
+        1012
+      ],
+      "plane_width": 0.3074,
+      "plane_height": 0.5346,
+      "position": [
+        -0.2446,
+        -1.0278,
+        0.006
+      ]
+    },
+    {
+      "name": "RightLowerLeg",
+      "image": "formal-rig/RightLowerLeg.png",
+      "bbox": [
+        226,
+        812,
+        332,
+        1012
+      ],
+      "plane_width": 0.2833,
+      "plane_height": 0.5346,
+      "position": [
+        0.1951,
+        -1.0278,
+        0.006
+      ]
+    },
+    {
+      "name": "LeftFoot",
+      "image": "formal-rig/LeftFoot.png",
+      "bbox": [
+        12,
+        981,
+        167,
+        1052
+      ],
+      "plane_width": 0.4143,
+      "plane_height": 0.1898,
+      "position": [
+        -0.3114,
+        -1.3071,
+        0.014
+      ]
+    },
+    {
+      "name": "RightFoot",
+      "image": "formal-rig/RightFoot.png",
+      "bbox": [
+        234,
+        981,
+        338,
+        1053
+      ],
+      "plane_width": 0.278,
+      "plane_height": 0.1925,
+      "position": [
+        0.2138,
+        -1.3084,
+        0.014
+      ]
+    }
+  ],
+  "size_bytes": 342364,
+  "size_mb": 0.3265
+}

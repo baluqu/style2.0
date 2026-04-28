@@ -1,0 +1,532 @@
+{
+  "watch-softtailoringstudio": {
+    "title": "Beige dress watch",
+    "brand": "Fossil",
+    "look_title": "Soft Tailoring Studio",
+    "search_query": "beige wristwatch",
+    "source_title": "File:250503 \ub178\ub9e4\ub4dc \ubc18\ud3ec \ud55c\uac15\uacf5\uc6d0 \ubc84\uc2a4\ud0b9.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/250503_%EB%85%B8%EB%A7%A4%EB%93%9C_%EB%B0%98%ED%8F%AC_%ED%95%9C%EA%B0%95%EA%B3%B5%EC%9B%90_%EB%B2%84%EC%8A%A4%ED%82%B9.jpg/1280px-250503_%EB%85%B8%EB%A7%A4%EB%93%9C_%EB%B0%98%ED%8F%AC_%ED%95%9C%EA%B0%95%EA%B3%B5%EC%9B%90_%EB%B2%84%EC%8A%A4%ED%82%B9.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:250503_%EB%85%B8%EB%A7%A4%EB%93%9C_%EB%B0%98%ED%8F%AC_%ED%95%9C%EA%B0%95%EA%B3%B5%EC%9B%90_%EB%B2%84%EC%8A%A4%ED%82%B9.jpg",
+    "expected_file": "app/static/img/accessories/watch-softtailoringstudio.jpg"
+  },
+  "watch-desertrosemodest": {
+    "title": "Berry dress watch",
+    "brand": "Fossil",
+    "look_title": "Berry Day Buibui",
+    "search_query": "red wristwatch",
+    "source_title": "File:Red white and blue watch (26212677113).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/Red_white_and_blue_watch_%2826212677113%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Red_white_and_blue_watch_(26212677113).jpg",
+    "expected_file": "app/static/img/accessories/watch-desertrosemodest.jpg"
+  },
+  "watch-blackabayastudioclassic": {
+    "title": "Black dress watch",
+    "brand": "Fossil",
+    "look_title": "Black Abaya Studio Classic",
+    "search_query": "black wristwatch",
+    "source_title": "File:Amelia in Black aviation watch for woman.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Amelia_in_Black_aviation_watch_for_woman.jpg/1280px-Amelia_in_Black_aviation_watch_for_woman.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Amelia_in_Black_aviation_watch_for_woman.jpg",
+    "expected_file": "app/static/img/accessories/watch-blackabayastudioclassic.jpg"
+  },
+  "watch-goldtrimabayastudio": {
+    "title": "Black dress watch",
+    "brand": "Fossil",
+    "look_title": "Gold-Trim Abaya Studio",
+    "search_query": "black wristwatch",
+    "source_title": "File:Jonny Moore watches1176-ARTIC FRONT-BLACK STRAPS (2).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Jonny_Moore_watches1176-ARTIC_FRONT-BLACK_STRAPS_%282%29.jpg/1280px-Jonny_Moore_watches1176-ARTIC_FRONT-BLACK_STRAPS_%282%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Jonny_Moore_watches1176-ARTIC_FRONT-BLACK_STRAPS_(2).jpg",
+    "expected_file": "app/static/img/accessories/watch-goldtrimabayastudio.jpg"
+  },
+  "watch-midnightminimalmodest": {
+    "title": "Black dress watch",
+    "brand": "Fossil",
+    "look_title": "Midnight Minimal Abaya",
+    "search_query": "black wristwatch",
+    "source_title": "File:Sahalkp watch black.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Sahalkp_watch_black.jpg/1280px-Sahalkp_watch_black.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Sahalkp_watch_black.jpg",
+    "expected_file": "app/static/img/accessories/watch-midnightminimalmodest.jpg"
+  },
+  "watch-midnightrunnerlayers": {
+    "title": "Black dress watch",
+    "brand": "Fossil",
+    "look_title": "Midnight Tailored Layers",
+    "search_query": "black wristwatch",
+    "source_title": "File:Sinclair Black Watch Display.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Sinclair_Black_Watch_Display.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Sinclair_Black_Watch_Display.jpg",
+    "expected_file": "app/static/img/accessories/watch-midnightrunnerlayers.jpg"
+  },
+  "watch-monochromerunway": {
+    "title": "Black dress watch",
+    "brand": "Fossil",
+    "look_title": "Monochrome Runway Reset",
+    "search_query": "black wristwatch",
+    "source_title": "File:Sinclair Black Watch.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/1/10/Sinclair_Black_Watch.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Sinclair_Black_Watch.jpg",
+    "expected_file": "app/static/img/accessories/watch-monochromerunway.jpg"
+  },
+  "watch-monochrometracksuiting": {
+    "title": "Black dress watch",
+    "brand": "Fossil",
+    "look_title": "Monochrome Track Suiting",
+    "search_query": "black wristwatch",
+    "source_title": "File:Tissot RockWatch R151 white black, new back.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Tissot_RockWatch_R151_white_black%2C_new_back.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Tissot_RockWatch_R151_white_black,_new_back.jpg",
+    "expected_file": "app/static/img/accessories/watch-monochrometracksuiting.jpg"
+  },
+  "watch-nighttailoringdark": {
+    "title": "Black dress watch",
+    "brand": "Fossil",
+    "look_title": "Night Tailoring Dark",
+    "search_query": "black wristwatch",
+    "source_title": "File:Tissot chronograph watch on black background.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Tissot_chronograph_watch_on_black_background.jpg/1280px-Tissot_chronograph_watch_on_black_background.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Tissot_chronograph_watch_on_black_background.jpg",
+    "expected_file": "app/static/img/accessories/watch-nighttailoringdark.jpg"
+  },
+  "watch-mosquemarbleabaya": {
+    "title": "Black dress watch",
+    "brand": "Fossil",
+    "look_title": "Studio Contrast Abaya",
+    "search_query": "black wristwatch",
+    "source_title": "File:Watch Black Edit.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Watch_Black_Edit.jpg/1280px-Watch_Black_Edit.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Watch_Black_Edit.jpg",
+    "expected_file": "app/static/img/accessories/watch-mosquemarbleabaya.jpg"
+  },
+  "watch-48": {
+    "title": "Classic steel wristwatch",
+    "brand": "Fossil",
+    "look_title": "Brown Thobe Portrait",
+    "search_query": "silver wristwatch",
+    "source_title": "File:Two silver rings with Hopi indian motives and two wristwatches with steel bracelets.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Two_silver_rings_with_Hopi_indian_motives_and_two_wristwatches_with_steel_bracelets.jpg/1280px-Two_silver_rings_with_Hopi_indian_motives_and_two_wristwatches_with_steel_bracelets.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Two_silver_rings_with_Hopi_indian_motives_and_two_wristwatches_with_steel_bracelets.jpg",
+    "expected_file": "app/static/img/accessories/watch-48.jpg"
+  },
+  "watch-vibranteidstatement": {
+    "title": "Coral dress watch",
+    "brand": "Fossil",
+    "look_title": "Vibrant Eid Statement",
+    "search_query": "coral wristwatch",
+    "source_title": "File:NEEMO 4 crew.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/b/b4/NEEMO_4_crew.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:NEEMO_4_crew.jpg",
+    "expected_file": "app/static/img/accessories/watch-vibranteidstatement.jpg"
+  },
+  "watch-tailoredtennisedit": {
+    "title": "Cream dress watch",
+    "brand": "Fossil",
+    "look_title": "Tailored Tennis Edit",
+    "search_query": "white dial wristwatch",
+    "source_title": "File:Baume & Mercier Classima 18k mens quartz watch.png",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/1/12/Baume_%26_Mercier_Classima_18k_mens_quartz_watch.png",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Baume_%26_Mercier_Classima_18k_mens_quartz_watch.png",
+    "expected_file": "app/static/img/accessories/watch-tailoredtennisedit.png"
+  },
+  "watch-embroideredrosebuibui": {
+    "title": "Everyday analog watch",
+    "brand": "Timex",
+    "look_title": "Embroidered Rose Buibui",
+    "search_query": "analog wristwatch leather strap",
+    "source_title": "File:Watch in the mountains (Unsplash).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Watch_in_the_mountains_%28Unsplash%29.jpg/1280px-Watch_in_the_mountains_%28Unsplash%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Watch_in_the_mountains_(Unsplash).jpg",
+    "expected_file": "app/static/img/accessories/watch-embroideredrosebuibui.jpg"
+  },
+  "watch-maroonmeadowabaya": {
+    "title": "Everyday analog watch",
+    "brand": "Timex",
+    "look_title": "Maroon Meadow Abaya",
+    "search_query": "analog wristwatch leather strap",
+    "source_title": "File:Escapement Time Pilot Flieger Chronograph (cropped and turned 0.5*Pi).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Escapement_Time_Pilot_Flieger_Chronograph_%28cropped_and_turned_0.5%2APi%29.jpg/1280px-Escapement_Time_Pilot_Flieger_Chronograph_%28cropped_and_turned_0.5%2APi%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Escapement_Time_Pilot_Flieger_Chronograph_(cropped_and_turned_0.5*Pi).jpg",
+    "expected_file": "app/static/img/accessories/watch-maroonmeadowabaya.jpg"
+  },
+  "watch-cityknitneutral": {
+    "title": "Grey dress watch",
+    "brand": "Fossil",
+    "look_title": "City Knit Neutral",
+    "search_query": "grey dial wristwatch",
+    "source_title": "File:Dan Henry watches 2016 models.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Dan_Henry_watches_2016_models.jpg/1280px-Dan_Henry_watches_2016_models.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Dan_Henry_watches_2016_models.jpg",
+    "expected_file": "app/static/img/accessories/watch-cityknitneutral.jpg"
+  },
+  "watch-precisiontravelflex": {
+    "title": "Grey dress watch",
+    "brand": "Fossil",
+    "look_title": "Precision Travel Flex",
+    "search_query": "grey dial wristwatch",
+    "source_title": "File:Wikipedia-Tissot-Navigator-3000-GreyDial-1.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/6/65/Wikipedia-Tissot-Navigator-3000-GreyDial-1.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Wikipedia-Tissot-Navigator-3000-GreyDial-1.jpg",
+    "expected_file": "app/static/img/accessories/watch-precisiontravelflex.jpg"
+  },
+  "watch-vintagecourtwarmup": {
+    "title": "Grey dress watch",
+    "brand": "Fossil",
+    "look_title": "Soft Knit City Edit",
+    "search_query": "grey dial wristwatch",
+    "source_title": "File:Casio LTP-B165L-2BVEF Tiffany Tank.png",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Casio_LTP-B165L-2BVEF_Tiffany_Tank.png/1280px-Casio_LTP-B165L-2BVEF_Tiffany_Tank.png",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Casio_LTP-B165L-2BVEF_Tiffany_Tank.png",
+    "expected_file": "app/static/img/accessories/watch-vintagecourtwarmup.png"
+  },
+  "watch-41": {
+    "title": "Gunmetal dress watch",
+    "brand": "Fossil",
+    "look_title": "Charcoal Kandura Night",
+    "search_query": "black steel watch",
+    "source_title": "File:Clock watch MET DP351934.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Clock_watch_MET_DP351934.jpg/1280px-Clock_watch_MET_DP351934.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Clock_watch_MET_DP351934.jpg",
+    "expected_file": "app/static/img/accessories/watch-41.jpg"
+  },
+  "watch-courtlineminimalmotion": {
+    "title": "Ivory dress watch",
+    "brand": "Fossil",
+    "look_title": "Courtline Minimal Motion",
+    "search_query": "white dial wristwatch",
+    "source_title": "File:Breitling B13050 Chronomat automatic men's watch 18K & stainless steel.png",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Breitling_B13050_Chronomat_automatic_men%27s_watch_18K_%26_stainless_steel.png",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Breitling_B13050_Chronomat_automatic_men%27s_watch_18K_%26_stainless_steel.png",
+    "expected_file": "app/static/img/accessories/watch-courtlineminimalmotion.png"
+  },
+  "watch-44": {
+    "title": "Minimal steel watch",
+    "brand": "Fossil",
+    "look_title": "City White Kandura",
+    "search_query": "silver wristwatch",
+    "source_title": "File:Cartier Santos gold silver watch.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/3/33/Cartier_Santos_gold_silver_watch.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Cartier_Santos_gold_silver_watch.jpg",
+    "expected_file": "app/static/img/accessories/watch-44.jpg"
+  },
+  "watch-modesteverydayindigo": {
+    "title": "Navy dress watch",
+    "brand": "Fossil",
+    "look_title": "Indigo Everyday Abaya",
+    "search_query": "blue dial wristwatch",
+    "source_title": "File:Binkada Quartz Wristwatch with Blue Sunburst Dial and Faceted Crystal 01.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Binkada_Quartz_Wristwatch_with_Blue_Sunburst_Dial_and_Faceted_Crystal_01.jpg/1280px-Binkada_Quartz_Wristwatch_with_Blue_Sunburst_Dial_and_Faceted_Crystal_01.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Binkada_Quartz_Wristwatch_with_Blue_Sunburst_Dial_and_Faceted_Crystal_01.jpg",
+    "expected_file": "app/static/img/accessories/watch-modesteverydayindigo.jpg"
+  },
+  "watch-luxecommuteset": {
+    "title": "Navy dress watch",
+    "brand": "Fossil",
+    "look_title": "Luxe Commute Set",
+    "search_query": "blue dial wristwatch",
+    "source_title": "File:Binkada Quartz Wristwatch with Blue Sunburst Dial and Faceted Crystal 02.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Binkada_Quartz_Wristwatch_with_Blue_Sunburst_Dial_and_Faceted_Crystal_02.jpg/1280px-Binkada_Quartz_Wristwatch_with_Blue_Sunburst_Dial_and_Faceted_Crystal_02.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Binkada_Quartz_Wristwatch_with_Blue_Sunburst_Dial_and_Faceted_Crystal_02.jpg",
+    "expected_file": "app/static/img/accessories/watch-luxecommuteset.jpg"
+  },
+  "watch-afterhourssatin": {
+    "title": "Pearl dress watch",
+    "brand": "Fossil",
+    "look_title": "After-Hours Satin",
+    "search_query": "white wristwatch",
+    "source_title": "File:Android white watch.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Android_white_watch.jpg/1280px-Android_white_watch.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Android_white_watch.jpg",
+    "expected_file": "app/static/img/accessories/watch-afterhourssatin.jpg"
+  },
+  "watch-creamjubbaweekend": {
+    "title": "Prayer time steel watch",
+    "brand": "Casio",
+    "look_title": "Cream Jubba Weekend",
+    "search_query": "stainless steel wristwatch",
+    "source_title": "File:1970s Watch Ancre Antishoc stainless steel back antmagnetic (51878890718).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/1970s_Watch_Ancre_Antishoc_stainless_steel_back_antmagnetic_%2851878890718%29.jpg/1280px-1970s_Watch_Ancre_Antishoc_stainless_steel_back_antmagnetic_%2851878890718%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:1970s_Watch_Ancre_Antishoc_stainless_steel_back_antmagnetic_(51878890718).jpg",
+    "expected_file": "app/static/img/accessories/watch-creamjubbaweekend.jpg"
+  },
+  "watch-embroideredkurtastudio": {
+    "title": "Prayer time steel watch",
+    "brand": "Casio",
+    "look_title": "Embroidered Kurta Studio",
+    "search_query": "stainless steel wristwatch",
+    "source_title": "File:1970s Watch City shockproof stainless steel back antmagnetic (51877847102).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/1970s_Watch_City_shockproof_stainless_steel_back_antmagnetic_%2851877847102%29.jpg/1280px-1970s_Watch_City_shockproof_stainless_steel_back_antmagnetic_%2851877847102%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:1970s_Watch_City_shockproof_stainless_steel_back_antmagnetic_(51877847102).jpg",
+    "expected_file": "app/static/img/accessories/watch-embroideredkurtastudio.jpg"
+  },
+  "watch-espressofridayfit": {
+    "title": "Prayer time steel watch",
+    "brand": "Casio",
+    "look_title": "Espresso Jubba Friday",
+    "search_query": "stainless steel wristwatch",
+    "source_title": "File:Four analog wristwatches with watch straps from stainless steel - image 1.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_1.jpg/1280px-Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_1.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_1.jpg",
+    "expected_file": "app/static/img/accessories/watch-espressofridayfit.jpg"
+  },
+  "watch-heritageoccasionwhite": {
+    "title": "Prayer time steel watch",
+    "brand": "Casio",
+    "look_title": "Heritage Kandura Occasion",
+    "search_query": "stainless steel wristwatch",
+    "source_title": "File:Four analog wristwatches with watch straps from stainless steel - image 2.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_2.jpg/1280px-Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_2.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_2.jpg",
+    "expected_file": "app/static/img/accessories/watch-heritageoccasionwhite.jpg"
+  },
+  "watch-prayerbeadsthobe": {
+    "title": "Prayer time steel watch",
+    "brand": "Casio",
+    "look_title": "Prayer Beads Thobe",
+    "search_query": "stainless steel wristwatch",
+    "source_title": "File:Four analog wristwatches with watch straps from stainless steel - image 3.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_3.jpg/1280px-Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_3.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_3.jpg",
+    "expected_file": "app/static/img/accessories/watch-prayerbeadsthobe.jpg"
+  },
+  "watch-studioblackthobe": {
+    "title": "Prayer time steel watch",
+    "brand": "Casio",
+    "look_title": "Studio Black Thobe",
+    "search_query": "stainless steel wristwatch",
+    "source_title": "File:Four analog wristwatches with watch straps from stainless steel - image 4.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_4.jpg/1280px-Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_4.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Four_analog_wristwatches_with_watch_straps_from_stainless_steel_-_image_4.jpg",
+    "expected_file": "app/static/img/accessories/watch-studioblackthobe.jpg"
+  },
+  "watch-studioloungetailoredactive": {
+    "title": "Rose dress watch",
+    "brand": "Fossil",
+    "look_title": "Studio Lounge Tailored Active",
+    "search_query": "rose gold wristwatch",
+    "source_title": "File:Ultimate in Rose Gold Wristwatches RCWATCHES.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Ultimate_in_Rose_Gold_Wristwatches_RCWATCHES.jpg/1280px-Ultimate_in_Rose_Gold_Wristwatches_RCWATCHES.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Ultimate_in_Rose_Gold_Wristwatches_RCWATCHES.jpg",
+    "expected_file": "app/static/img/accessories/watch-studioloungetailoredactive.jpg"
+  },
+  "watch-desertbreezebuibui": {
+    "title": "Sand dress watch",
+    "brand": "Fossil",
+    "look_title": "Desert Breeze Buibui",
+    "search_query": "beige wristwatch",
+    "source_title": "File:Cady Coleman (NASA) (5061716453).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Cady_Coleman_%28NASA%29_%285061716453%29.jpg/1280px-Cady_Coleman_%28NASA%29_%285061716453%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Cady_Coleman_(NASA)_(5061716453).jpg",
+    "expected_file": "app/static/img/accessories/watch-desertbreezebuibui.jpg"
+  },
+  "watch-21": {
+    "title": "Silver dress watch",
+    "brand": "Fossil",
+    "look_title": "White Thobe Sunset Edit",
+    "search_query": "silver wristwatch",
+    "source_title": "File:Silver digital watch prototype, 1975.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Silver_digital_watch_prototype%2C_1975.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Silver_digital_watch_prototype,_1975.jpg",
+    "expected_file": "app/static/img/accessories/watch-21.jpg"
+  },
+  "watch-46": {
+    "title": "Simple brown strap watch",
+    "brand": "Fossil",
+    "look_title": "Street Thobe Urban",
+    "search_query": "brown leather wristwatch",
+    "source_title": "File:Watch, wrist (AM 2015.20.15-1).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Watch%2C_wrist_%28AM_2015.20.15-1%29.jpg/1280px-Watch%2C_wrist_%28AM_2015.20.15-1%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Watch,_wrist_(AM_2015.20.15-1).jpg",
+    "expected_file": "app/static/img/accessories/watch-46.jpg"
+  },
+  "watch-campusathleisure": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Campus Athleisure Loop",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Before-and-after comparison of photo retouche on Poljot Buran chronograph wristwatch from about 1990.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Before-and-after_comparison_of_photo_retouche_on_Poljot_Buran_chronograph_wristwatch_from_about_1990.jpg/1280px-Before-and-after_comparison_of_photo_retouche_on_Poljot_Buran_chronograph_wristwatch_from_about_1990.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Before-and-after_comparison_of_photo_retouche_on_Poljot_Buran_chronograph_wristwatch_from_about_1990.jpg",
+    "expected_file": "app/static/img/accessories/watch-campusathleisure.jpg"
+  },
+  "watch-cargogymstreet": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Cargo Gym Street",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Crown and chronograph pushers of a Montblanc Timewalker wristwatch V1 (cropped).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V1_%28cropped%29.jpg/1280px-Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V1_%28cropped%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V1_(cropped).jpg",
+    "expected_file": "app/static/img/accessories/watch-cargogymstreet.jpg"
+  },
+  "watch-citybuibuiinblack": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "City Buibui in Black",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Crown and chronograph pushers of a Montblanc Timewalker wristwatch V1.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V1.jpg/1280px-Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V1.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V1.jpg",
+    "expected_file": "app/static/img/accessories/watch-citybuibuiinblack.jpg"
+  },
+  "watch-citylayeredmodest": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "City Layered Abaya",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Crown and chronograph pushers of a Montblanc Timewalker wristwatch V2 (cropped).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V2_%28cropped%29.jpg/1280px-Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V2_%28cropped%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V2_(cropped).jpg",
+    "expected_file": "app/static/img/accessories/watch-citylayeredmodest.jpg"
+  },
+  "watch-citywindbreakerloop": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "City Windbreaker Loop",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Crown and chronograph pushers of a Montblanc Timewalker wristwatch V2.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V2.jpg/1280px-Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V2.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Crown_and_chronograph_pushers_of_a_Montblanc_Timewalker_wristwatch_V2.jpg",
+    "expected_file": "app/static/img/accessories/watch-citywindbreakerloop.jpg"
+  },
+  "watch-denimsprintclub": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Denim Sprint Club",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Detailed view from rear on chronograph pushers and folding clasp of an Omega Speedmaster Professional wristwatch (cropped).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Detailed_view_from_rear_on_chronograph_pushers_and_folding_clasp_of_an_Omega_Speedmaster_Professional_wristwatch_%28cropped%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Detailed_view_from_rear_on_chronograph_pushers_and_folding_clasp_of_an_Omega_Speedmaster_Professional_wristwatch_(cropped).jpg",
+    "expected_file": "app/static/img/accessories/watch-denimsprintclub.jpg"
+  },
+  "watch-denimvintageedit": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Denim Vintage Edit",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Detailed view of Rolex Daytona chronograph watch and watchstrap.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/4/44/Detailed_view_of_Rolex_Daytona_chronograph_watch_and_watchstrap.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Detailed_view_of_Rolex_Daytona_chronograph_watch_and_watchstrap.jpg",
+    "expected_file": "app/static/img/accessories/watch-denimvintageedit.jpg"
+  },
+  "watch-downtownmeshmotion": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Downtown Mesh Motion",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Detailed view of left half of Casio Edifice chronograph wristwatch.jpeg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Detailed_view_of_left_half_of_Casio_Edifice_chronograph_wristwatch.jpeg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Detailed_view_of_left_half_of_Casio_Edifice_chronograph_wristwatch.jpeg",
+    "expected_file": "app/static/img/accessories/watch-downtownmeshmotion.jpeg"
+  },
+  "watch-graffititrainingday": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Graffiti Training Day",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Detailed view on chronograph pushers and crown of wristwatch Rolex Daytona (cropped).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Detailed_view_on_chronograph_pushers_and_crown_of_wristwatch_Rolex_Daytona_%28cropped%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Detailed_view_on_chronograph_pushers_and_crown_of_wristwatch_Rolex_Daytona_(cropped).jpg",
+    "expected_file": "app/static/img/accessories/watch-graffititrainingday.jpg"
+  },
+  "watch-retrotrackweekend": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Retro Track Weekend",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Detailed view on chronograph pushers of Omega Speedmaster CK2915 wristwatch (cropped).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Detailed_view_on_chronograph_pushers_of_Omega_Speedmaster_CK2915_wristwatch_%28cropped%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Detailed_view_on_chronograph_pushers_of_Omega_Speedmaster_CK2915_wristwatch_(cropped).jpg",
+    "expected_file": "app/static/img/accessories/watch-retrotrackweekend.jpg"
+  },
+  "watch-streetwearweekend": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Streetwear Weekend Stack",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Detailed view on chronograph pushers on a wristwatch from Zeno (cropped).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/8/80/Detailed_view_on_chronograph_pushers_on_a_wristwatch_from_Zeno_%28cropped%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Detailed_view_on_chronograph_pushers_on_a_wristwatch_from_Zeno_(cropped).jpg",
+    "expected_file": "app/static/img/accessories/watch-streetwearweekend.jpg"
+  },
+  "watch-throwbacksneakerrush": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Throwback Sneaker Rush",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Hour hand and minute hand and chronograph sub-dials of chronograph watch Poljot Buran (c. 1990).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/9/9d/Hour_hand_and_minute_hand_and_chronograph_sub-dials_of_chronograph_watch_Poljot_Buran_%28c._1990%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Hour_hand_and_minute_hand_and_chronograph_sub-dials_of_chronograph_watch_Poljot_Buran_(c._1990).jpg",
+    "expected_file": "app/static/img/accessories/watch-throwbacksneakerrush.jpg"
+  },
+  "watch-utilitytrackset": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Utility Track Set",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Tissot chronograph watch on white background.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Tissot_chronograph_watch_on_white_background.jpg/1280px-Tissot_chronograph_watch_on_white_background.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Tissot_chronograph_watch_on_white_background.jpg",
+    "expected_file": "app/static/img/accessories/watch-utilitytrackset.jpg"
+  },
+  "watch-varsityjoggerstack": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Varsity Jogger Stack",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Two sub-dials of Rolex Daytona chronograph watch.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Two_sub-dials_of_Rolex_Daytona_chronograph_watch.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Two_sub-dials_of_Rolex_Daytona_chronograph_watch.jpg",
+    "expected_file": "app/static/img/accessories/watch-varsityjoggerstack.jpg"
+  },
+  "watch-washedhoodiecircuit": {
+    "title": "Sport chronograph watch",
+    "brand": "Casio",
+    "look_title": "Washed Hoodie Circuit",
+    "search_query": "chronograph wristwatch",
+    "source_title": "File:Illegally copied wristwatch which shall look like Rolex Daytona.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Illegally_copied_wristwatch_which_shall_look_like_Rolex_Daytona.jpg/1280px-Illegally_copied_wristwatch_which_shall_look_like_Rolex_Daytona.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Illegally_copied_wristwatch_which_shall_look_like_Rolex_Daytona.jpg",
+    "expected_file": "app/static/img/accessories/watch-washedhoodiecircuit.jpg"
+  },
+  "watch-aeroblazermove": {
+    "title": "Stone dress watch",
+    "brand": "Fossil",
+    "look_title": "Aero Blazer Move",
+    "search_query": "neutral wristwatch",
+    "source_title": "File:Fabian, 31. September 2006, 7b.JPG",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/9/99/Fabian%2C_31._September_2006%2C_7b.JPG",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Fabian,_31._September_2006,_7b.JPG",
+    "expected_file": "app/static/img/accessories/watch-aeroblazermove.jpg"
+  },
+  "watch-cleanstudiowarmup": {
+    "title": "Taupe dress watch",
+    "brand": "Fossil",
+    "look_title": "Clean Studio Warmup",
+    "search_query": "tan leather wristwatch",
+    "source_title": "File:Benrus Wristwatch Given to Charles A. Lindbergh by the Benrus Watch Company - DPLA - 51c081bf2c33885943c948ebb799da6a (page 1).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Benrus_Wristwatch_Given_to_Charles_A._Lindbergh_by_the_Benrus_Watch_Company_-_DPLA_-_51c081bf2c33885943c948ebb799da6a_%28page_1%29.jpg/1280px-Benrus_Wristwatch_Given_to_Charles_A._Lindbergh_by_the_Benrus_Watch_Company_-_DPLA_-_51c081bf2c33885943c948ebb799da6a_%28page_1%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Benrus_Wristwatch_Given_to_Charles_A._Lindbergh_by_the_Benrus_Watch_Company_-_DPLA_-_51c081bf2c33885943c948ebb799da6a_(page_1).jpg",
+    "expected_file": "app/static/img/accessories/watch-cleanstudiowarmup.jpg"
+  },
+  "watch-silksandevening": {
+    "title": "Taupe dress watch",
+    "brand": "Fossil",
+    "look_title": "Silk Sand Abaya",
+    "search_query": "tan leather wristwatch",
+    "source_title": "File:Benrus Wristwatch Given to Charles A. Lindbergh by the Benrus Watch Company - DPLA - 51c081bf2c33885943c948ebb799da6a (page 10).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Benrus_Wristwatch_Given_to_Charles_A._Lindbergh_by_the_Benrus_Watch_Company_-_DPLA_-_51c081bf2c33885943c948ebb799da6a_%28page_10%29.jpg/1280px-Benrus_Wristwatch_Given_to_Charles_A._Lindbergh_by_the_Benrus_Watch_Company_-_DPLA_-_51c081bf2c33885943c948ebb799da6a_%28page_10%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Benrus_Wristwatch_Given_to_Charles_A._Lindbergh_by_the_Benrus_Watch_Company_-_DPLA_-_51c081bf2c33885943c948ebb799da6a_(page_10).jpg",
+    "expected_file": "app/static/img/accessories/watch-silksandevening.jpg"
+  },
+  "watch-tealabayastatement": {
+    "title": "Teal dress watch",
+    "brand": "Fossil",
+    "look_title": "Teal Abaya Statement",
+    "search_query": "blue green wristwatch",
+    "source_title": "File:AlgiersRiverFestGreenIndianBluedressGirl.JPG",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/AlgiersRiverFestGreenIndianBluedressGirl.JPG/1280px-AlgiersRiverFestGreenIndianBluedressGirl.JPG",
+    "description_url": "https://commons.wikimedia.org/wiki/File:AlgiersRiverFestGreenIndianBluedressGirl.JPG",
+    "expected_file": "app/static/img/accessories/watch-tealabayastatement.jpg"
+  }
+}

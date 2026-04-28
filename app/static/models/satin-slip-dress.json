@@ -1,0 +1,25 @@
+{
+  "dress_triangles": 46224,
+  "total_scene_triangles": 48784,
+  "meshes": 20,
+  "nodes": 22,
+  "animations": 1,
+  "duration_seconds": 10.0,
+  "morph_targets": [
+    "size2",
+    "size10"
+  ],
+  "textures": {
+    "base_color": "1024x1024",
+    "metallic_roughness": "1024x1024",
+    "normal": "1024x1024"
+  },
+  "size_bytes": 2269484,
+  "size_mb": 2.1643,
+  "default_color": "deep emerald",
+  "variants": [
+    "liquid satin",
+    "matte silk",
+    "pearl champagne"
+  ]
+}

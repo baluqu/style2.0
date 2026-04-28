@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Seller Onboarding | StyleBridge{% endblock %}
+{% block content %}
+  <div class="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.22em] text-emerald-200">Seller onboarding</div>
+      <h1 class="mt-3 text-4xl font-black text-white">Set up your brand profile once, then manage everything from the dashboard.</h1>
+      <div class="mt-6 space-y-3">
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-4"><div class="text-sm font-black text-white">Business info</div><div class="mt-1 text-sm text-slate-400">Brand name, location, contacts, and business type.</div></div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-4"><div class="text-sm font-black text-white">Brand assets</div><div class="mt-1 text-sm text-slate-400">Upload a logo and banner so your storefront looks complete.</div></div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-4"><div class="text-sm font-black text-white">Payout and shipping</div><div class="mt-1 text-sm text-slate-400">Set mobile money, bank details, delivery areas, and pricing.</div></div>
+      </div>
+    </section>
+
+    <section class="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
+      <h2 class="text-2xl font-black text-white">Create seller profile</h2>
+      <form method="post" enctype="multipart/form-data" class="mt-6 grid gap-4 md:grid-cols-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+          <label class="text-sm font-bold text-slate-300">Brand name</label>
+          <input name="brand_name" value="{{ profile.brand_name or '' }}" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white" required>
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Location</label>
+          <input name="location" value="{{ profile.location or '' }}" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Contact email</label>
+          <input name="contact_email" value="{{ profile.contact_email or current_user.email }}" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Contact phone</label>
+          <input name="contact_phone" value="{{ profile.contact_phone or current_user.phone or '' }}" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Business type</label>
+          <select name="business_type" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+            {% for option in business_type_options %}
+              <option value="{{ option }}" {% if profile.business_type == option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Delivery areas</label>
+          <input name="delivery_areas" value="{{ profile.get_delivery_areas() | join(', ') }}" placeholder="Nairobi, Mombasa, Kisumu" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Logo image URL</label>
+          <input name="logo_url" value="{{ profile.logo_url or '' }}" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Logo upload</label>
+          <input type="file" name="logo_file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg" class="mt-2 block w-full text-sm text-slate-300">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Banner image URL</label>
+          <input name="banner_url" value="{{ profile.banner_url or '' }}" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Banner upload</label>
+          <input type="file" name="banner_file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg" class="mt-2 block w-full text-sm text-slate-300">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Mobile money</label>
+          <input name="mobile_money_number" value="{{ profile.mobile_money_number or '' }}" placeholder="M-Pesa / wallet number" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Bank name</label>
+          <input name="bank_name" value="{{ profile.bank_name or '' }}" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Bank account name</label>
+          <input name="bank_account_name" value="{{ profile.bank_account_name or '' }}" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Bank account number</label>
+          <input name="bank_account_number" value="{{ profile.bank_account_number or '' }}" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-sm font-bold text-slate-300">Shipping setup</label>
+          <input name="shipping_pricing" value="{{ profile.shipping_pricing or '' }}" placeholder="Nairobi same-day KES 300 | Nationwide KES 600" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-sm font-bold text-slate-300">Brand story</label>
+          <textarea name="about" rows="5" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">{{ profile.about or '' }}</textarea>
+        </div>
+        <button class="md:col-span-2 rounded-2xl bg-emerald-300 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-emerald-200" type="submit">Create seller profile</button>
+      </form>
+    </section>
+  </div>
+{% endblock %}

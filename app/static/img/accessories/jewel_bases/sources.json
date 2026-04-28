@@ -1,0 +1,94 @@
+{
+  "ring-01": {
+    "url": "https://api.openverse.org/v1/images/f51d1896-78e7-48fd-a113-32e0d0767cda/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/ring-01.jpg"
+  },
+  "ring-02": {
+    "url": "https://api.openverse.org/v1/images/813722a1-2b27-4549-a80a-6bf3bf4d4f95/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/ring-02.jpg"
+  },
+  "ring-03": {
+    "url": "https://api.openverse.org/v1/images/497e5c0a-df14-4420-87cb-50b667e6ccec/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/ring-03.jpg"
+  },
+  "ring-04": {
+    "url": "https://api.openverse.org/v1/images/59866da8-523b-4824-83e1-97e896abc09e/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/ring-04.jpg"
+  },
+  "ring-05": {
+    "url": "https://api.openverse.org/v1/images/dac8a217-3556-43d2-a4aa-a88a2d6c2595/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/ring-05.jpg"
+  },
+  "ring-06": {
+    "url": "https://api.openverse.org/v1/images/50689c91-d308-4ed8-886c-fde54cb44e72/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/ring-06.jpg"
+  },
+  "ring-07": {
+    "url": "https://api.openverse.org/v1/images/8ae4abe1-833e-4551-854a-e17fa83471db/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/ring-07.jpg"
+  },
+  "ring-08": {
+    "url": "https://api.openverse.org/v1/images/f02f8932-d9f3-49fa-9780-5bf1e09a962b/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/ring-08.jpg"
+  },
+  "bracelet-01": {
+    "url": "https://api.openverse.org/v1/images/61b2c755-b1ef-4014-bc83-97b3b9b9e775/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/bracelet-01.jpg"
+  },
+  "bracelet-02": {
+    "url": "https://api.openverse.org/v1/images/dc018df8-e5c0-414b-8f65-9d6bb328f3ea/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/bracelet-02.jpg"
+  },
+  "bracelet-03": {
+    "url": "https://api.openverse.org/v1/images/2e623f8e-0764-435c-b0c9-fefb00c21c5e/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/bracelet-03.jpg"
+  },
+  "bracelet-04": {
+    "url": "https://api.openverse.org/v1/images/0ffa85b8-0af5-4c46-9d61-136fdd236b55/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/bracelet-04.jpg"
+  },
+  "bracelet-05": {
+    "url": "https://api.openverse.org/v1/images/1b036d87-bb64-429f-96b3-1215025629c0/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/bracelet-05.jpg"
+  },
+  "bracelet-06": {
+    "url": "https://api.openverse.org/v1/images/d30b3de6-bdab-42c5-8ce1-8faf6244e0b5/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/bracelet-06.jpg"
+  },
+  "bangle-01": {
+    "url": "https://api.openverse.org/v1/images/d09eb247-1113-478f-bb09-9b21f53d1953/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/bangle-01.jpg"
+  },
+  "bangle-02": {
+    "url": "https://api.openverse.org/v1/images/bca60650-3c5d-451c-b83f-b7219f9d334e/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/bangle-02.jpg"
+  },
+  "bangle-03": {
+    "url": "https://api.openverse.org/v1/images/c72ec510-9cf6-4c31-8c09-e42984219a5b/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/bangle-03.jpg"
+  },
+  "earring-01": {
+    "url": "https://api.openverse.org/v1/images/906fde94-b740-40a2-b006-a10e70a27046/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/earring-01.jpg"
+  },
+  "earring-02": {
+    "url": "https://api.openverse.org/v1/images/3e051f03-3c85-4f43-ad0a-cbdd8df0e043/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/earring-02.jpg"
+  },
+  "earring-03": {
+    "url": "https://api.openverse.org/v1/images/8ad70c2e-21a3-4bdb-918e-7b7b305afcc4/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/earring-03.jpg"
+  },
+  "earring-04": {
+    "url": "https://api.openverse.org/v1/images/f6f09e29-46fb-44bf-ade5-9539d619b032/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/earring-04.jpg"
+  },
+  "earring-05": {
+    "url": "https://api.openverse.org/v1/images/6ec386c8-c410-4089-b5ba-dc4118949259/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/earring-05.jpg"
+  },
+  "earring-06": {
+    "url": "https://api.openverse.org/v1/images/a323c6ce-bd5e-4b9b-b194-c2e3a360b2ee/thumb/",
+    "file": "app/static/img/accessories/jewel_bases/earring-06.jpg"
+  }
+}

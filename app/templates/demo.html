@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Free 3D Fashion Preview Tool | StyleBridge{% endblock %}
+{% block content %}
+  <style>
+    .demo-stage {
+      position: relative;
+      border-radius: 1.25rem;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(34, 211, 238, 0.2), transparent 44%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98));
+      min-height: 460px;
+      aspect-ratio: 4 / 5;
+    }
+
+    .demo-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .control-pill[aria-pressed="true"] {
+      border-color: rgba(103, 232, 249, 0.68);
+      color: #fff;
+      background: rgba(34, 211, 238, 0.14);
+    }
+  </style>
+
+  <div class="space-y-6">
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/85 p-6 md:p-8">
+      <h1 class="text-3xl font-black leading-tight text-white md:text-5xl">Free 3D Fashion Preview Tool - Upload GLB -> See it move.</h1>
+      <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300">Load one of the sample GLBs or upload your own model, test motion, switch lighting and palette, then share or export a screenshot.</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href="#workspace" class="rounded-full bg-cyan-300 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200">Try Demo Now</a>
+        <a href="{{ url_for('main.feedback') }}" class="rounded-full border border-white/15 px-6 py-3 text-sm font-black text-white transition hover:bg-white/10">Give feedback</a>
+      </div>
+      <div class="mt-6 rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+        <span class="font-bold text-white">Early testers:</span> [placeholder until real]
+      </div>
+    </section>
+
+    <section id="workspace" class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <div class="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+        <div class="space-y-4">
+          <div class="demo-stage">
+            <canvas id="demo-canvas" class="demo-canvas" aria-label="3D demo canvas"></canvas>
+            <div id="demoStatusBadge" class="pointer-events-none absolute left-4 top-4 rounded-full border border-white/15 bg-slate-950/80 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-slate-200">Ready</div>
+            <div id="demoLoading" class="pointer-events-none absolute inset-0 z-10 hidden items-center justify-center bg-slate-950/60 text-sm font-black uppercase tracking-[0.18em] text-cyan-100">Loading model...</div>
+          </div>
+          <div id="demoStatusText" class="text-sm text-slate-300">Load a sample model or upload your own GLB to start.</div>
+        </div>
+
+        <div class="space-y-5">
+          <div class="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.16em] text-cyan-200">Sample models</div>
+            <div class="mt-3 grid gap-2">
+              {% for model in sample_models %}
+                <button
+                  type="button"
+                  class="control-pill rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-left text-sm font-bold text-slate-200 transition hover:bg-slate-900"
+                  data-demo-model="{{ model.url }}"
+                >
+                  <div class="text-white">{{ model.title }}</div>
+                  <div class="mt-1 text-xs text-slate-400">{{ model.description }}</div>
+                </button>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.16em] text-emerald-200">Upload your GLB</div>
+            <form id="demoUploadForm" class="mt-3 flex flex-wrap gap-2">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input id="demoModelFile" name="model" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" class="min-w-0 flex-1 rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-slate-200 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-1.5 file:font-bold file:text-slate-900">
+              <button type="submit" class="rounded-xl border border-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">Upload</button>
+            </form>
+            <div class="mt-2 text-xs text-slate-400">Guest uploads are temporary and intended for demo/testing.</div>
+          </div>
+
+          <div class="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.16em] text-fuchsia-200">Motion</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <button type="button" class="control-pill rounded-full border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-200" data-demo-motion="idle" aria-pressed="true">Idle</button>
+              <button type="button" class="control-pill rounded-full border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-200" data-demo-motion="walk" aria-pressed="false">Walk</button>
+              <button type="button" class="control-pill rounded-full border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-200" data-demo-motion="spin" aria-pressed="false">Spin</button>
+            </div>
+
+            <div class="mt-4 text-xs font-black uppercase tracking-[0.16em] text-cyan-200">Lighting</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <button type="button" class="control-pill rounded-full border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-200" data-demo-lighting="studio" aria-pressed="true">Studio</button>
+              <button type="button" class="control-pill rounded-full border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-200" data-demo-lighting="day" aria-pressed="false">Day</button>
+              <button type="button" class="control-pill rounded-full border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-200" data-demo-lighting="night" aria-pressed="false">Night</button>
+            </div>
+
+            <div class="mt-4 text-xs font-black uppercase tracking-[0.16em] text-amber-200">Palette</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <button type="button" class="control-pill rounded-full border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-200" data-demo-palette="original" aria-pressed="true">Original</button>
+              <button type="button" class="control-pill rounded-full border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-200" data-demo-palette="charcoal" aria-pressed="false">Charcoal</button>
+              <button type="button" class="control-pill rounded-full border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-200" data-demo-palette="sand" aria-pressed="false">Sand</button>
+            </div>
+          </div>
+
+          <div class="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-300">Share and export</div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button id="demoShare" type="button" class="rounded-xl border border-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">Share this preview</button>
+              <button id="demoExport" type="button" class="rounded-xl border border-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">Export image</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { bootDemoWorkspace } from "{{ url_for('static', filename='js/demo_workspace.js', v='20260427-demo1') }}";
+
+    bootDemoWorkspace({
+      initialModel: {{ initial_model|tojson }},
+      sampleModels: {{ sample_models|tojson }},
+      uploadUrl: {{ url_for('main.demo_upload_model')|tojson }},
+      shareBaseUrl: {{ url_for('main.demo', _external=True)|tojson }},
+    });
+  </script>
+{% endblock %}

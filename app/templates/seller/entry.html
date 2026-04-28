@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Sell on StyleBridge{% endblock %}
+{% block content %}
+  <div class="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/85 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.22em] text-emerald-200">Join as a Brand / Seller</div>
+      <h1 class="mt-3 text-4xl font-black text-white">Open your storefront and sell outfits, not just single items.</h1>
+      <p class="mt-4 max-w-2xl text-base leading-8 text-slate-300">
+        StyleBridge gives brands one seller workspace for products, outfits, orders, payouts, and analytics so you are not
+        forced to manage everything through DMs.
+      </p>
+      <div class="mt-6 grid gap-3 md:grid-cols-3">
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
+          <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Step 1</div>
+          <div class="mt-2 text-sm font-bold text-white">Create seller account</div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
+          <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Step 2</div>
+          <div class="mt-2 text-sm font-bold text-white">Finish brand setup</div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
+          <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Step 3</div>
+          <div class="mt-2 text-sm font-bold text-white">Publish products and outfits</div>
+        </div>
+      </div>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="{{ url_for('auth.seller_register') }}" class="rounded-full bg-emerald-300 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-emerald-200">Start selling</a>
+        <a href="{{ url_for('auth.login') }}" class="rounded-full border border-white/15 px-6 py-3 text-sm font-black text-white transition hover:bg-white/10">Seller login</a>
+      </div>
+    </section>
+
+    <section class="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">What sellers get</div>
+      <div class="mt-4 space-y-4">
+        <div class="rounded-3xl border border-white/10 bg-slate-950/50 p-4">
+          <div class="text-lg font-black text-white">Dashboard control center</div>
+          <div class="mt-1 text-sm text-slate-400">Sales, orders, revenue, and low-stock alerts in one home screen.</div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-slate-950/50 p-4">
+          <div class="text-lg font-black text-white">Create full outfits</div>
+          <div class="mt-1 text-sm text-slate-400">Bundle multiple products into one shoppable look and tag each included item.</div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-slate-950/50 p-4">
+          <div class="text-lg font-black text-white">Storefront inside the app</div>
+          <div class="mt-1 text-sm text-slate-400">Each brand gets a public page with products, outfits, and fulfillment-ready order flow.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+{% endblock %}

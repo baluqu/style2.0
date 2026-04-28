@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Inventory Upload • StyleBridge{% endblock %}
+{% block content %}
+  <div class="flex items-end justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-black">Inventory upload</h1>
+      <p class="text-slate-400 mt-2">Current DB items: <b>{{ item_count }}</b></p>
+    </div>
+    <a class="px-4 py-2 rounded-xl border border-white/15 hover:bg-white/10" href="{{ url_for('main.home') }}">Back</a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <h2 class="text-xl font-black">Upload CSV</h2>
+      <p class="text-slate-400 text-sm mt-2">Headers: <code>title</code>, <code>price</code>, <code>image_url</code></p>
+      <form method="post" enctype="multipart/form-data" class="mt-4 space-y-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="format" value="csv" />
+        <input name="file" type="file" accept=".csv,text/csv"
+               class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-white file:text-slate-950 file:font-bold"
+               required />
+        <button class="w-full rounded-xl bg-emerald-500 text-emerald-950 font-black py-2" type="submit">Upload CSV</button>
+      </form>
+    </div>
+
+    <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <h2 class="text-xl font-black">Paste JSON</h2>
+      <p class="text-slate-400 text-sm mt-2">Format: list of objects with <code>title</code>, <code>price</code>, <code>image_url</code></p>
+      <form method="post" class="mt-4 space-y-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="format" value="json" />
+        <textarea name="json_text" rows="10"
+                  class="w-full rounded-2xl bg-slate-950/60 border border-white/10 px-3 py-2 text-sm"
+                  placeholder='[{"title":"Vintage Denim Jacket","price":45,"image_url":"https://..."}]'></textarea>
+        <button class="w-full rounded-xl bg-white text-slate-950 font-black py-2" type="submit">Upload JSON</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6">
+    <h3 class="font-black">If you’re not admin yet</h3>
+    <p class="text-slate-400 text-sm mt-2">Go to <a class="underline" href="{{ url_for('main.admin_grant') }}">Admin Grant</a> and enter your <code>ADMIN_KEY</code>.</p>
+  </div>
+{% endblock %}
+

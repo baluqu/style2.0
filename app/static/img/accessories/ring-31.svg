@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="Slim gold stacking ring">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="hsl(234, 76%, 16%)" />
+      <stop offset="100%" stop-color="hsl(183, 78%, 34%)" />
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="white" stop-opacity="0.14" />
+      <stop offset="100%" stop-color="white" stop-opacity="0.04" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)" rx="44" />
+  <circle cx="190" cy="170" r="160" fill="hsl(225, 88%, 66%)" opacity="0.12" />
+  <circle cx="1030" cy="760" r="220" fill="hsl(225, 88%, 66%)" opacity="0.1" />
+  <rect x="76" y="72" width="1048" height="756" rx="36" fill="#0f172a" fill-opacity="0.2" stroke="white" stroke-opacity="0.12" />
+  <rect x="96" y="94" width="262" height="56" rx="28" fill="white" fill-opacity="0.14" />
+  <text x="130" y="130" fill="white" font-size="28" font-family="Arial, sans-serif" font-weight="700" letter-spacing="3">JEWELRY</text>
+  <text x="130" y="720" fill="white" font-size="64" font-family="Arial, sans-serif" font-weight="700">Slim gold stacking ring</text>
+  <text x="130" y="772" fill="white" fill-opacity="0.82" font-size="30" font-family="Arial, sans-serif">Ana Luisa | From Black Abaya Studio Classic</text>
+  <text x="1030" y="130" text-anchor="end" fill="white" font-size="42" font-family="Arial, sans-serif" font-weight="700">$24</text>
+  <g transform="translate(0 0)"><circle cx="530" cy="430" r="118" fill="none" stroke="hsl(225, 88%, 66%)" stroke-width="22"/><circle cx="530" cy="430" r="64" fill="none" stroke="white" stroke-width="12" opacity="0.8"/><path d="M732 316 L770 386 L844 398 L790 452 L804 528 L732 492 L660 528 L674 452 L620 398 L694 386 Z" fill="none" stroke="white" stroke-width="14" stroke-linejoin="round"/></g>
+</svg>

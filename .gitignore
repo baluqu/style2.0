@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local environment and secrets
+.env
+.env.local
+
+# Local editor and OS files
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Local runtime artifacts
+instance/*.db
+instance/*.sqlite
+instance/*.sqlite3
+/instance/
+/app.db
+*.db
+*.sqlite
+*.sqlite3
+app/static/uploads/
+*.pem
+
+# Build and archive artifacts
+*.log
+*.zip
+
+# Local browser automation and visual QA artifacts
+/.edge-headless*/
+/edge-*.html
+/edge-*.png
+/splash-response*.html
+/reverted-toji-response.html
+/tmp_toji_extract/
+/cloudflared*.log
+/stylebridge-share*.log
+/server*.log

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Feedback | StyleBridge{% endblock %}
+{% block content %}
+  <div class="mx-auto max-w-3xl space-y-6">
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/85 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Feedback</div>
+      <h1 class="mt-3 text-3xl font-black text-white md:text-4xl">Built by a 17yo Kenyan dev - feedback welcome.</h1>
+      <p class="mt-4 text-base leading-8 text-slate-300">Tell me what works, what breaks, and what would make this genuinely useful for you.</p>
+      <div class="mt-4 flex flex-wrap gap-2 text-sm">
+        <a href="https://x.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-3 py-1.5 font-bold text-white transition hover:bg-white/10">X</a>
+        <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-3 py-1.5 font-bold text-white transition hover:bg-white/10">TikTok</a>
+        <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-3 py-1.5 font-bold text-white transition hover:bg-white/10">Instagram</a>
+        <a href="https://discord.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-3 py-1.5 font-bold text-white transition hover:bg-white/10">Discord</a>
+      </div>
+    </section>
+
+    <section class="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
+      <form method="post" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+          <label for="contact" class="text-sm font-bold text-slate-300">Contact (optional)</label>
+          <input id="contact" name="contact" type="text" maxlength="180" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white" placeholder="@handle, email, or Discord">
+        </div>
+        <div>
+          <label for="message" class="text-sm font-bold text-slate-300">Message</label>
+          <textarea id="message" name="message" rows="7" required maxlength="3000" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white" placeholder="What should I fix first?"></textarea>
+        </div>
+        <button type="submit" class="rounded-2xl bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200">Send feedback</button>
+      </form>
+    </section>
+  </div>
+{% endblock %}

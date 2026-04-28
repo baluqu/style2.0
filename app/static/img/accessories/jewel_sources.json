@@ -1,0 +1,532 @@
+{
+  "jewel-brownthobeportrait": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Brown Thobe Portrait",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:A signet ring with a Zechariah Seal.jpeg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/A_signet_ring_with_a_Zechariah_Seal.jpeg/1280px-A_signet_ring_with_a_Zechariah_Seal.jpeg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:A_signet_ring_with_a_Zechariah_Seal.jpeg",
+    "expected_file": "app/static/img/accessories/jewel-brownthobeportrait.jpeg"
+  },
+  "jewel-cargogymstreet": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Cargo Gym Street",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:A signet ring with a Zechariah.jpeg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/A_signet_ring_with_a_Zechariah.jpeg/1280px-A_signet_ring_with_a_Zechariah.jpeg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:A_signet_ring_with_a_Zechariah.jpeg",
+    "expected_file": "app/static/img/accessories/jewel-cargogymstreet.jpeg"
+  },
+  "jewel-charcoalkanduranight": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Charcoal Kandura Night",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Bronze signet ring - YDEA - 92157.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Bronze_signet_ring_-_YDEA_-_92157.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Bronze_signet_ring_-_YDEA_-_92157.jpg",
+    "expected_file": "app/static/img/accessories/jewel-charcoalkanduranight.jpg"
+  },
+  "jewel-citywhitekandura": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "City White Kandura",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Byzantine - Signet Ring - Walters 572104 - View A.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Byzantine_-_Signet_Ring_-_Walters_572104_-_View_A.jpg/1280px-Byzantine_-_Signet_Ring_-_Walters_572104_-_View_A.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Byzantine_-_Signet_Ring_-_Walters_572104_-_View_A.jpg",
+    "expected_file": "app/static/img/accessories/jewel-citywhitekandura.jpg"
+  },
+  "jewel-creamjubbaweekend": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Cream Jubba Weekend",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Byzantine - Signet Ring - Walters 572104 - View B.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Byzantine_-_Signet_Ring_-_Walters_572104_-_View_B.jpg/1280px-Byzantine_-_Signet_Ring_-_Walters_572104_-_View_B.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Byzantine_-_Signet_Ring_-_Walters_572104_-_View_B.jpg",
+    "expected_file": "app/static/img/accessories/jewel-creamjubbaweekend.jpg"
+  },
+  "jewel-espressofridayfit": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Espresso Jubba Friday",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Egyptian - Signet Ring with Name of King Akhenaten - Walters 571471 - Side A.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Egyptian_-_Signet_Ring_with_Name_of_King_Akhenaten_-_Walters_571471_-_Side_A.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Egyptian_-_Signet_Ring_with_Name_of_King_Akhenaten_-_Walters_571471_-_Side_A.jpg",
+    "expected_file": "app/static/img/accessories/jewel-espressofridayfit.jpg"
+  },
+  "jewel-midnightrunnerlayers": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Midnight Tailored Layers",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Egyptian - Signet Ring with Name of King Akhenaten - Walters 571471 - Three Quarter.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Egyptian_-_Signet_Ring_with_Name_of_King_Akhenaten_-_Walters_571471_-_Three_Quarter.jpg/1280px-Egyptian_-_Signet_Ring_with_Name_of_King_Akhenaten_-_Walters_571471_-_Three_Quarter.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Egyptian_-_Signet_Ring_with_Name_of_King_Akhenaten_-_Walters_571471_-_Three_Quarter.jpg",
+    "expected_file": "app/static/img/accessories/jewel-midnightrunnerlayers.jpg"
+  },
+  "jewel-monochrometracksuiting": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Monochrome Track Suiting",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Egyptian - Signet Ring with Name of King Akhenaten - Walters 571471 - Top.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/1/19/Egyptian_-_Signet_Ring_with_Name_of_King_Akhenaten_-_Walters_571471_-_Top.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Egyptian_-_Signet_Ring_with_Name_of_King_Akhenaten_-_Walters_571471_-_Top.jpg",
+    "expected_file": "app/static/img/accessories/jewel-monochrometracksuiting.jpg"
+  },
+  "jewel-nighttailoringdark": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Night Tailoring Dark",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Egyptian - Signet Ring with Name of King Akhenaten - Walters 571471.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Egyptian_-_Signet_Ring_with_Name_of_King_Akhenaten_-_Walters_571471.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Egyptian_-_Signet_Ring_with_Name_of_King_Akhenaten_-_Walters_571471.jpg",
+    "expected_file": "app/static/img/accessories/jewel-nighttailoringdark.jpg"
+  },
+  "jewel-prayerbeadsthobe": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Prayer Beads Thobe",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Engraved signet ring with bacchanalian scene - Austrian National Library - angular view.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Engraved_signet_ring_with_bacchanalian_scene_-_Austrian_National_Library_-_angular_view.jpg/1280px-Engraved_signet_ring_with_bacchanalian_scene_-_Austrian_National_Library_-_angular_view.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Engraved_signet_ring_with_bacchanalian_scene_-_Austrian_National_Library_-_angular_view.jpg",
+    "expected_file": "app/static/img/accessories/jewel-prayerbeadsthobe.jpg"
+  },
+  "jewel-precisiontravelflex": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Precision Travel Flex",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:German - Signet Ring - Walters 572050.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/German_-_Signet_Ring_-_Walters_572050.jpg/1280px-German_-_Signet_Ring_-_Walters_572050.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:German_-_Signet_Ring_-_Walters_572050.jpg",
+    "expected_file": "app/static/img/accessories/jewel-precisiontravelflex.jpg"
+  },
+  "jewel-streetthobeurban": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Street Thobe Urban",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Histopathology of signet ring cell carcinoma of ileum.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Histopathology_of_signet_ring_cell_carcinoma_of_ileum.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Histopathology_of_signet_ring_cell_carcinoma_of_ileum.jpg",
+    "expected_file": "app/static/img/accessories/jewel-streetthobeurban.jpg"
+  },
+  "jewel-utilitytrackset": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "Utility Track Set",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Shakespeare's signet ring - 1884 - Knots, Ties and Splices.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/8/89/Shakespeare%27s_signet_ring_-_1884_-_Knots%2C_Ties_and_Splices.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Shakespeare%27s_signet_ring_-_1884_-_Knots,_Ties_and_Splices.jpg",
+    "expected_file": "app/static/img/accessories/jewel-utilitytrackset.jpg"
+  },
+  "jewel-thobesunsetedit": {
+    "title": "Brushed signet ring",
+    "brand": "Swarovski",
+    "look_title": "White Thobe Sunset Edit",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Shakespeare's signet ring - The history and poetry of finger-rings.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Shakespeare%27s_signet_ring_-_The_history_and_poetry_of_finger-rings.jpg/1280px-Shakespeare%27s_signet_ring_-_The_history_and_poetry_of_finger-rings.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Shakespeare%27s_signet_ring_-_The_history_and_poetry_of_finger-rings.jpg",
+    "expected_file": "app/static/img/accessories/jewel-thobesunsetedit.jpg"
+  },
+  "earring-37": {
+    "title": "Crystal drop earrings",
+    "brand": "Ana Luisa",
+    "look_title": "Gold-Trim Abaya Studio",
+    "search_query": "crystal drop earrings",
+    "source_title": "File:Rare Vintage Briolette Drop Earrings ~ Authentic Pools of Light ~ Natural Rock Crystal Quartz Gemstone Earrings ~ Accented with Natural Saltwater Akoya Pearls (7605381912).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/2/21/Rare_Vintage_Briolette_Drop_Earrings_~_Authentic_Pools_of_Light_~_Natural_Rock_Crystal_Quartz_Gemstone_Earrings_~_Accented_with_Natural_Saltwater_Akoya_Pearls_%287605381912%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Rare_Vintage_Briolette_Drop_Earrings_~_Authentic_Pools_of_Light_~_Natural_Rock_Crystal_Quartz_Gemstone_Earrings_~_Accented_with_Natural_Saltwater_Akoya_Pearls_(7605381912).jpg",
+    "expected_file": "app/static/img/accessories/earring-37.jpg"
+  },
+  "earring-13": {
+    "title": "Emerald drop earring",
+    "brand": "Ana Luisa",
+    "look_title": "Silk Sand Abaya",
+    "search_query": "green drop earring",
+    "source_title": "File:Byzantine - Earring - Walters 571729.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Byzantine_-_Earring_-_Walters_571729.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Byzantine_-_Earring_-_Walters_571729.jpg",
+    "expected_file": "app/static/img/accessories/earring-13.jpg"
+  },
+  "ring-47": {
+    "title": "Etched silver ring",
+    "brand": "Swarovski",
+    "look_title": "Embroidered Kurta Studio",
+    "search_query": "silver ring jewelry",
+    "source_title": "File:Blue Moon - silver ring with large Mabe-pearl.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Blue_Moon_-_silver_ring_with_large_Mabe-pearl.jpg/1280px-Blue_Moon_-_silver_ring_with_large_Mabe-pearl.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Blue_Moon_-_silver_ring_with_large_Mabe-pearl.jpg",
+    "expected_file": "app/static/img/accessories/ring-47.jpg"
+  },
+  "jewel-citybuibuiinblack": {
+    "title": "Layered chain bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "City Buibui in Black",
+    "search_query": "chain bracelet jewelry",
+    "source_title": "File:02022 0005 Iron anklet, Iron Age Hallstatt Culture a bracelet.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/02022_0005_Iron_anklet%2C_Iron_Age_Hallstatt_Culture_a_bracelet.jpg/1280px-02022_0005_Iron_anklet%2C_Iron_Age_Hallstatt_Culture_a_bracelet.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:02022_0005_Iron_anklet,_Iron_Age_Hallstatt_Culture_a_bracelet.jpg",
+    "expected_file": "app/static/img/accessories/jewel-citybuibuiinblack.jpg"
+  },
+  "jewel-citylayeredmodest": {
+    "title": "Layered chain bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "City Layered Abaya",
+    "search_query": "chain bracelet jewelry",
+    "source_title": "File:02022 0007 Iron anklet, Iron Age Hallstatt Culture a bracelet.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/02022_0007_Iron_anklet%2C_Iron_Age_Hallstatt_Culture_a_bracelet.jpg/1280px-02022_0007_Iron_anklet%2C_Iron_Age_Hallstatt_Culture_a_bracelet.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:02022_0007_Iron_anklet,_Iron_Age_Hallstatt_Culture_a_bracelet.jpg",
+    "expected_file": "app/static/img/accessories/jewel-citylayeredmodest.jpg"
+  },
+  "jewel-denimsprintclub": {
+    "title": "Layered chain bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Denim Sprint Club",
+    "search_query": "chain bracelet jewelry",
+    "source_title": "File:Ankle Bracelet.JPG",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Ankle_Bracelet.JPG/1280px-Ankle_Bracelet.JPG",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Ankle_Bracelet.JPG",
+    "expected_file": "app/static/img/accessories/jewel-denimsprintclub.jpg"
+  },
+  "jewel-denimvintageedit": {
+    "title": "Layered chain bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Denim Vintage Edit",
+    "search_query": "chain bracelet jewelry",
+    "source_title": "File:Ankle bracelet.JPG",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Ankle_bracelet.JPG/1280px-Ankle_bracelet.JPG",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Ankle_bracelet.JPG",
+    "expected_file": "app/static/img/accessories/jewel-denimvintageedit.jpg"
+  },
+  "jewel-downtownmeshmotion": {
+    "title": "Layered chain bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Downtown Mesh Motion",
+    "search_query": "chain bracelet jewelry",
+    "source_title": "File:Anklet-Bracelet LACMA M.76.174.122.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Anklet-Bracelet_LACMA_M.76.174.122.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Anklet-Bracelet_LACMA_M.76.174.122.jpg",
+    "expected_file": "app/static/img/accessories/jewel-downtownmeshmotion.jpg"
+  },
+  "jewel-graffititrainingday": {
+    "title": "Layered chain bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Graffiti Training Day",
+    "search_query": "chain bracelet jewelry",
+    "source_title": "File:Anklet-Bracelet LACMA M.76.97.299a-b.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Anklet-Bracelet_LACMA_M.76.97.299a-b.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Anklet-Bracelet_LACMA_M.76.97.299a-b.jpg",
+    "expected_file": "app/static/img/accessories/jewel-graffititrainingday.jpg"
+  },
+  "jewel-retrotrackweekend": {
+    "title": "Layered chain bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Retro Track Weekend",
+    "search_query": "chain bracelet jewelry",
+    "source_title": "File:Anklet-Bracelet LACMA M.76.97.300a-b.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/9/93/Anklet-Bracelet_LACMA_M.76.97.300a-b.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Anklet-Bracelet_LACMA_M.76.97.300a-b.jpg",
+    "expected_file": "app/static/img/accessories/jewel-retrotrackweekend.jpg"
+  },
+  "jewel-streetwearweekend": {
+    "title": "Layered chain bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Streetwear Weekend Stack",
+    "search_query": "chain bracelet jewelry",
+    "source_title": "File:Anklet-Bracelet LACMA M.76.97.322.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Anklet-Bracelet_LACMA_M.76.97.322.jpg/1280px-Anklet-Bracelet_LACMA_M.76.97.322.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Anklet-Bracelet_LACMA_M.76.97.322.jpg",
+    "expected_file": "app/static/img/accessories/jewel-streetwearweekend.jpg"
+  },
+  "jewel-throwbacksneakerrush": {
+    "title": "Layered chain bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Throwback Sneaker Rush",
+    "search_query": "chain bracelet jewelry",
+    "source_title": "File:Anklet-Bracelet LACMA M.76.97.323.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Anklet-Bracelet_LACMA_M.76.97.323.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Anklet-Bracelet_LACMA_M.76.97.323.jpg",
+    "expected_file": "app/static/img/accessories/jewel-throwbacksneakerrush.jpg"
+  },
+  "jewel-washedhoodiecircuit": {
+    "title": "Layered chain bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Washed Hoodie Circuit",
+    "search_query": "chain bracelet jewelry",
+    "source_title": "File:Anklet-Bracelet LACMA M.76.97.324a-b.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Anklet-Bracelet_LACMA_M.76.97.324a-b.jpg/1280px-Anklet-Bracelet_LACMA_M.76.97.324a-b.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Anklet-Bracelet_LACMA_M.76.97.324a-b.jpg",
+    "expected_file": "app/static/img/accessories/jewel-washedhoodiecircuit.jpg"
+  },
+  "jewel-desertrosemodest": {
+    "title": "Minimal bangle bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Berry Day Buibui",
+    "search_query": "thin bangle jewelry",
+    "source_title": "File:MET 2001 433 277 O1.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/MET_2001_433_277_O1.jpg/1280px-MET_2001_433_277_O1.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:MET_2001_433_277_O1.jpg",
+    "expected_file": "app/static/img/accessories/jewel-desertrosemodest.jpg"
+  },
+  "jewel-campusathleisure": {
+    "title": "Minimal bangle bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Campus Athleisure Loop",
+    "search_query": "thin bangle jewelry",
+    "source_title": "File:MET 2001 433 277 O2.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/MET_2001_433_277_O2.jpg/1280px-MET_2001_433_277_O2.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:MET_2001_433_277_O2.jpg",
+    "expected_file": "app/static/img/accessories/jewel-campusathleisure.jpg"
+  },
+  "jewel-cityknitneutral": {
+    "title": "Minimal bangle bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "City Knit Neutral",
+    "search_query": "thin bangle jewelry",
+    "source_title": "File:Shell-cutters 0.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Shell-cutters_0.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Shell-cutters_0.jpg",
+    "expected_file": "app/static/img/accessories/jewel-cityknitneutral.jpg"
+  },
+  "jewel-citywindbreakerloop": {
+    "title": "Minimal bangle bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "City Windbreaker Loop",
+    "search_query": "silver bangle bracelet",
+    "source_title": "File:02023 Snake silver bracelet from the Wielbark culture found in Gronowo.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/02023_Snake_silver_bracelet_from_the_Wielbark_culture_found_in_Gronowo.jpg/1280px-02023_Snake_silver_bracelet_from_the_Wielbark_culture_found_in_Gronowo.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:02023_Snake_silver_bracelet_from_the_Wielbark_culture_found_in_Gronowo.jpg",
+    "expected_file": "app/static/img/accessories/jewel-citywindbreakerloop.jpg"
+  },
+  "jewel-desertbreezebuibui": {
+    "title": "Minimal bangle bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Desert Breeze Buibui",
+    "search_query": "silver bangle bracelet",
+    "source_title": "File:Bangle MET 26.7.1470 EGDP010557.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Bangle_MET_26.7.1470_EGDP010557.jpg/1280px-Bangle_MET_26.7.1470_EGDP010557.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Bangle_MET_26.7.1470_EGDP010557.jpg",
+    "expected_file": "app/static/img/accessories/jewel-desertbreezebuibui.jpg"
+  },
+  "jewel-modesteverydayindigo": {
+    "title": "Minimal bangle bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Indigo Everyday Abaya",
+    "search_query": "silver bangle bracelet",
+    "source_title": "File:Bangle MET 26.7.1471 EGDP010560.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Bangle_MET_26.7.1471_EGDP010560.jpg/1280px-Bangle_MET_26.7.1471_EGDP010560.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Bangle_MET_26.7.1471_EGDP010560.jpg",
+    "expected_file": "app/static/img/accessories/jewel-modesteverydayindigo.jpg"
+  },
+  "jewel-vintagecourtwarmup": {
+    "title": "Minimal bangle bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Soft Knit City Edit",
+    "search_query": "silver bangle bracelet",
+    "source_title": "File:Bracelet en argent 151.JPG",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Bracelet_en_argent_151.JPG/1280px-Bracelet_en_argent_151.JPG",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Bracelet_en_argent_151.JPG",
+    "expected_file": "app/static/img/accessories/jewel-vintagecourtwarmup.jpg"
+  },
+  "jewel-studioloungetailoredactive": {
+    "title": "Minimal bangle bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Studio Lounge Tailored Active",
+    "search_query": "silver bangle bracelet",
+    "source_title": "File:Modern bracelet terminal with Makara head (FindID 1006424).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Modern_bracelet_terminal_with_Makara_head_%28FindID_1006424%29.jpg/1280px-Modern_bracelet_terminal_with_Makara_head_%28FindID_1006424%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Modern_bracelet_terminal_with_Makara_head_(FindID_1006424).jpg",
+    "expected_file": "app/static/img/accessories/jewel-studioloungetailoredactive.jpg"
+  },
+  "jewel-varsityjoggerstack": {
+    "title": "Minimal bangle bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Varsity Jogger Stack",
+    "search_query": "silver bangle bracelet",
+    "source_title": "File:Part of a bangle (?) MET 26.7.1472 EGDP010562.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Part_of_a_bangle_%28%3F%29_MET_26.7.1472_EGDP010562.jpg/1280px-Part_of_a_bangle_%28%3F%29_MET_26.7.1472_EGDP010562.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Part_of_a_bangle_(%3F)_MET_26.7.1472_EGDP010562.jpg",
+    "expected_file": "app/static/img/accessories/jewel-varsityjoggerstack.jpg"
+  },
+  "ring-22": {
+    "title": "Minimal signet ring",
+    "brand": "Swarovski",
+    "look_title": "Heritage Kandura Occasion",
+    "search_query": "signet ring jewelry",
+    "source_title": "File:Signet Ring Cells (4435095173).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Signet_Ring_Cells_%284435095173%29.jpg/1280px-Signet_Ring_Cells_%284435095173%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Signet_Ring_Cells_(4435095173).jpg",
+    "expected_file": "app/static/img/accessories/ring-22.jpg"
+  },
+  "earring-33": {
+    "title": "Pearl cluster earrings",
+    "brand": "Ana Luisa",
+    "look_title": "Embroidered Rose Buibui",
+    "search_query": "pearl cluster earrings",
+    "source_title": "File:Earrings (Italy), ca. 1880 (CH 18603547).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Earrings_%28Italy%29%2C_ca._1880_%28CH_18603547%29.jpg/1280px-Earrings_%28Italy%29%2C_ca._1880_%28CH_18603547%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Earrings_(Italy),_ca._1880_(CH_18603547).jpg",
+    "expected_file": "app/static/img/accessories/earring-33.jpg"
+  },
+  "jewel-aeroblazermove": {
+    "title": "Polished gold cuff",
+    "brand": "Ana Luisa",
+    "look_title": "Aero Blazer Move",
+    "search_query": "gold cuff bracelet",
+    "source_title": "File:Bronze Age Gold strip (FindID 833749).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Bronze_Age_Gold_strip_%28FindID_833749%29.jpg/1280px-Bronze_Age_Gold_strip_%28FindID_833749%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Bronze_Age_Gold_strip_(FindID_833749).jpg",
+    "expected_file": "app/static/img/accessories/jewel-aeroblazermove.jpg"
+  },
+  "jewel-afterhourssatin": {
+    "title": "Polished gold cuff",
+    "brand": "Ana Luisa",
+    "look_title": "After-Hours Satin",
+    "search_query": "gold cuff bracelet",
+    "source_title": "File:Bronze Age gold strip (FindID 833749).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Bronze_Age_gold_strip_%28FindID_833749%29.jpg/1280px-Bronze_Age_gold_strip_%28FindID_833749%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Bronze_Age_gold_strip_(FindID_833749).jpg",
+    "expected_file": "app/static/img/accessories/jewel-afterhourssatin.jpg"
+  },
+  "jewel-cleanstudiowarmup": {
+    "title": "Polished gold cuff",
+    "brand": "Ana Luisa",
+    "look_title": "Clean Studio Warmup",
+    "search_query": "gold cuff bracelet",
+    "source_title": "File:Cuff Bracelet with Cat Amulets MET 26.8.122a-e EGDP014314.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Cuff_Bracelet_with_Cat_Amulets_MET_26.8.122a-e_EGDP014314.jpg/1280px-Cuff_Bracelet_with_Cat_Amulets_MET_26.8.122a-e_EGDP014314.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Cuff_Bracelet_with_Cat_Amulets_MET_26.8.122a-e_EGDP014314.jpg",
+    "expected_file": "app/static/img/accessories/jewel-cleanstudiowarmup.jpg"
+  },
+  "jewel-courtlineminimalmotion": {
+    "title": "Polished gold cuff",
+    "brand": "Ana Luisa",
+    "look_title": "Courtline Minimal Motion",
+    "search_query": "gold cuff bracelet",
+    "source_title": "File:Cuff Bracelet with Lion Cub Amulets MET 26.8.123a-g EGDP014312.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.123a-g_EGDP014312.jpg/1280px-Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.123a-g_EGDP014312.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.123a-g_EGDP014312.jpg",
+    "expected_file": "app/static/img/accessories/jewel-courtlineminimalmotion.jpg"
+  },
+  "jewel-luxecommuteset": {
+    "title": "Polished gold cuff",
+    "brand": "Ana Luisa",
+    "look_title": "Luxe Commute Set",
+    "search_query": "gold cuff bracelet",
+    "source_title": "File:Cuff Bracelet with Lion Cub Amulets MET 26.8.123a-g EGDP014318.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.123a-g_EGDP014318.jpg/1280px-Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.123a-g_EGDP014318.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.123a-g_EGDP014318.jpg",
+    "expected_file": "app/static/img/accessories/jewel-luxecommuteset.jpg"
+  },
+  "jewel-midnightminimalmodest": {
+    "title": "Polished gold cuff",
+    "brand": "Ana Luisa",
+    "look_title": "Midnight Minimal Abaya",
+    "search_query": "gold cuff bracelet",
+    "source_title": "File:Cuff Bracelet with Lion Cub Amulets MET 26.8.123a-g EGDP014319.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.123a-g_EGDP014319.jpg/1280px-Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.123a-g_EGDP014319.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.123a-g_EGDP014319.jpg",
+    "expected_file": "app/static/img/accessories/jewel-midnightminimalmodest.jpg"
+  },
+  "jewel-monochromerunway": {
+    "title": "Polished gold cuff",
+    "brand": "Ana Luisa",
+    "look_title": "Monochrome Runway Reset",
+    "search_query": "gold cuff bracelet",
+    "source_title": "File:Cuff Bracelet with Lion Cub Amulets MET 26.8.124a-g EGDP014313.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.124a-g_EGDP014313.jpg/1280px-Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.124a-g_EGDP014313.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Cuff_Bracelet_with_Lion_Cub_Amulets_MET_26.8.124a-g_EGDP014313.jpg",
+    "expected_file": "app/static/img/accessories/jewel-monochromerunway.jpg"
+  },
+  "jewel-softtailoringstudio": {
+    "title": "Polished gold cuff",
+    "brand": "Ana Luisa",
+    "look_title": "Soft Tailoring Studio",
+    "search_query": "gold cuff bracelet",
+    "source_title": "File:Cuff Bracelets Decorated with Cats MET 26.8.121a EGDP014315.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Cuff_Bracelets_Decorated_with_Cats_MET_26.8.121a_EGDP014315.jpg/1280px-Cuff_Bracelets_Decorated_with_Cats_MET_26.8.121a_EGDP014315.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Cuff_Bracelets_Decorated_with_Cats_MET_26.8.121a_EGDP014315.jpg",
+    "expected_file": "app/static/img/accessories/jewel-softtailoringstudio.jpg"
+  },
+  "cuff-34": {
+    "title": "Polished gold cuff",
+    "brand": "Ana Luisa",
+    "look_title": "Studio Contrast Abaya",
+    "search_query": "gold cuff bracelet",
+    "source_title": "File:Cuff Bracelets Decorated with Cats MET 26.8.121a.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Cuff_Bracelets_Decorated_with_Cats_MET_26.8.121a.jpg/1280px-Cuff_Bracelets_Decorated_with_Cats_MET_26.8.121a.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Cuff_Bracelets_Decorated_with_Cats_MET_26.8.121a.jpg",
+    "expected_file": "app/static/img/accessories/cuff-34.jpg"
+  },
+  "jewel-tailoredtennisedit": {
+    "title": "Polished gold cuff",
+    "brand": "Ana Luisa",
+    "look_title": "Tailored Tennis Edit",
+    "search_query": "gold cuff bracelet",
+    "source_title": "File:Hinged Cuff Bracelet MET 26.8.129 EGDP018032.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Hinged_Cuff_Bracelet_MET_26.8.129_EGDP018032.jpg/1280px-Hinged_Cuff_Bracelet_MET_26.8.129_EGDP018032.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Hinged_Cuff_Bracelet_MET_26.8.129_EGDP018032.jpg",
+    "expected_file": "app/static/img/accessories/jewel-tailoredtennisedit.jpg"
+  },
+  "ring-42": {
+    "title": "Silver square signet ring",
+    "brand": "Swarovski",
+    "look_title": "Studio Black Thobe",
+    "search_query": "silver square signet ring",
+    "source_title": "File:Finger ring (FindID 68353).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Finger_ring_%28FindID_68353%29.jpg/1280px-Finger_ring_%28FindID_68353%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Finger_ring_(FindID_68353).jpg",
+    "expected_file": "app/static/img/accessories/ring-42.jpg"
+  },
+  "ring-31": {
+    "title": "Slim gold stacking ring",
+    "brand": "Ana Luisa",
+    "look_title": "Black Abaya Studio Classic",
+    "search_query": "gold stacking ring",
+    "source_title": "File:Bronze Age gold ring (FindID 722074).jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Bronze_Age_gold_ring_%28FindID_722074%29.jpg/1280px-Bronze_Age_gold_ring_%28FindID_722074%29.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Bronze_Age_gold_ring_(FindID_722074).jpg",
+    "expected_file": "app/static/img/accessories/ring-31.jpg"
+  },
+  "bangle-36": {
+    "title": "Slim stacked bangles",
+    "brand": "Ana Luisa",
+    "look_title": "Maroon Meadow Abaya",
+    "search_query": "silver bangles",
+    "source_title": "File:Bangles in Pakistan.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Bangles_in_Pakistan.jpg/1280px-Bangles_in_Pakistan.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Bangles_in_Pakistan.jpg",
+    "expected_file": "app/static/img/accessories/bangle-36.jpg"
+  },
+  "bracelet-16": {
+    "title": "Stacked gold bangles",
+    "brand": "Ana Luisa",
+    "look_title": "Vibrant Eid Statement",
+    "search_query": "gold bangles jewelry",
+    "source_title": "File:Gold and Enamel Snake Bangle by James Cromar Watt - James Cromar Watt - ABDAG008791.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/8/81/Gold_and_Enamel_Snake_Bangle_by_James_Cromar_Watt_-_James_Cromar_Watt_-_ABDAG008791.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Gold_and_Enamel_Snake_Bangle_by_James_Cromar_Watt_-_James_Cromar_Watt_-_ABDAG008791.jpg",
+    "expected_file": "app/static/img/accessories/bracelet-16.jpg"
+  },
+  "bracelet-32": {
+    "title": "Textured cuff bracelet",
+    "brand": "Ana Luisa",
+    "look_title": "Teal Abaya Statement",
+    "search_query": "cuff bracelet jewelry",
+    "source_title": "File:Anticlastic-Copper-Cuff-Bracelet.jpg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Anticlastic-Copper-Cuff-Bracelet.jpg",
+    "description_url": "https://commons.wikimedia.org/wiki/File:Anticlastic-Copper-Cuff-Bracelet.jpg",
+    "expected_file": "app/static/img/accessories/bracelet-32.jpg"
+  }
+}

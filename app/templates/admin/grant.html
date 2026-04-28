@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Admin Grant • StyleBridge{% endblock %}
+{% block content %}
+  <div class="max-w-md mx-auto rounded-3xl border border-white/10 bg-white/5 p-6">
+    <h1 class="text-3xl font-black">Enable admin</h1>
+    <p class="text-slate-400 mt-2">Enter your <code>ADMIN_KEY</code> from <code>.env</code> to unlock inventory upload.</p>
+
+    <form method="post" class="mt-6 space-y-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input name="admin_key" type="password" placeholder="ADMIN_KEY"
+             class="w-full rounded-xl bg-slate-950/60 border border-white/10 px-3 py-2" required />
+      <button class="w-full rounded-xl bg-white text-slate-950 font-black py-2" type="submit">Enable</button>
+    </form>
+  </div>
+{% endblock %}
+

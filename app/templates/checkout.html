@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Checkout | StyleBridge{% endblock %}
+{% block content %}
+  <div class="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Checkout</div>
+      <h1 class="mt-3 text-4xl font-black text-white">Shipping, payment, confirm.</h1>
+      <form method="post" class="mt-6 grid gap-4 md:grid-cols-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+          <label class="text-sm font-bold text-slate-300">Shipping name</label>
+          <input type="text" name="shipping_name" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white" required>
+        </div>
+        <div>
+          <label class="text-sm font-bold text-slate-300">Phone</label>
+          <input type="text" name="phone" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white" placeholder="+254 7XX XXX XXX">
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-sm font-bold text-slate-300">Shipping address</label>
+          <textarea name="shipping_address" rows="4" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white" required></textarea>
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-sm font-bold text-slate-300">Payment method</label>
+          <div class="mt-3 grid gap-3 sm:grid-cols-3">
+            <label class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-white"><input type="radio" name="payment_method" value="Card" class="mr-2 accent-cyan-300" checked>Card</label>
+            <label class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-white"><input type="radio" name="payment_method" value="Mobile Money" class="mr-2 accent-cyan-300">Mobile money</label>
+            <label class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-white"><input type="radio" name="payment_method" value="Cash on Delivery" class="mr-2 accent-cyan-300">Cash on delivery</label>
+          </div>
+        </div>
+        <div class="md:col-span-2">
+          <button class="w-full rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200" type="submit">Confirm order</button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Order summary</div>
+      <div class="mt-4 space-y-3">
+        {% for item in cart_items %}
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div class="text-sm font-black text-white">{{ item.title }}</div>
+            <div class="mt-1 text-sm text-slate-400">{{ item.brand }}</div>
+            <div class="mt-2 text-lg font-black text-white">${{ '%.2f'|format(item.price) }}</div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="mt-5 text-3xl font-black text-white">Total: ${{ '%.2f'|format(cart_total) }}</div>
+    </aside>
+  </div>
+{% endblock %}
