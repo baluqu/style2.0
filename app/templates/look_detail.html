@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block title %}{{ look.title }} | StyleBridge{% endblock %}
 {% block content %}
-  <div class="space-y-6">
+  {% set look_world_slug = look.selected_world_score.world_slug if look.selected_world_score else (look.top_style_world.world_slug if look.top_style_world else '') %}
+  <div class="space-y-6" id="sb-look-detail" data-look-slug="{{ look.slug }}" data-look-world="{{ look_world_slug }}" data-look-color="{{ look.color }}">
     <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
       <div class="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <div class="overflow-hidden rounded-[1.75rem]">
@@ -46,7 +47,7 @@
 
     <section class="grid gap-4 lg:grid-cols-3">
       {% for item in look["items"] %}
-        <article class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5">
+        <article class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5" data-item-category="{{ item.category }}">
           <div class="overflow-hidden rounded-[1.25rem]">
             <img src="{{ item.image_url }}" alt="{{ item.title }}" class="h-52 w-full object-cover" loading="lazy" referrerpolicy="no-referrer">
           </div>
@@ -79,4 +80,74 @@
       </div>
     </section>
   </div>
+
+  <script>
+    (function () {
+      const root = document.getElementById("sb-look-detail");
+      const isAuthenticated = {{ "true" if current_user.is_authenticated else "false" }};
+      if (!root || !isAuthenticated) {
+        return;
+      }
+
+      const identityEndpoint = {{ url_for("main.identity_event_ingest") | tojson }};
+      const csrfToken = {{ csrf_token() | tojson }};
+      const openedAt = performance.now();
+      const lookSlug = String(root.dataset.lookSlug || "").trim().toLowerCase();
+      const worldSlug = String(root.dataset.lookWorld || "").trim().toLowerCase();
+      const color = String(root.dataset.lookColor || "").trim().toLowerCase();
+
+      const accessoryCount = [...root.querySelectorAll("[data-item-category]")]
+        .map((node) => String(node.getAttribute("data-item-category") || "").toLowerCase())
+        .filter((category) => /watch|bag|glass|jewel|accessor|shoe|heel|ring|bracelet|earring/.test(category)).length;
+
+      const sendEvent = (event, force = false) => {
+        fetch(identityEndpoint, {
+          method: "POST",
+          credentials: "same-origin",
+          keepalive: force,
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify({ events: [event] }),
+        }).catch(() => {});
+      };
+
+      sendEvent(
+        {
+          type: "look_detail_open",
+          source: "look_detail",
+          world_slug: worldSlug,
+          look_slug: lookSlug,
+          duration_ms: 1200,
+          meta: {
+            color,
+            accessory_count: accessoryCount,
+          },
+        },
+        false,
+      );
+
+      window.addEventListener("beforeunload", () => {
+        const dwell = Math.max(0, Math.round(performance.now() - openedAt));
+        if (dwell < 1200) {
+          return;
+        }
+        sendEvent(
+          {
+            type: "look_detail_dwell",
+            source: "look_detail",
+            world_slug: worldSlug,
+            look_slug: lookSlug,
+            duration_ms: dwell,
+            meta: {
+              color,
+              accessory_count: accessoryCount,
+            },
+          },
+          true,
+        );
+      });
+    })();
+  </script>
 {% endblock %}

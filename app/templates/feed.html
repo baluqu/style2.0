@@ -12,6 +12,9 @@
             <span class="font-black text-white">{{ profile.get('budget_range', 'flexible') }}</span> range.
             This feed updates with your style signals, not random trend churn.
           </p>
+          {% if identity_profile.get('emotional_pattern') %}
+            <p class="mt-3 max-w-3xl text-sm leading-7 text-cyan-100">{{ identity_profile.get('emotional_pattern') }}</p>
+          {% endif %}
         </div>
         <div class="flex flex-wrap gap-2">
           <a href="{{ url_for('main.discover') }}" class="rounded-full border border-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">Discover worlds</a>
@@ -32,6 +35,14 @@
           <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
             <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Experimentation</div>
             <div class="mt-2 text-4xl font-black text-white">{{ style_dna.experimentation }}%</div>
+          </div>
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Aesthetic coherence</div>
+            <div class="mt-2 text-4xl font-black text-white">{{ identity_profile.get('aesthetic_consistency', 0) }}%</div>
+          </div>
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Confidence growth</div>
+            <div class="mt-2 text-4xl font-black text-white">{{ identity_profile.get('confidence_growth', 0) }}%</div>
           </div>
         </div>
         <div class="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
@@ -107,7 +118,14 @@
               </div>
 
               <div class="mt-6 flex flex-wrap gap-3">
-                <a href="{{ url_for('main.look_detail', slug=look.slug) }}" class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200">Open system look</a>
+                <a
+                  href="{{ url_for('main.look_detail', slug=look.slug) }}"
+                  class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200"
+                  data-feed-look="{{ look.slug }}"
+                  data-world="{{ look.top_style_world.world_slug if look.top_style_world else '' }}"
+                  data-color="{{ look.color }}"
+                  data-confidence="{{ look.top_style_world.confidence if look.top_style_world else 0 }}"
+                >Open system look</a>
                 <form method="post" action="{{ url_for('main.save_look', slug=look.slug) }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button class="rounded-full border border-white/15 px-5 py-3 text-sm font-black text-white transition hover:bg-white/10" type="submit">{{ 'Saved' if look.slug in saved else 'Save look' }}</button>
@@ -119,4 +137,71 @@
       {% endfor %}
     </section>
   </div>
+
+  <script>
+    (function () {
+      const isAuthenticated = {{ "true" if current_user.is_authenticated else "false" }};
+      if (!isAuthenticated) {
+        return;
+      }
+      const identityEndpoint = {{ url_for("main.identity_event_ingest") | tojson }};
+      const csrfToken = {{ csrf_token() | tojson }};
+      const startedAt = performance.now();
+
+      const sendEvents = (events, force = false) => {
+        if (!Array.isArray(events) || !events.length) {
+          return;
+        }
+        fetch(identityEndpoint, {
+          method: "POST",
+          credentials: "same-origin",
+          keepalive: force,
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify({ events }),
+        }).catch(() => {});
+      };
+
+      document.querySelectorAll("[data-feed-look]").forEach((link) => {
+        link.addEventListener("click", () => {
+          const confidence = Number(link.getAttribute("data-confidence") || 0);
+          sendEvents(
+            [
+              {
+                type: "feed_look_open",
+                source: "feed",
+                world_slug: String(link.getAttribute("data-world") || "").trim().toLowerCase(),
+                look_slug: String(link.getAttribute("data-feed-look") || "").trim().toLowerCase(),
+                duration_ms: 1200,
+                meta: {
+                  color: String(link.getAttribute("data-color") || "").trim().toLowerCase(),
+                  experimental_score: Math.max(0, Math.min(confidence / 100, 1)),
+                },
+              },
+            ],
+            true,
+          );
+        });
+      });
+
+      window.addEventListener("beforeunload", () => {
+        const dwell = Math.max(0, Math.round(performance.now() - startedAt));
+        if (dwell < 1000) {
+          return;
+        }
+        sendEvents(
+          [
+            {
+              type: "feed_dwell",
+              source: "feed",
+              duration_ms: dwell,
+            },
+          ],
+          true,
+        );
+      });
+    })();
+  </script>
 {% endblock %}

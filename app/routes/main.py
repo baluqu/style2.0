@@ -7,6 +7,7 @@ import secrets
 import uuid
 import html
 import re
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -20,6 +21,15 @@ from .. import db, limiter
 from ..models import Item, SellerOrder, SellerProduct, User
 from ..security import assign_role, audit, require_permission
 from ..storage import UploadStorageError, save_uploaded_file
+from ..identity_engine import (
+    adapt_world_for_identity,
+    compute_identity_profile,
+    infer_color_family,
+    normalize_identity_memory,
+    recommendation_evolution_adjustment,
+    record_identity_event,
+    world_experimentality,
+)
 from ..style_worlds import (
     STYLE_WORLD_OPTIONS as STYLE_WORLD_LIBRARY,
     WARDROBE_SLOT_LABELS,
@@ -229,6 +239,76 @@ ANDROGYNOUS_TITLE_HINTS = {
 }
 
 STYLE_WORLD_OPTIONS = STYLE_WORLD_LIBRARY
+
+HOME_CINEMA_WORLD_SEQUENCE = [
+    "quiet-luxury",
+    "tokyo-street",
+    "dark-academia",
+    "neo-minimal",
+]
+
+HOME_WORLD_MOTION_PROFILES = {
+    "quiet-luxury": {
+        "pace": "Slow measured drift with premium restraint.",
+        "tempo": 0.74,
+        "drift": 0.88,
+        "contrast": 0.82,
+        "blur": 0.46,
+        "rotation": 0.82,
+        "zoom": 0.92,
+    },
+    "tokyo-street": {
+        "pace": "Sharper lateral rhythm with asymmetrical pacing.",
+        "tempo": 1.2,
+        "drift": 0.62,
+        "contrast": 1.2,
+        "blur": 0.74,
+        "rotation": 1.08,
+        "zoom": 1.06,
+    },
+    "dark-academia": {
+        "pace": "Slow cinematic drift with deep shadow transitions.",
+        "tempo": 0.7,
+        "drift": 0.96,
+        "contrast": 0.9,
+        "blur": 0.56,
+        "rotation": 0.78,
+        "zoom": 0.88,
+    },
+    "neo-minimal": {
+        "pace": "Ultra-clean movement with geometric precision.",
+        "tempo": 0.62,
+        "drift": 0.52,
+        "contrast": 0.68,
+        "blur": 0.3,
+        "rotation": 0.72,
+        "zoom": 0.78,
+    },
+}
+
+STYLE_TO_HOME_WORLD = {
+    "Streetwear": "tokyo-street",
+    "Athleisure": "tokyo-street",
+    "Casual": "neo-minimal",
+    "Minimalist": "neo-minimal",
+    "Formal": "quiet-luxury",
+    "Vintage": "dark-academia",
+    "Modest": "quiet-luxury",
+    "Religious": "quiet-luxury",
+}
+
+ENERGY_TO_HOME_WORLD = {
+    "minimal": "neo-minimal",
+    "sharp": "neo-minimal",
+    "quiet luxury": "quiet-luxury",
+    "street": "tokyo-street",
+    "dark academia": "dark-academia",
+    "futuristic": "tokyo-street",
+    "editorial": "tokyo-street",
+    "athletic": "tokyo-street",
+    "soft": "quiet-luxury",
+    "avant-garde": "tokyo-street",
+}
 
 BAG_TITLE_STOPWORDS = {
     "and",
@@ -1570,6 +1650,7 @@ def normalized_profile_data(data: dict | None) -> dict:
     profile["style_energy"] = [str(style) for style in style_energy] if isinstance(style_energy, list) else []
     profile["fit_profile"] = profile.get("fit_profile") if isinstance(profile.get("fit_profile"), dict) else {}
     profile["visual_training"] = profile.get("visual_training") if isinstance(profile.get("visual_training"), dict) else {}
+    profile["identity_memory"] = normalize_identity_memory(profile.get("identity_memory", {}))
     if not profile.get("display_name") and profile.get("name"):
         profile["display_name"] = str(profile.get("name"))
     for key, default in PROFILE_SETTING_DEFAULTS.items():
@@ -1616,6 +1697,7 @@ def profile_data() -> dict:
     profile = normalized_profile_data(current_user.get_profile_data())
     gender = sanitize_text(profile.get("gender", ""), 60)
     profile["behavior_cross_gender_preference"] = saved_looks_cross_gender_signal(gender)
+    profile["identity_memory"] = normalize_identity_memory(profile.get("identity_memory", {}))
     return profile
 
 
@@ -2995,7 +3077,8 @@ def match_reason(look: dict, data: dict, *, world_slug: str = "") -> str:
     return look["match_text"]
 
 
-def style_dna_profile(data: dict, looks: list[dict]) -> dict:
+def style_dna_profile(data: dict, looks: list[dict], *, identity_profile: dict | None = None) -> dict:
+    identity_profile = identity_profile or compute_identity_profile(data, saved_worlds=[])
     style_weights: dict[str, int] = {}
     for style in data.get("favorite_styles", []):
         style_weights[style] = style_weights.get(style, 0) + 3
@@ -3012,8 +3095,15 @@ def style_dna_profile(data: dict, looks: list[dict]) -> dict:
     dominant = sorted(style_weights.items(), key=lambda entry: (-entry[1], entry[0]))
     dominant_styles = [style for style, _ in dominant[:4]]
     style_total = sum(weight for _, weight in dominant[:6])
-    confidence = min(96, 44 + style_total * 2)
-    experimentation = min(100, 28 + max(0, len(data.get("style_energy", [])) - 1) * 12 + len(data.get("favorite_styles", [])) * 3)
+    base_confidence = min(96, 44 + style_total * 2)
+    behavior_confidence = int(identity_profile.get("aesthetic_consistency", 0) or 0)
+    confidence = int(round(min(98, max(8, base_confidence * 0.62 + behavior_confidence * 0.38))))
+    base_experimentation = min(
+        100,
+        28 + max(0, len(data.get("style_energy", [])) - 1) * 12 + len(data.get("favorite_styles", [])) * 3,
+    )
+    behavior_experimentation = int(identity_profile.get("experimentation_tendency", 0) or 0)
+    experimentation = int(round(min(100, max(4, base_experimentation * 0.55 + behavior_experimentation * 0.45))))
 
     color_counts: dict[str, int] = {}
     for look in looks[:10]:
@@ -3028,12 +3118,14 @@ def style_dna_profile(data: dict, looks: list[dict]) -> dict:
         "confidence": confidence,
         "experimentation": experimentation,
         "signature_palette": palette,
+        "dominant_worlds": identity_profile.get("dominant_worlds", []) if isinstance(identity_profile.get("dominant_worlds"), list) else [],
     }
 
 
-def identity_suggestions(data: dict, looks: list[dict]) -> list[str]:
+def identity_suggestions(data: dict, looks: list[dict], *, identity_profile: dict | None = None) -> list[str]:
     suggestions: list[str] = []
-    dna = style_dna_profile(data, looks)
+    identity_profile = identity_profile or identity_profile_snapshot(data, looks)
+    dna = style_dna_profile(data, looks, identity_profile=identity_profile)
     dominant = dna.get("dominant_styles", [])
     palette = dna.get("signature_palette", [])
     visual_training = data.get("visual_training", {}) if isinstance(data.get("visual_training"), dict) else {}
@@ -3052,6 +3144,18 @@ def identity_suggestions(data: dict, looks: list[dict]) -> list[str]:
         suggestions.append(f"Risk appetite currently reads as {str(visual_training.get('risk_appetite')).lower()}.")
     if data.get("budget_range"):
         suggestions.append(f"Your system is optimizing for {str(data.get('budget_range')).lower()} pieces.")
+    if identity_profile.get("aesthetic_consistency"):
+        suggestions.append(f"Aesthetic consistency now measures {int(identity_profile.get('aesthetic_consistency', 0))}%.")
+    if identity_profile.get("confidence_growth"):
+        suggestions.append(f"Confidence growth trend is {int(identity_profile.get('confidence_growth', 0))}% and still compounding.")
+    curiosity = identity_profile.get("temporary_curiosity", [])
+    if isinstance(curiosity, list) and curiosity:
+        first = curiosity[0] if isinstance(curiosity[0], dict) else {}
+        slug = sanitize_text(first.get("slug", ""), 80).replace("-", " ").title()
+        if slug:
+            suggestions.append(f"Curiosity signal detected in {slug}; recommendations are introducing it gradually.")
+    if identity_profile.get("emotional_pattern"):
+        suggestions.append(sanitize_text(identity_profile.get("emotional_pattern", ""), 220))
 
     deduped: list[str] = []
     seen = set()
@@ -3064,34 +3168,61 @@ def identity_suggestions(data: dict, looks: list[dict]) -> list[str]:
     return deduped[:5]
 
 
-def identity_evolution_timeline(data: dict) -> list[dict]:
+def identity_evolution_timeline(data: dict, *, identity_profile: dict | None = None) -> list[dict]:
+    identity_profile = identity_profile or compute_identity_profile(data, saved_worlds=[])
     style_pref = sanitize_text(data.get("style_preference", ""), 80) or "Adaptive"
-    energy = [sanitize_text(value, 80) for value in data.get("style_energy", []) if sanitize_text(value, 80)]
     fit = data.get("fit_profile", {}) if isinstance(data.get("fit_profile"), dict) else {}
     fit_pref = sanitize_text(fit.get("fit_preference", ""), 80) or "Balanced"
-    silhouette = sanitize_text((data.get("visual_training", {}) or {}).get("silhouette_preference", ""), 80) or "structured"
-    palette = sanitize_text((data.get("visual_training", {}) or {}).get("color_comfort", ""), 80) or "muted"
+    dominant_worlds = identity_profile.get("dominant_worlds", [])
+    top_world = ""
+    second_world = ""
+    if isinstance(dominant_worlds, list) and dominant_worlds:
+        first = dominant_worlds[0] if isinstance(dominant_worlds[0], dict) else {}
+        top_world = sanitize_text(first.get("slug", ""), 80).replace("-", " ").title()
+        if len(dominant_worlds) > 1 and isinstance(dominant_worlds[1], dict):
+            second_world = sanitize_text(dominant_worlds[1].get("slug", ""), 80).replace("-", " ").title()
+
+    transitions = identity_profile.get("transition_paths", [])
+    transition_line = "World transitions are still calibrating."
+    if isinstance(transitions, list) and transitions:
+        top = transitions[0] if isinstance(transitions[0], dict) else {}
+        start = sanitize_text(top.get("from", ""), 80).replace("-", " ").title()
+        end = sanitize_text(top.get("to", ""), 80).replace("-", " ").title()
+        if start and end:
+            transition_line = f"Most repeated transition now runs from {start} to {end}."
+
+    curiosity = identity_profile.get("temporary_curiosity", [])
+    curiosity_line = "Curiosity signals remain subtle and controlled."
+    if isinstance(curiosity, list) and curiosity:
+        top = curiosity[0] if isinstance(curiosity[0], dict) else {}
+        curiosity_world = sanitize_text(top.get("slug", ""), 80).replace("-", " ").title()
+        if curiosity_world:
+            curiosity_line = f"Curiosity is rising around {curiosity_world}, so the system is staging gradual introductions."
+
+    consistency = int(identity_profile.get("aesthetic_consistency", 0) or 0)
+    confidence_growth = int(identity_profile.get("confidence_growth", 0) or 0)
+    experimentation = int(identity_profile.get("experimentation_tendency", 0) or 0)
 
     return [
         {
-            "period": "Week 1",
-            "headline": f"Identity baseline anchored in {style_pref.lower()} styling.",
-            "detail": "Initial behavior showed preference for cleaner silhouettes and lower-noise layering.",
+            "period": "Phase 1",
+            "headline": f"Identity baseline anchored in {style_pref.lower()} direction.",
+            "detail": f"Early behavior stabilized around {fit_pref.lower()} proportions and consistent visual hierarchy.",
         },
         {
-            "period": "Week 2",
-            "headline": f"Exploration expanded into {', '.join(energy[:2]).lower() if energy else 'new aesthetic'} territory.",
-            "detail": "The system registered faster saves on looks with stronger directional cues.",
+            "period": "Phase 2",
+            "headline": f"World affinity concentrated around {top_world.lower() if top_world else 'a coherent core world'}.",
+            "detail": transition_line,
         },
         {
-            "period": "Week 3",
-            "headline": f"Fit behavior stabilized around {fit_pref.lower()} proportions.",
-            "detail": f"Swipe training indicated {silhouette.lower()} forms and {palette.lower()} color comfort.",
+            "period": "Phase 3",
+            "headline": f"Aesthetic consistency reached {consistency}% with experimentation at {experimentation}%.",
+            "detail": curiosity_line,
         },
         {
-            "period": "This week",
-            "headline": "Style confidence increased with more intentional pattern repetition.",
-            "detail": "You are moving from browsing outfits to designing a repeatable personal system.",
+            "period": "Current",
+            "headline": f"Confidence growth now reads at {confidence_growth}% with gradual identity expansion.",
+            "detail": "Recommendations are paced to preserve coherence while opening controlled experimental pathways.",
         },
     ]
 
@@ -3343,6 +3474,132 @@ def look_world_proxy_item(look: dict) -> dict:
 
 def look_world_scores(look: dict) -> dict:
     return analyze_item_for_worlds(look_world_proxy_item(look))
+
+
+def look_primary_world_slug(look: dict) -> str:
+    selected_world = look.get("selected_world_score")
+    if isinstance(selected_world, dict):
+        slug = sanitize_text(selected_world.get("world_slug", ""), 80).strip().lower()
+        if slug:
+            return slug
+    top_world = look.get("top_style_world")
+    if isinstance(top_world, dict):
+        slug = sanitize_text(top_world.get("world_slug", ""), 80).strip().lower()
+        if slug:
+            return slug
+    world_scores = look.get("style_world_scores", [])
+    if isinstance(world_scores, list) and world_scores:
+        first = world_scores[0] if isinstance(world_scores[0], dict) else {}
+        slug = sanitize_text(first.get("world_slug", ""), 80).strip().lower()
+        if slug:
+            return slug
+    return ""
+
+
+def look_layering_score(look: dict) -> float:
+    items = look.get("items", []) if isinstance(look.get("items"), list) else []
+    if not items:
+        return 0.3
+    layering_hits = 0
+    for item in items:
+        title = sanitize_text(item.get("title", ""), 140).lower()
+        category = sanitize_text(item.get("category", ""), 80).lower()
+        haystack = f"{title} {category}"
+        if any(token in haystack for token in ("coat", "jacket", "blazer", "layer", "cardigan", "overshirt", "hoodie", "outerwear")):
+            layering_hits += 1
+    base = 0.24 + max(0, len(items) - 2) * 0.12 + layering_hits * 0.15
+    return max(0.05, min(base, 1.0))
+
+
+def look_accessory_count(look: dict) -> int:
+    items = look.get("items", []) if isinstance(look.get("items"), list) else []
+    count = 0
+    for item in items:
+        if accessory_type_for_item(item):
+            count += 1
+    return count
+
+
+def look_behavior_event_meta(look: dict, *, world_slug_hint: str = "") -> dict:
+    world_slug = sanitize_text(world_slug_hint, 80).strip().lower() or look_primary_world_slug(look)
+    color = sanitize_text(look.get("color", ""), 40).strip().lower()
+    silhouettes = sorted(look_fit_structures(look))
+    return {
+        "color": color,
+        "color_family": infer_color_family(color),
+        "silhouettes": silhouettes[:3],
+        "layering_score": look_layering_score(look),
+        "accessory_count": look_accessory_count(look),
+        "experimental_score": world_experimentality(world_slug),
+    }
+
+
+def apply_identity_event_to_profile(data: dict, event_payload: dict) -> dict:
+    payload = dict(data or {})
+    payload["identity_memory"] = record_identity_event(payload.get("identity_memory", {}), event_payload)
+    return payload
+
+
+def sanitized_identity_event_payload(entry: dict) -> dict:
+    source = sanitize_text(entry.get("source", ""), 40).strip().lower()
+    event_type = sanitize_text(entry.get("type", ""), 64).strip().lower().replace(" ", "_")
+    world_slug = sanitize_text(entry.get("world_slug", ""), 80).strip().lower()
+    look_slug = sanitize_text(entry.get("look_slug", ""), 80).strip().lower()
+    recommendation_slug = sanitize_text(entry.get("recommendation_slug", ""), 80).strip().lower()
+    try:
+        duration_ms = int(entry.get("duration_ms", 0) or 0)
+    except (TypeError, ValueError):
+        duration_ms = 0
+    duration_ms = max(0, min(duration_ms, 600000))
+    try:
+        hover_ms = int(entry.get("hover_ms", 0) or 0)
+    except (TypeError, ValueError):
+        hover_ms = 0
+    hover_ms = max(0, min(hover_ms, 600000))
+
+    raw_meta = entry.get("meta", {}) if isinstance(entry.get("meta"), dict) else {}
+    silhouettes_raw = raw_meta.get("silhouettes", [])
+    silhouettes: list[str] = []
+    if isinstance(silhouettes_raw, str):
+        silhouettes_raw = [silhouettes_raw]
+    if isinstance(silhouettes_raw, list):
+        for value in silhouettes_raw[:4]:
+            cleaned = sanitize_text(value, 40).strip().lower()
+            if cleaned and cleaned not in silhouettes:
+                silhouettes.append(cleaned)
+
+    try:
+        layering_score = float(raw_meta.get("layering_score", 0) or 0)
+    except (TypeError, ValueError):
+        layering_score = 0.0
+    try:
+        accessory_count = int(raw_meta.get("accessory_count", 0) or 0)
+    except (TypeError, ValueError):
+        accessory_count = 0
+    try:
+        experimental_score = float(raw_meta.get("experimental_score", 0) or 0)
+    except (TypeError, ValueError):
+        experimental_score = 0.0
+
+    meta = {
+        "color": sanitize_text(raw_meta.get("color", ""), 40).strip().lower(),
+        "color_family": sanitize_text(raw_meta.get("color_family", ""), 40).strip().lower(),
+        "silhouettes": silhouettes,
+        "layering_score": max(0.0, min(layering_score, 1.0)),
+        "accessory_count": max(0, min(accessory_count, 16)),
+        "experimental_score": max(0.0, min(experimental_score, 1.0)),
+    }
+
+    return {
+        "type": event_type,
+        "source": source,
+        "world_slug": world_slug,
+        "look_slug": look_slug,
+        "recommendation_slug": recommendation_slug,
+        "duration_ms": duration_ms,
+        "hover_ms": hover_ms,
+        "meta": meta,
+    }
 
 
 def _source_category_from_title(title: str) -> str:
@@ -3848,6 +4105,252 @@ def personalized_looks() -> list[dict]:
     return dedupe_looks_by_image(ordered)
 
 
+def saved_world_signals(data: dict) -> list[str]:
+    if not current_user.is_authenticated:
+        return []
+    signals: list[str] = []
+    for slug in current_user.get_saved_looks():
+        raw = LOOKS_BY_SLUG.get(str(slug))
+        if not raw:
+            continue
+        look = enrich_look(raw, data)
+        world_slug = look_primary_world_slug(look)
+        if world_slug:
+            signals.append(world_slug)
+    return signals
+
+
+def identity_profile_snapshot(data: dict, looks: list[dict]) -> dict:
+    saved_worlds = saved_world_signals(data)
+    saved_slugs = set(current_user.get_saved_looks()) if current_user.is_authenticated else set()
+    for look in looks[:24]:
+        world_slug = look_primary_world_slug(look)
+        if world_slug and look.get("slug") in saved_slugs:
+            saved_worlds.append(world_slug)
+    return compute_identity_profile(data, saved_worlds=saved_worlds)
+
+
+def preferred_home_world_slug(data: dict, looks: list[dict]) -> str:
+    requested_world = sanitize_text(request.args.get("style_world", ""), 80).strip().lower()
+    if requested_world and style_world_by_slug(requested_world):
+        return requested_world
+
+    world_scores = Counter()
+    for style in data.get("favorite_styles", []):
+        mapped = STYLE_TO_HOME_WORLD.get(str(style).strip(), "")
+        if mapped:
+            world_scores[mapped] += 2
+    for energy in data.get("style_energy", []):
+        mapped = ENERGY_TO_HOME_WORLD.get(str(energy).strip().lower(), "")
+        if mapped:
+            world_scores[mapped] += 1
+
+    preferred_style = sanitize_text(data.get("style_preference", ""), 80)
+    mapped_style_world = STYLE_TO_HOME_WORLD.get(preferred_style, "")
+    if mapped_style_world:
+        world_scores[mapped_style_world] += 3
+
+    for look in looks[:18]:
+        top_world = look.get("top_style_world")
+        if isinstance(top_world, dict):
+            slug = str(top_world.get("world_slug", "")).strip().lower()
+            confidence = int(top_world.get("confidence", 0) or 0)
+            if slug and confidence:
+                world_scores[slug] += max(1, confidence // 14)
+
+    if world_scores:
+        ordered = sorted(
+            world_scores.items(),
+            key=lambda item: (-item[1], HOME_CINEMA_WORLD_SEQUENCE.index(item[0]) if item[0] in HOME_CINEMA_WORLD_SEQUENCE else 99),
+        )
+        selected = ordered[0][0]
+        if style_world_by_slug(selected):
+            return selected
+    return HOME_CINEMA_WORLD_SEQUENCE[0]
+
+
+def home_recommendation_cards(data: dict, world_slug: str, *, limit: int = 4, identity_profile: dict | None = None) -> list[dict]:
+    catalog = [enrich_look(look, data, world_slug=world_slug) for look in LOOKS]
+    catalog = [look for look in catalog if look.get("eligible", True)]
+    for look in catalog:
+        candidate_world = world_slug or look_primary_world_slug(look)
+        evolution = recommendation_evolution_adjustment(
+            identity_profile or {},
+            candidate_world,
+            world_experimentality(candidate_world),
+        )
+        look["identity_guidance"] = evolution.get("guidance", "coherent reinforcement")
+        look["identity_bonus"] = int(evolution.get("score_bonus", 0) or 0)
+
+    catalog.sort(
+        key=lambda look: (
+            -(int(look.get("match_score", 0)) + int(look.get("identity_bonus", 0)) * 8),
+            -int(look.get("world_confidence", 0)),
+            look.get("title", ""),
+        )
+    )
+
+    cards = []
+    seen = set()
+    for look in catalog:
+        image_url = sanitize_url(look.get("image_url", ""), MAX_URL_LENGTH)
+        if not image_url:
+            continue
+        dedupe_key = image_url.strip() or look.get("slug", "")
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+
+        structures = sorted(look_fit_structures(look))
+        cards.append(
+            {
+                "slug": look.get("slug", ""),
+                "title": look.get("title", ""),
+                "creator": look.get("creator", ""),
+                "image_url": image_url,
+                "detail_url": url_for("main.look_detail", slug=look.get("slug", "")),
+                "styles": list(look.get("styles", [])),
+                "match_reason": look.get("match_reason", ""),
+                "identity_guidance": look.get("identity_guidance", "coherent reinforcement"),
+                "world_confidence": int(look.get("world_confidence", 0) or 0),
+                "world_slug": world_slug or look_primary_world_slug(look),
+                "presentation": look_gender_presentation(look),
+                "fit_structures": structures[:3],
+                "budget": look.get("budget", ""),
+            }
+        )
+        if len(cards) >= max(1, limit):
+            break
+    return cards
+
+
+def home_memory_summary(data: dict, looks: list[dict], *, selected_world: str, identity_profile: dict | None = None) -> dict:
+    identity_profile = identity_profile or identity_profile_snapshot(data, looks)
+    style_dna = style_dna_profile(data, looks, identity_profile=identity_profile)
+    visual_training = data.get("visual_training", {}) if isinstance(data.get("visual_training"), dict) else {}
+    silhouette_counter = Counter()
+    for look in looks[:20]:
+        for structure in look_fit_structures(look):
+            silhouette_counter[structure] += 1
+
+    dominant_structure = ""
+    if silhouette_counter:
+        dominant_structure = silhouette_counter.most_common(1)[0][0]
+    recurring_silhouette = sanitize_text(str(identity_profile.get("dominant_silhouette", "") or ""), 80) or sanitize_text(
+        str(visual_training.get("silhouette_preference", "") or dominant_structure or "balanced"),
+        80,
+    )
+
+    style_preference = sanitize_text(data.get("style_preference", ""), 80)
+    dominant_styles = list(style_dna.get("dominant_styles", []))
+    top_dominant = dominant_styles[0] if dominant_styles else ""
+    if style_preference and top_dominant and style_preference != top_dominant:
+        shift_note = f"Preference shifted from {style_preference} toward {top_dominant}."
+    elif top_dominant:
+        shift_note = f"Preference remains stable around {top_dominant}."
+    else:
+        shift_note = "Preference model is still calibrating."
+
+    saved_count = len(current_user.get_saved_looks()) if current_user.is_authenticated else 0
+    history_count = len(current_user.get_order_history()) if current_user.is_authenticated else 0
+    signal_depth = int(identity_profile.get("signal_depth", 0) or 0)
+    interaction_depth = min(100, 28 + min(signal_depth, 120) // 2 + saved_count * 4 + history_count * 6)
+    confidence_shift = min(36, max(0, int(identity_profile.get("confidence_growth", 0)) - 44) // 2)
+    if isinstance(identity_profile.get("summary_lines"), list) and identity_profile.get("summary_lines"):
+        shift_note = sanitize_text(identity_profile.get("summary_lines")[0], 240) or shift_note
+
+    return {
+        "selected_world": selected_world,
+        "confidence": int(style_dna.get("confidence", 0) or 0),
+        "experimentation": int(style_dna.get("experimentation", 0) or 0),
+        "aesthetic_consistency": int(identity_profile.get("aesthetic_consistency", 0) or 0),
+        "confidence_growth": int(identity_profile.get("confidence_growth", 0) or 0),
+        "dominant_styles": dominant_styles[:4],
+        "signature_palette": list(style_dna.get("signature_palette", []))[:3],
+        "recurring_silhouette": recurring_silhouette,
+        "layering_frequency": sanitize_text(identity_profile.get("layering_frequency", ""), 40) or "medium",
+        "accessory_behavior": sanitize_text(identity_profile.get("accessory_behavior", ""), 80) or "calibrating",
+        "dominant_worlds": identity_profile.get("dominant_worlds", []) if isinstance(identity_profile.get("dominant_worlds"), list) else [],
+        "transition_paths": identity_profile.get("transition_paths", []) if isinstance(identity_profile.get("transition_paths"), list) else [],
+        "evolution_path": identity_profile.get("evolution_path", {}) if isinstance(identity_profile.get("evolution_path"), dict) else {},
+        "emotional_pattern": sanitize_text(identity_profile.get("emotional_pattern", ""), 260),
+        "shift_note": shift_note,
+        "interaction_depth": int(interaction_depth),
+        "confidence_shift": int(confidence_shift),
+        "signal_depth": signal_depth,
+        "saved_count": int(saved_count),
+        "history_count": int(history_count),
+    }
+
+
+def cinematic_home_context() -> dict:
+    data = profile_data()
+    look_pool = personalized_looks() if current_user.is_authenticated else [enrich_look(look, data) for look in LOOKS[:20]]
+    look_pool = [look for look in look_pool if look.get("eligible", True)] if look_pool else []
+    identity_profile = identity_profile_snapshot(data, look_pool)
+
+    selected_world = preferred_home_world_slug(data, look_pool)
+    dominant_world = sanitize_text(identity_profile.get("dominant_world", ""), 80).strip().lower()
+    if dominant_world in HOME_CINEMA_WORLD_SEQUENCE:
+        selected_world = dominant_world
+    world_showcase = []
+    recommendation_map: dict[str, list[dict]] = {}
+
+    for slug in HOME_CINEMA_WORLD_SEQUENCE:
+        world = style_world_by_slug(slug)
+        if not world:
+            continue
+        cards = home_recommendation_cards(data, slug, limit=4, identity_profile=identity_profile)
+        recommendation_map[slug] = cards
+        lead = cards[0] if cards else {}
+        profile = HOME_WORLD_MOTION_PROFILES.get(slug, HOME_WORLD_MOTION_PROFILES["quiet-luxury"])
+        adapted = adapt_world_for_identity(world, profile, identity_profile)
+        world_payload = adapted.get("world", world)
+        motion_payload = adapted.get("motion_profile", profile)
+        world_showcase.append(
+            {
+                "slug": slug,
+                "title": world_payload.get("title", ""),
+                "mood": world_payload.get("mood", ""),
+                "lighting": world_payload.get("lighting", ""),
+                "motion": world_payload.get("motion", ""),
+                "typography": world_payload.get("typography", ""),
+                "palette": world_payload.get("palette", []),
+                "pace": motion_payload.get("pace", ""),
+                "motion_profile": motion_payload,
+                "identity_variant": world_payload.get("identity_variant", "balanced axis"),
+                "lead_title": lead.get("title", "Identity preview"),
+                "lead_image_url": lead.get("image_url", ""),
+                "lead_confidence": int(lead.get("world_confidence", 0) or 0),
+            }
+        )
+
+    if selected_world not in recommendation_map and world_showcase:
+        selected_world = world_showcase[0]["slug"]
+
+    policy = recommendation_policy(data, world_slug=selected_world)
+    memory = home_memory_summary(data, look_pool, selected_world=selected_world, identity_profile=identity_profile)
+    recommendations = recommendation_map.get(selected_world, [])
+
+    return {
+        "home_profile_snapshot": {
+            "gender": policy.get("gender", "") or "Adaptive",
+            "presentation": policy.get("presentation", "") or "adaptive",
+            "fit_preference": policy.get("fit_pref_key", "").replace("-", " ").title() if policy.get("fit_pref_key") else "Balanced",
+            "style_preference": sanitize_text(data.get("style_preference", ""), 80) or "Adaptive",
+            "favorite_styles": [sanitize_text(value, 80) for value in data.get("favorite_styles", [])][:4],
+            "style_energy": [sanitize_text(value, 80) for value in data.get("style_energy", [])][:4],
+            "allow_cross_gender": bool(policy.get("allow_cross_gender")),
+        },
+        "home_memory_summary": memory,
+        "home_identity_profile": identity_profile,
+        "home_world_showcase": world_showcase,
+        "home_recommendation_preview": recommendations,
+        "home_recommendation_map": recommendation_map,
+        "home_selected_world": selected_world,
+    }
+
+
 def append_order_to_history(order_payload: dict) -> None:
     history = current_user.get_order_history()
     history.insert(0, order_payload)
@@ -3946,7 +4449,7 @@ def home():
         if current_user.onboarding_complete:
             return redirect(url_for("main.feed"))
         return redirect(url_for("main.onboarding"))
-    return render_template("home.html")
+    return render_template("home.html", **cinematic_home_context())
 
 
 @bp.get("/demo")
@@ -4064,15 +4567,17 @@ def feed():
     data = profile_data()
     looks = personalized_looks()
     saved = set(current_user.get_saved_looks())
-    dna = style_dna_profile(data, looks)
-    suggestions = identity_suggestions(data, looks)
-    timeline = identity_evolution_timeline(data)
+    identity_profile = identity_profile_snapshot(data, looks)
+    dna = style_dna_profile(data, looks, identity_profile=identity_profile)
+    suggestions = identity_suggestions(data, looks, identity_profile=identity_profile)
+    timeline = identity_evolution_timeline(data, identity_profile=identity_profile)
     return render_template(
         "feed.html",
         looks=looks,
         saved=saved,
         profile=data,
         style_dna=dna,
+        identity_profile=identity_profile,
         identity_suggestions=suggestions,
         evolution_timeline=timeline,
         style_world_options=STYLE_WORLD_OPTIONS,
@@ -4139,6 +4644,7 @@ def discover():
         return maybe_redirect
 
     data = profile_data()
+    identity_profile = identity_profile_snapshot(data, personalized_looks())
     query = (request.args.get("q") or "").strip().lower()
     style = (request.args.get("style") or "").strip()
     budget = (request.args.get("budget") or "").strip()
@@ -4152,6 +4658,14 @@ def discover():
     world_entry = style_world_by_slug(style_world) if style_world else None
     if style_world and not world_entry:
         style_world = ""
+    adaptive_world_options = []
+    for world in STYLE_WORLD_OPTIONS:
+        motion_profile = HOME_WORLD_MOTION_PROFILES.get(world.get("slug", ""), HOME_WORLD_MOTION_PROFILES["quiet-luxury"])
+        adapted = adapt_world_for_identity(world, motion_profile, identity_profile)
+        adaptive_world_options.append(adapted.get("world", world))
+    if world_entry:
+        motion_profile = HOME_WORLD_MOTION_PROFILES.get(style_world, HOME_WORLD_MOTION_PROFILES["quiet-luxury"])
+        world_entry = adapt_world_for_identity(world_entry, motion_profile, identity_profile).get("world", world_entry)
 
     results = []
     for raw_look in LOOKS:
@@ -4200,13 +4714,21 @@ def discover():
             continue
         if color and color != look["color"].lower():
             continue
+        candidate_world = style_world or look_primary_world_slug(look)
+        evolution = recommendation_evolution_adjustment(
+            identity_profile,
+            candidate_world,
+            world_experimentality(candidate_world),
+        )
+        look["identity_guidance"] = evolution.get("guidance", "coherent reinforcement")
+        look["identity_bonus"] = int(evolution.get("score_bonus", 0) or 0)
         results.append(look)
 
     if style_world:
         results.sort(
             key=lambda look: (
-                -int(look.get("world_confidence", 0)),
-                -look["match_score"],
+                -(int(look.get("world_confidence", 0)) + int(look.get("identity_bonus", 0)) * 4),
+                -(look["match_score"] + int(look.get("identity_bonus", 0)) * 8),
                 budget_distance(data.get("budget_range", ""), look["budget"]),
                 look["title"],
             )
@@ -4214,13 +4736,25 @@ def discover():
     else:
         results.sort(
             key=lambda look: (
-                -look["match_score"],
-                -int(look.get("world_confidence", 0)),
+                -(look["match_score"] + int(look.get("identity_bonus", 0)) * 8),
+                -(int(look.get("world_confidence", 0)) + int(look.get("identity_bonus", 0)) * 4),
                 budget_distance(data.get("budget_range", ""), look["budget"]),
                 look["title"],
             )
         )
     results = dedupe_looks_by_image(results)
+    if style_world:
+        data = apply_identity_event_to_profile(
+            data,
+            {
+                "type": "world_filter_view",
+                "source": "discover",
+                "world_slug": style_world,
+                "duration_ms": 3200,
+            },
+        )
+        current_user.set_profile_data(data)
+        db.session.commit()
     world_expansion = []
     if style_world and world_entry and len(results) < 8:
         world_expansion = world_aligned_item_recommendations(
@@ -4237,9 +4771,10 @@ def discover():
         religion_options=RELIGION_OPTIONS,
         garment_options=GARMENT_OPTIONS,
         accessory_options=ACCESSORY_OPTIONS,
-        style_world_options=STYLE_WORLD_OPTIONS,
+        style_world_options=adaptive_world_options,
         active_world=world_entry,
         world_expansion=world_expansion,
+        identity_profile=identity_profile,
         selected_style_world=style_world,
         style_options=STYLE_OPTIONS,
         budget_options=BUDGET_OPTIONS,
@@ -4269,7 +4804,22 @@ def look_detail(slug: str):
     if not raw_look:
         abort(404)
 
-    look = enrich_look(raw_look, profile_data())
+    data = profile_data()
+    look = enrich_look(raw_look, data)
+    view_world = look_primary_world_slug(look)
+    data = apply_identity_event_to_profile(
+        data,
+        {
+            "type": "look_view",
+            "source": "look_detail",
+            "world_slug": view_world,
+            "look_slug": look.get("slug", ""),
+            "duration_ms": 2600,
+            "meta": look_behavior_event_meta(look, world_slug_hint=view_world),
+        },
+    )
+    current_user.set_profile_data(data)
+    db.session.commit()
     related = [candidate for candidate in personalized_looks() if candidate["slug"] != slug][:3]
     saved = slug in set(current_user.get_saved_looks())
     return render_template("look_detail.html", look=look, related=related, saved=saved)
@@ -4285,15 +4835,33 @@ def save_look(slug: str):
     if slug not in LOOKS_BY_SLUG:
         abort(404)
 
+    data = profile_data()
+    look = enrich_look(LOOKS_BY_SLUG[slug], data)
+    world_slug = look_primary_world_slug(look)
     saved = current_user.get_saved_looks()
+    event_type = "look_saved"
     if slug in saved:
         saved = [item for item in saved if item != slug]
+        event_type = "look_unsaved"
         flash("Removed from saved looks.", "info")
     else:
         saved.append(slug)
         flash("Saved to your looks.", "success")
 
+    data = apply_identity_event_to_profile(
+        data,
+        {
+            "type": event_type,
+            "source": "save_button",
+            "world_slug": world_slug,
+            "look_slug": slug,
+            "duration_ms": 1800,
+            "meta": look_behavior_event_meta(look, world_slug_hint=world_slug),
+        },
+    )
+
     current_user.set_saved_looks(saved)
+    current_user.set_profile_data(data)
     db.session.commit()
     audit("looks.saved_toggle", target=f"user:{current_user.id}", meta={"slug": slug})
     return redirect(request.referrer or url_for("main.look_detail", slug=slug))
@@ -4312,6 +4880,9 @@ def cart_add():
     look = LOOKS_BY_SLUG.get(look_slug)
     if not look:
         abort(404)
+    data = profile_data()
+    enriched_look = enrich_look(look, data)
+    world_slug = look_primary_world_slug(enriched_look)
 
     basket = cart_items()
     if buy_all:
@@ -4334,6 +4905,20 @@ def cart_add():
                 "quantity": 1,
             }
         )
+
+    data = apply_identity_event_to_profile(
+        data,
+        {
+            "type": "cart_add",
+            "source": "commerce",
+            "world_slug": world_slug,
+            "look_slug": look_slug,
+            "duration_ms": 1400,
+            "meta": look_behavior_event_meta(enriched_look, world_slug_hint=world_slug),
+        },
+    )
+    current_user.set_profile_data(data)
+    db.session.commit()
 
     session.modified = True
     flash("Added to cart.", "success")
@@ -4396,6 +4981,21 @@ def checkout():
         }
         append_order_to_history(order_payload)
         record_seller_orders(order_payload)
+        data = profile_data()
+        data = apply_identity_event_to_profile(
+            data,
+            {
+                "type": "purchase_completed",
+                "source": "checkout",
+                "duration_ms": 2200,
+                "meta": {
+                    "order_total": float(order_payload.get("total", 0) or 0),
+                    "item_count": len(order_payload.get("items", []) or []),
+                },
+            },
+        )
+        current_user.set_profile_data(data)
+        db.session.commit()
         audit("checkout.completed", target=f"user:{current_user.id}", meta={"reference": order_ref, "total": cart_total()})
         session["last_order"] = order_payload
         session["cart"] = []
@@ -4428,9 +5028,10 @@ def profile():
     ranked_looks = personalized_looks()
     saved_looks = [enrich_look(LOOKS_BY_SLUG[slug], data) for slug in current_user.get_saved_looks() if slug in LOOKS_BY_SLUG]
     saved_looks = dedupe_looks_by_image(saved_looks)
-    dna = style_dna_profile(data, ranked_looks)
-    suggestions = identity_suggestions(data, ranked_looks)
-    timeline = identity_evolution_timeline(data)
+    identity_profile = identity_profile_snapshot(data, ranked_looks)
+    dna = style_dna_profile(data, ranked_looks, identity_profile=identity_profile)
+    suggestions = identity_suggestions(data, ranked_looks, identity_profile=identity_profile)
+    timeline = identity_evolution_timeline(data, identity_profile=identity_profile)
     return render_template(
         "profile.html",
         profile=profile_data(),
@@ -4438,6 +5039,7 @@ def profile():
         saved_looks=saved_looks,
         orders=current_user.get_order_history(),
         style_dna=dna,
+        identity_profile=identity_profile,
         identity_suggestions=suggestions,
         evolution_timeline=timeline,
         gender_options=GENDER_OPTIONS,
@@ -4598,12 +5200,15 @@ def evolution():
 
     data = profile_data()
     looks = personalized_looks()
+    identity_profile = identity_profile_snapshot(data, looks)
     return render_template(
         "evolution.html",
         profile=data,
-        style_dna=style_dna_profile(data, looks),
-        identity_suggestions=identity_suggestions(data, looks),
-        evolution_timeline=identity_evolution_timeline(data),
+        style_dna=style_dna_profile(data, looks, identity_profile=identity_profile),
+        identity_profile=identity_profile,
+        identity_suggestions=identity_suggestions(data, looks, identity_profile=identity_profile),
+        evolution_timeline=identity_evolution_timeline(data, identity_profile=identity_profile),
+        style_world_options=STYLE_WORLD_OPTIONS,
     )
 
 
@@ -4737,6 +5342,65 @@ def upload_post():
             "suggestions": suggestions,
         }
     )
+
+
+@bp.post("/api/identity/event")
+@login_required
+@limiter.limit("320 per hour")
+def identity_event_ingest():
+    maybe_redirect = ensure_onboarding()
+    if maybe_redirect:
+        return jsonify({"ok": False, "error": "Complete onboarding first."}), 403
+
+    payload = request.get_json(silent=True) or {}
+    events = payload.get("events", []) if isinstance(payload, dict) else []
+    if not isinstance(events, list):
+        single = payload if isinstance(payload, dict) else {}
+        events = [single]
+
+    data = profile_data()
+    processed = 0
+    for raw_event in events[:24]:
+        if not isinstance(raw_event, dict):
+            continue
+        event = sanitized_identity_event_payload(raw_event)
+        if not event.get("type"):
+            continue
+        data = apply_identity_event_to_profile(data, event)
+        processed += 1
+
+    if processed:
+        current_user.set_profile_data(data)
+        db.session.commit()
+
+    identity_profile = compute_identity_profile(data, saved_worlds=saved_world_signals(data))
+    return jsonify(
+        {
+            "ok": True,
+            "processed": processed,
+            "identity": {
+                "aesthetic_consistency": int(identity_profile.get("aesthetic_consistency", 0) or 0),
+                "confidence_growth": int(identity_profile.get("confidence_growth", 0) or 0),
+                "experimentation_tendency": int(identity_profile.get("experimentation_tendency", 0) or 0),
+                "signal_depth": int(identity_profile.get("signal_depth", 0) or 0),
+                "dominant_world": sanitize_text(identity_profile.get("dominant_world", ""), 80),
+                "layering_frequency": sanitize_text(identity_profile.get("layering_frequency", ""), 40),
+                "dominant_silhouette": sanitize_text(identity_profile.get("dominant_silhouette", ""), 40),
+            },
+        }
+    )
+
+
+@bp.get("/api/identity/profile")
+@login_required
+def identity_profile_api():
+    maybe_redirect = ensure_onboarding()
+    if maybe_redirect:
+        return jsonify({"ok": False, "error": "Complete onboarding first."}), 403
+    data = profile_data()
+    looks = personalized_looks()
+    identity_profile = identity_profile_snapshot(data, looks)
+    return jsonify({"ok": True, "identity": identity_profile})
 
 
 @bp.route("/admin/grant", methods=["GET", "POST"])

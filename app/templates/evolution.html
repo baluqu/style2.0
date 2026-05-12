@@ -1,59 +1,316 @@
 {% extends "base.html" %}
-{% block title %}Style Evolution | StyleBridge{% endblock %}
+{% block title %}Identity Evolution Engine | StyleBridge{% endblock %}
 {% block content %}
+  {% set consistency = identity_profile.get('aesthetic_consistency', style_dna.confidence) %}
+  {% set growth = identity_profile.get('confidence_growth', style_dna.confidence) %}
+  {% set experimentation = identity_profile.get('experimentation_tendency', style_dna.experimentation) %}
+  {% set signal_depth = identity_profile.get('signal_depth', 0) %}
+  <style>
+    .sb-evo-hero {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(56, 189, 248, 0.22), rgba(56, 189, 248, 0) 46%),
+        radial-gradient(circle at 80% 28%, rgba(232, 121, 249, 0.2), rgba(232, 121, 249, 0) 46%),
+        linear-gradient(145deg, rgba(8, 14, 26, 0.95), rgba(13, 21, 33, 0.92));
+    }
+
+    .sb-evo-hero::before {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(56, 189, 248, 0.16), rgba(56, 189, 248, 0) 60%),
+        radial-gradient(circle at 72% 58%, rgba(244, 114, 182, 0.14), rgba(244, 114, 182, 0) 58%);
+      filter: blur(42px);
+      animation: sb-evo-atmo 18s linear infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes sb-evo-atmo {
+      from { transform: translate3d(-2%, 0, 0) scale(0.98); }
+      to { transform: translate3d(2%, 0, 0) scale(1.04); }
+    }
+
+    .sb-evo-orbit {
+      position: relative;
+      width: min(26rem, 74vw);
+      aspect-ratio: 1 / 1;
+      margin: 0 auto;
+    }
+
+    .sb-evo-ring {
+      position: absolute;
+      inset: 9%;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+        0 0 56px rgba(56, 189, 248, 0.13);
+    }
+
+    .sb-evo-ring:nth-child(2) { inset: 20%; opacity: 0.9; }
+    .sb-evo-ring:nth-child(3) { inset: 31%; opacity: 0.8; }
+
+    .sb-evo-core {
+      position: absolute;
+      inset: 39%;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.12)),
+        linear-gradient(160deg, rgba(56, 189, 248, 0.6), rgba(232, 121, 249, 0.42));
+      box-shadow: 0 0 44px rgba(56, 189, 248, 0.38);
+    }
+
+    .sb-evo-node {
+      position: absolute;
+      width: 0.72rem;
+      height: 0.72rem;
+      border-radius: 999px;
+      background: rgba(125, 211, 252, 0.95);
+      box-shadow: 0 0 20px rgba(125, 211, 252, 0.6);
+      animation: sb-evo-orbit 10s linear infinite;
+      transform-origin: -9.8rem 0.36rem;
+    }
+
+    .sb-evo-node[data-node="2"] {
+      background: rgba(244, 114, 182, 0.95);
+      box-shadow: 0 0 20px rgba(244, 114, 182, 0.6);
+      animation-duration: 14s;
+      animation-direction: reverse;
+      transform-origin: -7.4rem 0.36rem;
+    }
+
+    .sb-evo-node[data-node="3"] {
+      background: rgba(134, 239, 172, 0.95);
+      box-shadow: 0 0 20px rgba(134, 239, 172, 0.55);
+      animation-duration: 18s;
+      transform-origin: -5.3rem 0.36rem;
+    }
+
+    @keyframes sb-evo-orbit {
+      from { transform: translate(50%, 50%) rotate(0deg); }
+      to { transform: translate(50%, 50%) rotate(360deg); }
+    }
+  </style>
+
   <div class="space-y-6">
-    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <section class="sb-evo-hero rounded-[2rem] border border-white/10 p-6 md:p-8">
+      <div class="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Style evolution system</div>
-          <h1 class="mt-3 text-4xl font-black text-white">Weekly identity reports.</h1>
-          <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
-            This report tracks how your aesthetic confidence, experimentation, and visual preferences evolve week to week.
+          <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Identity Evolution Engine</div>
+          <h1 class="mt-3 text-4xl font-black text-white">A living map of your aesthetic intelligence.</h1>
+          <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-200">
+            This system tracks behavior over time, separates aspiration from habit, and guides identity growth without abrupt aesthetic jumps.
           </p>
+          <div class="mt-4 flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.16em] text-slate-200">
+            <span class="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-2">Signal depth {{ signal_depth }}</span>
+            <span class="rounded-full border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-2">Consistency {{ consistency }}%</span>
+            <span class="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-2">Growth {{ growth }}%</span>
+          </div>
         </div>
-        <a href="{{ url_for('main.feed') }}" class="rounded-full border border-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">Back to identity home</a>
+        <a href="{{ url_for('main.feed') }}" class="rounded-full border border-white/20 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">Back to identity home</a>
       </div>
     </section>
 
-    <section class="grid gap-5 md:grid-cols-3">
+    <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
       <article class="rounded-[1.5rem] border border-white/10 bg-slate-900/80 p-5">
-        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Confidence</div>
-        <div class="mt-2 text-4xl font-black text-white">{{ style_dna.confidence }}%</div>
+        <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Aesthetic consistency</div>
+        <div class="mt-2 text-4xl font-black text-white">{{ consistency }}%</div>
       </article>
       <article class="rounded-[1.5rem] border border-white/10 bg-slate-900/80 p-5">
-        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Experimentation</div>
-        <div class="mt-2 text-4xl font-black text-white">{{ style_dna.experimentation }}%</div>
+        <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Confidence growth</div>
+        <div class="mt-2 text-4xl font-black text-white">{{ growth }}%</div>
       </article>
       <article class="rounded-[1.5rem] border border-white/10 bg-slate-900/80 p-5">
-        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Dominant styles</div>
-        <div class="mt-2 text-base font-black text-white">{{ style_dna.dominant_styles | join(' | ') if style_dna.dominant_styles else 'Calibrating' }}</div>
+        <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Experimentation tendency</div>
+        <div class="mt-2 text-4xl font-black text-white">{{ experimentation }}%</div>
+      </article>
+      <article class="rounded-[1.5rem] border border-white/10 bg-slate-900/80 p-5">
+        <div class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Dominant silhouette</div>
+        <div class="mt-2 text-lg font-black text-white">{{ identity_profile.get('dominant_silhouette', 'balanced') }}</div>
+        <div class="mt-2 text-xs uppercase tracking-[0.13em] text-slate-400">{{ identity_profile.get('layering_frequency', 'medium') }} layering</div>
       </article>
     </section>
 
-    <section class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+    <section class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
       <article class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
-        <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">Timeline</div>
-        <div class="mt-4 space-y-3">
-          {% for entry in evolution_timeline %}
-            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{{ entry.period }}</div>
-              <div class="mt-1 text-lg font-black text-white">{{ entry.headline }}</div>
-              <div class="mt-2 text-sm leading-7 text-slate-300">{{ entry.detail }}</div>
-            </div>
-          {% endfor %}
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Spatial identity core</div>
+        <div class="sb-evo-orbit mt-4">
+          <div class="sb-evo-ring"></div>
+          <div class="sb-evo-ring"></div>
+          <div class="sb-evo-ring"></div>
+          <div class="sb-evo-core"></div>
+          <div class="sb-evo-node" data-node="1"></div>
+          <div class="sb-evo-node" data-node="2"></div>
+          <div class="sb-evo-node" data-node="3"></div>
+        </div>
+        <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-200">
+          {{ identity_profile.get('emotional_pattern', 'Behavior is still calibrating your emotional style pattern.') }}
         </div>
       </article>
 
       <article class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
-        <div class="text-xs font-black uppercase tracking-[0.18em] text-fuchsia-200">Intelligence summary</div>
-        <div class="mt-4 space-y-3">
-          {% for suggestion in identity_suggestions %}
-            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-200">{{ suggestion }}</div>
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-fuchsia-200">Identity distinctions</div>
+        <div class="mt-4 grid gap-4 md:grid-cols-3">
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Aspirational</div>
+            <div class="mt-3 space-y-2 text-sm text-slate-200">
+              {% for entry in identity_profile.get('aspirational_identity', [])[:3] %}
+                <div>{{ entry.slug.replace('-', ' ')|title }}</div>
+              {% else %}
+                <div>Calibrating</div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Actual behavior</div>
+            <div class="mt-3 space-y-2 text-sm text-slate-200">
+              {% for entry in identity_profile.get('actual_behavior', [])[:3] %}
+                <div>{{ entry.slug.replace('-', ' ')|title }}</div>
+              {% else %}
+                <div>Calibrating</div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Temporary curiosity</div>
+            <div class="mt-3 space-y-2 text-sm text-slate-200">
+              {% for entry in identity_profile.get('temporary_curiosity', [])[:3] %}
+                <div>{{ entry.slug.replace('-', ' ')|title }}</div>
+              {% else %}
+                <div>Low volatility</div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-200">
+          {% for line in identity_profile.get('summary_lines', []) %}
+            <div>{{ line }}</div>
           {% else %}
-            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-300">Keep interacting with looks to unlock stronger weekly guidance.</div>
+            <div>Keep interacting with worlds to unlock richer identity decomposition.</div>
           {% endfor %}
         </div>
+      </article>
+    </section>
+
+    <section class="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <article class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">World affinity progression</div>
+        <div class="mt-4 space-y-3">
+          {% for entry in identity_profile.get('world_affinity_progression', [])[:6] %}
+            {% set bar = (entry.score * 6)|round(0)|int %}
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="flex items-center justify-between gap-3 text-xs font-black uppercase tracking-[0.14em] text-slate-300">
+                <span>{{ entry.slug.replace('-', ' ')|title }}</span>
+                <span>{{ entry.score }}</span>
+              </div>
+              <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-800/80">
+                <div class="h-full rounded-full bg-gradient-to-r from-cyan-300 to-fuchsia-300" style="width: {{ [bar, 100]|min }}%"></div>
+              </div>
+              <div class="mt-2 text-xs uppercase tracking-[0.12em] text-slate-400">
+                Actual {{ entry.actual }} | Aspirational {{ entry.aspirational }}
+              </div>
+            </div>
+          {% else %}
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">No affinity progression captured yet.</div>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="space-y-6">
+        <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+          <div class="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">World transition memory</div>
+          <div class="mt-4 space-y-2">
+            {% for transition in identity_profile.get('transition_paths', [])[:5] %}
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200">
+                {{ transition.from.replace('-', ' ')|title }} -> {{ transition.to.replace('-', ' ')|title }} ({{ transition.count }})
+              </div>
+            {% else %}
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300">Transitions are still calibrating.</div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+          <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">Evolution timeline</div>
+          <div class="mt-4 space-y-3">
+            {% for entry in evolution_timeline %}
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{{ entry.period }}</div>
+                <div class="mt-1 text-base font-black text-white">{{ entry.headline }}</div>
+                <div class="mt-2 text-sm leading-7 text-slate-300">{{ entry.detail }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+          <div class="text-xs font-black uppercase tracking-[0.18em] text-fuchsia-200">Intelligence guidance</div>
+          <div class="mt-4 space-y-3">
+            {% for suggestion in identity_suggestions %}
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-200">{{ suggestion }}</div>
+            {% else %}
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-300">Continue interacting to unlock deeper guidance.</div>
+            {% endfor %}
+          </div>
+        </section>
       </article>
     </section>
   </div>
+
+  <script>
+    (function () {
+      const isAuthenticated = {{ "true" if current_user.is_authenticated else "false" }};
+      if (!isAuthenticated) {
+        return;
+      }
+      const identityEndpoint = {{ url_for("main.identity_event_ingest") | tojson }};
+      const csrfToken = {{ csrf_token() | tojson }};
+      const startedAt = performance.now();
+
+      const send = (event, force = false) => {
+        fetch(identityEndpoint, {
+          method: "POST",
+          credentials: "same-origin",
+          keepalive: force,
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify({ events: [event] }),
+        }).catch(() => {});
+      };
+
+      send(
+        {
+          type: "evolution_view",
+          source: "evolution",
+          duration_ms: 1200,
+          meta: {
+            experimental_score: {{ (experimentation / 100)|tojson }},
+          },
+        },
+        false,
+      );
+
+      window.addEventListener("beforeunload", () => {
+        const dwell = Math.max(0, Math.round(performance.now() - startedAt));
+        if (dwell < 1200) {
+          return;
+        }
+        send(
+          {
+            type: "evolution_dwell",
+            source: "evolution",
+            duration_ms: dwell,
+            meta: {
+              experimental_score: {{ (experimentation / 100)|tojson }},
+            },
+          },
+          true,
+        );
+      });
+    })();
+  </script>
 {% endblock %}

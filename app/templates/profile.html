@@ -32,8 +32,8 @@
           <div class="mt-2 text-3xl font-black text-white">{{ saved_looks|length }}</div>
         </div>
         <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
-          <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Style vectors</div>
-          <div class="mt-2 text-3xl font-black text-white">{{ profile_vector.get('styles', {})|length }}</div>
+          <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Behavior signals</div>
+          <div class="mt-2 text-3xl font-black text-white">{{ identity_profile.get('signal_depth', 0) }}</div>
         </div>
       </div>
     </section>
@@ -172,6 +172,42 @@
 
       <div class="space-y-6">
         <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+          <div class="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Identity distinctions</div>
+          <div class="mt-4 grid gap-3 md:grid-cols-3">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div class="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">Aspirational</div>
+              <div class="mt-2 text-sm text-slate-200">
+                {% for entry in identity_profile.get('aspirational_identity', [])[:2] %}
+                  <div>{{ entry.slug.replace('-', ' ')|title }}</div>
+                {% else %}
+                  <div>Calibrating</div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div class="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">Actual</div>
+              <div class="mt-2 text-sm text-slate-200">
+                {% for entry in identity_profile.get('actual_behavior', [])[:2] %}
+                  <div>{{ entry.slug.replace('-', ' ')|title }}</div>
+                {% else %}
+                  <div>Calibrating</div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div class="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">Curiosity</div>
+              <div class="mt-2 text-sm text-slate-200">
+                {% for entry in identity_profile.get('temporary_curiosity', [])[:2] %}
+                  <div>{{ entry.slug.replace('-', ' ')|title }}</div>
+                {% else %}
+                  <div>Low volatility</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
           <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">Weekly evolution timeline</div>
           <div class="mt-4 space-y-3">
             {% for entry in evolution_timeline %}
@@ -246,4 +282,32 @@
       </div>
     </section>
   </div>
+
+  <script>
+    (function () {
+      const isAuthenticated = {{ "true" if current_user.is_authenticated else "false" }};
+      if (!isAuthenticated) {
+        return;
+      }
+      const identityEndpoint = {{ url_for("main.identity_event_ingest") | tojson }};
+      const csrfToken = {{ csrf_token() | tojson }};
+      fetch(identityEndpoint, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({
+          events: [
+            {
+              type: "profile_view",
+              source: "profile",
+              duration_ms: 1000,
+            },
+          ],
+        }),
+      }).catch(() => {});
+    })();
+  </script>
 {% endblock %}

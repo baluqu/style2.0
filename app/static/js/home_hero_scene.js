@@ -3,11 +3,56 @@ import { createRoot } from "react-dom/client";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { animate, motionValue } from "framer-motion";
 
 const h = React.createElement;
 
-const HERO_MODEL_URL = "/static/models/jujutsu_kaisen_toji_fushiguro.glb?v=20260512-hero2";
+const HERO_MODEL_URL = "/static/models/jujutsu_kaisen_toji_fushiguro.glb?v=20260512-hero4";
 const HERO_MODEL_FALLBACK_URL = "/static/models/toji-reference.glb?v=20260402-toji1";
+const DEFAULT_WORLD_SLUG = "quiet-luxury";
+
+const WORLD_MOTION_PROFILES = {
+  default: {
+    tempo: 1,
+    drift: 1,
+    contrast: 1,
+    blur: 0.55,
+    rotation: 1,
+    zoom: 1,
+  },
+  "quiet-luxury": {
+    tempo: 0.74,
+    drift: 0.88,
+    contrast: 0.82,
+    blur: 0.46,
+    rotation: 0.82,
+    zoom: 0.92,
+  },
+  "tokyo-street": {
+    tempo: 1.2,
+    drift: 0.62,
+    contrast: 1.2,
+    blur: 0.74,
+    rotation: 1.08,
+    zoom: 1.06,
+  },
+  "dark-academia": {
+    tempo: 0.7,
+    drift: 0.96,
+    contrast: 0.9,
+    blur: 0.56,
+    rotation: 0.78,
+    zoom: 0.88,
+  },
+  "neo-minimal": {
+    tempo: 0.62,
+    drift: 0.52,
+    contrast: 0.68,
+    blur: 0.3,
+    rotation: 0.72,
+    zoom: 0.78,
+  },
+};
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -16,6 +61,29 @@ function clamp(value, min, max) {
 function damp(current, target, smoothing, delta) {
   const t = 1 - Math.exp(-smoothing * delta);
   return current + (target - current) * t;
+}
+
+function worldProfileFromValue(value) {
+  if (!value) {
+    return { ...WORLD_MOTION_PROFILES.default };
+  }
+  const slug = String(value).trim().toLowerCase();
+  return {
+    ...WORLD_MOTION_PROFILES.default,
+    ...(WORLD_MOTION_PROFILES[slug] || {}),
+  };
+}
+
+function normalizedWorldProfile(profile = {}, slug = DEFAULT_WORLD_SLUG) {
+  const base = worldProfileFromValue(slug);
+  return {
+    tempo: clamp(Number(profile.tempo ?? base.tempo), 0.45, 1.35),
+    drift: clamp(Number(profile.drift ?? base.drift), 0.45, 1.2),
+    contrast: clamp(Number(profile.contrast ?? base.contrast), 0.6, 1.3),
+    blur: clamp(Number(profile.blur ?? base.blur), 0.2, 0.9),
+    rotation: clamp(Number(profile.rotation ?? base.rotation), 0.65, 1.2),
+    zoom: clamp(Number(profile.zoom ?? base.zoom), 0.75, 1.12),
+  };
 }
 
 function supportsWebGL() {
@@ -255,18 +323,19 @@ function HeroScene({
     const stageState = stateRef.current;
     const phase = phaseRef.current;
     const t = frame.clock.getElapsedTime();
+    const world = stageState.worldProfile || WORLD_MOTION_PROFILES.default;
 
     stageState.pointer.x = damp(stageState.pointer.x, stageState.pointerTarget.x, 6.2, delta);
     stageState.pointer.y = damp(stageState.pointer.y, stageState.pointerTarget.y, 6.2, delta);
 
-    const driftX = Math.sin(t * 0.23) * 0.07;
-    const driftY = Math.cos(t * 0.17) * 0.045;
-    const breath = Math.sin(t * 0.2) * 0.07;
+    const driftX = Math.sin(t * 0.23 * world.tempo) * 0.07 * world.drift;
+    const driftY = Math.cos(t * 0.17 * world.tempo) * 0.045 * world.drift;
+    const breath = Math.sin(t * 0.2 * world.tempo) * 0.07 * world.zoom;
 
-    stageState.spin += delta * 0.104;
-    const lift = Math.sin(t * 0.64) * 0.052;
-    const wave = Math.sin(t * 0.44) * 0.06;
-    const roll = Math.sin(t * 0.34) * 0.017;
+    stageState.spin += delta * 0.104 * world.rotation;
+    const lift = Math.sin(t * 0.64 * world.tempo) * 0.052 * world.drift;
+    const wave = Math.sin(t * 0.44 * world.tempo) * 0.06 * world.rotation;
+    const roll = Math.sin(t * 0.34 * world.tempo) * 0.017 * world.rotation;
 
     const width = size.width || window.innerWidth || 1280;
     const baseScale = width < 700 ? 0.84 : width < 1100 ? 0.95 : 1;
@@ -296,7 +365,7 @@ function HeroScene({
 
     const targetCamX = 0.02 + stageState.pointer.x * 0.16 + driftX;
     const targetCamY = 0.18 - stageState.pointer.y * 0.09 + driftY + stageState.progress * 0.03;
-    const targetCamZ = 4.95 - phase * 0.6 + breath + stageState.progress * 0.12;
+    const targetCamZ = 4.95 - phase * 0.6 * world.zoom + breath + stageState.progress * 0.12;
 
     camera.position.x = damp(camera.position.x, targetCamX, 3.9, delta);
     camera.position.y = damp(camera.position.y, targetCamY, 3.9, delta);
@@ -315,16 +384,41 @@ function HeroScene({
       rimRef.current.position.x = -3.1 + Math.sin(t * 0.2) * 0.2;
     }
     if (silverRef.current) {
-      silverRef.current.intensity = 0.42 + Math.sin(t * 0.48) * 0.05;
+      silverRef.current.intensity = (0.42 + Math.sin(t * 0.48 * world.tempo) * 0.05) * world.contrast;
     }
     if (glowRef.current?.material) {
       glowRef.current.rotation.z = -t * 0.035;
-      glowRef.current.material.opacity = 0.2 + Math.sin(t * 0.35) * 0.035;
+      glowRef.current.material.opacity = (0.2 + Math.sin(t * 0.35 * world.tempo) * 0.035) * world.blur;
     }
     if (sideGlowRef.current?.material) {
       sideGlowRef.current.rotation.z = t * 0.042;
-      sideGlowRef.current.material.opacity = 0.12 + Math.cos(t * 0.33) * 0.03;
+      sideGlowRef.current.material.opacity = (0.12 + Math.cos(t * 0.33 * world.tempo) * 0.03) * world.blur;
     }
+
+    const artifactX = clamp(stageState.pointer.x * 1.9 + Math.sin(t * 0.35) * 0.65, -5.6, 5.6);
+    const artifactY = clamp(stageState.pointer.y * 1.1 + Math.cos(t * 0.26) * 0.4, -3.1, 3.1);
+    const spinDeg = ((stageState.spin % (Math.PI * 2)) * 180) / Math.PI;
+    const uiShiftX = clamp(stageState.pointer.x * 10 + Math.sin(t * 0.41) * 3, -14, 14);
+    const uiShiftY = clamp(stageState.pointer.y * 7 + Math.cos(t * 0.33) * 2.4, -10, 10);
+    const uiDepth = clamp(110 + phase * 78 + Math.sin(t * 0.28) * 10, 90, 220);
+    const uiTilt = clamp(stageState.pointer.x * -1.8 + Math.sin(t * 0.37) * 0.9, -3.2, 3.2);
+    const lightAlpha = clamp(
+      (0.1 + Math.sin(t * 0.3 * world.tempo + stageState.spin * 0.2) * 0.07) * world.contrast,
+      0.02,
+      0.2
+    );
+
+    stageState.onSync?.({
+      artifactX,
+      artifactY,
+      spinDeg,
+      breathPx: breath * 16,
+      lightAlpha,
+      uiShiftX,
+      uiShiftY,
+      uiDepth,
+      uiTilt,
+    });
   });
 
   return h(
@@ -505,13 +599,14 @@ async function runRevealSequence(stage, phaseRef, { intro, statusEl } = {}) {
   const letters = intro?.querySelectorAll(".sb-hero-wordmark span");
   const sub = intro?.querySelector(".sb-hero-subline");
   const panelStack = stage.querySelector(".sb-panel-stack");
+  const orbitCluster = stage.querySelector(".sb-orbit-cluster");
   const chapterRail = stage.querySelector(".sb-chapter-rail");
   const hud = stage.querySelector(".sb-cinema-hud");
 
-  if (gsap && wordmark && letters?.length && sub && panelStack && chapterRail && hud) {
+  if (gsap && wordmark && letters?.length && sub && panelStack && orbitCluster && chapterRail && hud) {
     gsap.set(letters, { opacity: 0, z: -86, filter: "blur(9px)" });
     gsap.set(sub, { opacity: 0, y: 12, filter: "blur(6px)" });
-    gsap.set([panelStack, chapterRail, hud], { opacity: 0, y: 20, filter: "blur(10px)" });
+    gsap.set([panelStack, orbitCluster, chapterRail, hud], { opacity: 0, y: 20, filter: "blur(10px)" });
     gsap.set(stage, { "--sb-hero-curtain-opacity": 1 });
     phaseRef.current = 0;
 
@@ -537,7 +632,7 @@ async function runRevealSequence(stage, phaseRef, { intro, statusEl } = {}) {
       .to(stage, { "--sb-hero-curtain-opacity": 0, duration: 1.2, ease: "sine.out" }, 1.55)
       .to(phaseRef, { current: 1, duration: 1.85, ease: "sine.inOut" }, 1.5)
       .add(() => stage.classList.add("sb-hero-model-on"), 1.6)
-      .to([panelStack, chapterRail, hud], { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.02, stagger: 0.08 }, 2.0);
+      .to([panelStack, orbitCluster, chapterRail, hud], { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.02, stagger: 0.08 }, 2.0);
     return;
   }
 
@@ -590,12 +685,16 @@ export function bootHomeHeroScene({
   }
 
   const quality = pickQuality();
+  const initialWorldSlug = (String(stage.dataset.world || DEFAULT_WORLD_SLUG).trim().toLowerCase() || DEFAULT_WORLD_SLUG);
   const stageStateRef = {
     current: {
       pointer: { x: 0, y: 0 },
       pointerTarget: { x: 0, y: 0 },
       progress: 0,
       spin: 0,
+      onSync: null,
+      worldSlug: initialWorldSlug,
+      worldProfile: normalizedWorldProfile({}, initialWorldSlug),
     },
   };
   const phaseRef = { current: prefersReducedMotion() ? 1 : 0 };
@@ -606,12 +705,49 @@ export function bootHomeHeroScene({
 
   const root = createRoot(mount);
 
+  const artifactXMV = motionValue(0);
+  const artifactYMV = motionValue(0);
+  const spinMV = motionValue(0);
+  const breathMV = motionValue(0);
+  const lightMV = motionValue(0.08);
+  const uiShiftXMV = motionValue(0);
+  const uiShiftYMV = motionValue(0);
+  const uiDepthMV = motionValue(0);
+  const uiTiltMV = motionValue(0);
+
+  const unsubs = [
+    artifactXMV.on("change", (value) => stage.style.setProperty("--sb-artifact-x", `${value.toFixed(3)}%`)),
+    artifactYMV.on("change", (value) => stage.style.setProperty("--sb-artifact-y", `${value.toFixed(3)}%`)),
+    spinMV.on("change", (value) => stage.style.setProperty("--sb-artifact-spin", `${value.toFixed(2)}deg`)),
+    breathMV.on("change", (value) => stage.style.setProperty("--sb-artifact-breath", `${value.toFixed(2)}px`)),
+    lightMV.on("change", (value) => stage.style.setProperty("--sb-light-alpha", value.toFixed(4))),
+    uiShiftXMV.on("change", (value) => stage.style.setProperty("--sb-ui-shift-x", `${value.toFixed(2)}px`)),
+    uiShiftYMV.on("change", (value) => stage.style.setProperty("--sb-ui-shift-y", `${value.toFixed(2)}px`)),
+    uiDepthMV.on("change", (value) => stage.style.setProperty("--sb-ui-depth", `${value.toFixed(2)}px`)),
+    uiTiltMV.on("change", (value) => stage.style.setProperty("--sb-ui-tilt", `${value.toFixed(3)}deg`)),
+  ];
+
+  stageStateRef.current.onSync = ({ artifactX, artifactY, spinDeg, breathPx, lightAlpha, uiShiftX, uiShiftY, uiDepth, uiTilt }) => {
+    artifactXMV.set(artifactX);
+    artifactYMV.set(artifactY);
+    spinMV.set(spinDeg);
+    breathMV.set(breathPx);
+    lightMV.set(lightAlpha);
+    uiShiftXMV.set(uiShiftX);
+    uiShiftYMV.set(uiShiftY);
+    uiDepthMV.set(uiDepth);
+    uiTiltMV.set(uiTilt);
+  };
+
   const onModelReady = async () => {
     if (disposed || revealed) {
       return;
     }
     revealed = true;
+    animate(uiDepthMV, 148, { duration: 1.85, ease: [0.22, 1, 0.36, 1] });
     await runRevealSequence(stage, phaseRef, { intro, statusEl });
+    animate(uiDepthMV, 194, { duration: 1.7, ease: [0.22, 1, 0.36, 1] });
+    animate(lightMV, 0.12, { duration: 2.1, ease: "easeOut" });
   };
 
   const onLoadProgress = (percent, { fallback } = {}) => {
@@ -659,9 +795,22 @@ export function bootHomeHeroScene({
     }
   };
 
+  const handleWorldProfile = (event) => {
+    const detail = event?.detail || {};
+    const nextSlug =
+      typeof detail.slug === "string" && detail.slug.trim()
+        ? detail.slug.trim().toLowerCase()
+        : stageStateRef.current.worldSlug || DEFAULT_WORLD_SLUG;
+    const motionProfile =
+      detail.motionProfile && typeof detail.motionProfile === "object" ? detail.motionProfile : detail;
+    stageStateRef.current.worldSlug = nextSlug;
+    stageStateRef.current.worldProfile = normalizedWorldProfile(motionProfile, nextSlug);
+  };
+
   stage.addEventListener("pointermove", handlePointerMove, { passive: true });
   stage.addEventListener("pointerleave", handlePointerLeave, { passive: true });
   stage.addEventListener("sb:home-progress", handleProgress);
+  stage.addEventListener("sb:world-profile", handleWorldProfile);
 
   return {
     destroy() {
@@ -672,6 +821,17 @@ export function bootHomeHeroScene({
       stage.removeEventListener("pointermove", handlePointerMove);
       stage.removeEventListener("pointerleave", handlePointerLeave);
       stage.removeEventListener("sb:home-progress", handleProgress);
+      stage.removeEventListener("sb:world-profile", handleWorldProfile);
+      unsubs.forEach((unsubscribe) => unsubscribe?.());
+      artifactXMV.destroy();
+      artifactYMV.destroy();
+      spinMV.destroy();
+      breathMV.destroy();
+      lightMV.destroy();
+      uiShiftXMV.destroy();
+      uiShiftYMV.destroy();
+      uiDepthMV.destroy();
+      uiTiltMV.destroy();
       root.unmount();
     },
     setProgress(value) {
