@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Style Evolution | StyleBridge{% endblock %}
+{% block content %}
+  <div class="space-y-6">
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Style evolution system</div>
+          <h1 class="mt-3 text-4xl font-black text-white">Weekly identity reports.</h1>
+          <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
+            This report tracks how your aesthetic confidence, experimentation, and visual preferences evolve week to week.
+          </p>
+        </div>
+        <a href="{{ url_for('main.feed') }}" class="rounded-full border border-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">Back to identity home</a>
+      </div>
+    </section>
+
+    <section class="grid gap-5 md:grid-cols-3">
+      <article class="rounded-[1.5rem] border border-white/10 bg-slate-900/80 p-5">
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Confidence</div>
+        <div class="mt-2 text-4xl font-black text-white">{{ style_dna.confidence }}%</div>
+      </article>
+      <article class="rounded-[1.5rem] border border-white/10 bg-slate-900/80 p-5">
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Experimentation</div>
+        <div class="mt-2 text-4xl font-black text-white">{{ style_dna.experimentation }}%</div>
+      </article>
+      <article class="rounded-[1.5rem] border border-white/10 bg-slate-900/80 p-5">
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Dominant styles</div>
+        <div class="mt-2 text-base font-black text-white">{{ style_dna.dominant_styles | join(' | ') if style_dna.dominant_styles else 'Calibrating' }}</div>
+      </article>
+    </section>
+
+    <section class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <article class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">Timeline</div>
+        <div class="mt-4 space-y-3">
+          {% for entry in evolution_timeline %}
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{{ entry.period }}</div>
+              <div class="mt-1 text-lg font-black text-white">{{ entry.headline }}</div>
+              <div class="mt-2 text-sm leading-7 text-slate-300">{{ entry.detail }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-fuchsia-200">Intelligence summary</div>
+        <div class="mt-4 space-y-3">
+          {% for suggestion in identity_suggestions %}
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-200">{{ suggestion }}</div>
+          {% else %}
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-300">Keep interacting with looks to unlock stronger weekly guidance.</div>
+          {% endfor %}
+        </div>
+      </article>
+    </section>
+  </div>
+{% endblock %}

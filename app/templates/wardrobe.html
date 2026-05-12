@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block title %}Wardrobe Intelligence | StyleBridge{% endblock %}
+{% block content %}
+  <div class="space-y-6">
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Wardrobe system</div>
+          <h1 class="mt-3 text-4xl font-black text-white sb-world-heading">Fashion-world intelligence + cinematic outfit systems.</h1>
+          <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
+            Every wardrobe item is scored across silhouette, fit, texture, layering behavior, material appearance, color logic, formality,
+            visual aggression, aesthetic category, and era influence.
+          </p>
+        </div>
+        <a href="{{ url_for('main.evolution') }}" class="rounded-full border border-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">View evolution report</a>
+      </div>
+    </section>
+
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+      <div class="text-xs font-black uppercase tracking-[0.18em] text-fuchsia-200">World ranking</div>
+      <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {% for world in world_rankings %}
+          <a href="{{ url_for('main.wardrobe', world=world.slug) }}" class="rounded-3xl border {% if selected_world and selected_world.slug == world.slug %}border-cyan-300/40 bg-cyan-300/10{% else %}border-white/10 bg-white/5{% endif %} p-4 transition hover:border-cyan-300/35">
+            <div class="text-xs font-black uppercase tracking-[0.16em] {% if selected_world and selected_world.slug == world.slug %}text-cyan-100{% else %}text-slate-400{% endif %}">{{ world.title }}</div>
+            <div class="mt-3 text-3xl font-black text-white">{{ world.confidence }}%</div>
+            <div class="mt-2 text-xs uppercase tracking-[0.12em] text-slate-400">{{ world.aligned_items }} aligned items</div>
+            <div class="mt-2 text-xs text-slate-300">{{ world.typography }}</div>
+          </a>
+        {% else %}
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-4 text-slate-300">Add wardrobe items to rank style worlds.</div>
+        {% endfor %}
+      </div>
+      {% if selected_world %}
+        <div class="mt-5 rounded-3xl border border-cyan-300/25 bg-cyan-300/10 p-4">
+          <div class="text-sm font-black text-white">{{ selected_world.title }}</div>
+          <div class="mt-2 text-sm leading-7 text-slate-200">{{ selected_world.mood }}</div>
+          <div class="mt-3 grid gap-2 text-xs uppercase tracking-[0.12em] text-slate-300 md:grid-cols-3">
+            <div>Lighting: {{ selected_world.lighting }}</div>
+            <div>Motion: {{ selected_world.motion }}</div>
+            <div>Typography: {{ selected_world.typography }}</div>
+          </div>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="grid gap-6 xl:grid-cols-[1fr_1fr]">
+      <form method="post" class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">Add item</div>
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+          <div class="md:col-span-2">
+            <label class="text-sm font-bold text-slate-300">Item name</label>
+            <input name="title" placeholder="Wool overcoat, satin midi dress, retro runner..." class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white" required>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Category</label>
+            <select name="category" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="Top">Top</option>
+              <option value="Bottom">Bottom</option>
+              <option value="Outerwear">Outerwear</option>
+              <option value="Dress">Dress</option>
+              <option value="Set">Set</option>
+              <option value="Shoes">Shoes</option>
+              <option value="Accessory">Accessory</option>
+              <option value="Headwear">Headwear</option>
+              <option value="Layer">Layer</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Color</label>
+            <input name="color" placeholder="Charcoal" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Texture</label>
+            <input name="texture" placeholder="Wool, leather, satin..." class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Occasion</label>
+            <input name="occasion" placeholder="Daily, office, evening..." class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Silhouette</label>
+            <select name="silhouette" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="">Auto detect</option>
+              <option value="structured">Structured</option>
+              <option value="balanced">Balanced</option>
+              <option value="oversized">Oversized</option>
+              <option value="draped">Draped</option>
+              <option value="slim">Slim</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Fit</label>
+            <select name="fit" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="">Auto detect</option>
+              <option value="tailored">Tailored</option>
+              <option value="balanced">Balanced</option>
+              <option value="relaxed">Relaxed</option>
+              <option value="oversized">Oversized</option>
+              <option value="body-skimming">Body-skimming</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Layering potential</label>
+            <select name="layering_potential" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="0">Auto detect</option>
+              <option value="0.2">Low</option>
+              <option value="0.5">Medium</option>
+              <option value="0.85">High</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Color palette family</label>
+            <select name="color_palette" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="">Auto detect</option>
+              <option value="monochrome">Monochrome</option>
+              <option value="neutral">Neutral</option>
+              <option value="cool">Cool</option>
+              <option value="warm">Warm</option>
+              <option value="earth">Earth</option>
+              <option value="muted">Muted</option>
+              <option value="neon">Neon</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Material appearance</label>
+            <select name="material_appearance" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="">Auto detect</option>
+              <option value="matte">Matte</option>
+              <option value="polished">Polished</option>
+              <option value="natural">Natural</option>
+              <option value="technical">Technical</option>
+              <option value="sheen">Sheen</option>
+              <option value="distressed">Distressed</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Formality level</label>
+            <select name="formality_level" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="0">Auto detect</option>
+              <option value="0.2">Very casual</option>
+              <option value="0.45">Smart casual</option>
+              <option value="0.7">Elevated</option>
+              <option value="0.9">Formal</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Visual aggression</label>
+            <select name="visual_aggression" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="0">Auto detect</option>
+              <option value="0.1">Subtle</option>
+              <option value="0.35">Moderate</option>
+              <option value="0.65">Bold</option>
+              <option value="0.9">Aggressive</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Aesthetic category</label>
+            <input name="aesthetic_category" placeholder="Minimalist, utility, streetwear..." class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Fashion era influence</label>
+            <select name="fashion_era_influence" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="">Auto detect</option>
+              <option value="contemporary">Contemporary</option>
+              <option value="heritage">Heritage</option>
+              <option value="70s">70s</option>
+              <option value="80s">80s</option>
+              <option value="90s">90s</option>
+              <option value="2000s">2000s</option>
+              <option value="futuristic">Futuristic</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-sm font-bold text-slate-300">Layer role</label>
+            <input name="layer_role" placeholder="Core layer, accent, outer shell..." class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+          </div>
+        </div>
+        <button class="mt-5 w-full rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200" type="submit">Add to wardrobe</button>
+      </form>
+
+      <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-fuchsia-200">Outfit systems</div>
+        <div class="mt-4 space-y-4">
+          {% for outfit in outfit_systems %}
+            <article class="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="text-sm font-black text-white">{{ outfit.world_title }}</div>
+                <div class="text-xs font-black uppercase tracking-[0.14em] text-cyan-200">{{ outfit.confidence }}% confidence</div>
+              </div>
+              <div class="mt-2 text-sm leading-7 text-slate-300">{{ outfit.narrative }}</div>
+              <div class="mt-3 flex flex-wrap gap-2">
+                {% for piece in outfit.items %}
+                  <span class="rounded-full border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-bold text-slate-200">{{ piece.title }} | {{ piece.category }} | {{ piece.confidence }}%</span>
+                {% endfor %}
+              </div>
+            </article>
+          {% else %}
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-300">Add a few more items to generate cohesive world outfit systems.</div>
+          {% endfor %}
+        </div>
+
+        {% if missing_slots %}
+          <div class="mt-5 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.14em] text-amber-100">Missing categories</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              {% for slot in missing_slots %}
+                <span class="rounded-full border border-amber-200/35 bg-amber-100/10 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-amber-100">{{ slot }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      </section>
+    </section>
+
+    {% if aligned_recommendations %}
+      <section class="rounded-[2rem] border border-emerald-300/30 bg-slate-900/85 p-6">
+        <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">Curated world expansion</div>
+        <p class="mt-3 text-sm leading-7 text-slate-300">
+          StyleBridge sourced additional pieces to fill missing slots while preserving your selected world language.
+        </p>
+        <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {% for item in aligned_recommendations %}
+            <article class="rounded-3xl border border-white/10 bg-white/5 p-4">
+              {% if item.image_url %}
+                <img src="{{ item.image_url }}" alt="{{ item.title }}" class="h-56 w-full rounded-2xl object-cover" loading="lazy" referrerpolicy="no-referrer">
+              {% endif %}
+              <div class="mt-3 text-sm font-black text-white">{{ item.title }}</div>
+              <div class="mt-2 text-xs uppercase tracking-[0.12em] text-slate-400">{{ item.slot_name }} | {{ item.category }} | {{ item.source_type }}</div>
+              <div class="mt-2 text-xs font-black uppercase tracking-[0.12em] text-emerald-200">{{ item.confidence }}% {{ item.compatibility }}</div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+      <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Digital closet intelligence</div>
+      <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {% for item in item_analyses %}
+          <article class="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div class="text-sm font-black text-white">{{ item.title }}</div>
+            <div class="mt-2 text-xs uppercase tracking-[0.14em] text-slate-400">
+              {{ item.category }} | {{ item.attributes.silhouette }} | {{ item.attributes.fit }} | {{ item.attributes.texture }}
+            </div>
+            {% if item.best_world %}
+              <div class="mt-2 text-xs font-black uppercase tracking-[0.14em] text-cyan-200">{{ item.best_world.world_title }} {{ item.best_world.confidence }}%</div>
+            {% endif %}
+            <div class="mt-3 grid gap-2 text-xs text-slate-300">
+              <div>Layering: {{ '%0.2f'|format(item.attributes.layering_potential) }} | Formality: {{ '%0.2f'|format(item.attributes.formality_level) }}</div>
+              <div>Aggression: {{ '%0.2f'|format(item.attributes.visual_aggression) }} | Era: {{ item.attributes.fashion_era_influence }}</div>
+              <div>Palette: {{ item.attributes.color_palette }} | Material: {{ item.attributes.material_appearance }}</div>
+            </div>
+            <form method="post" class="mt-4">
+              <input type="hidden" name="remove_item_id" value="{{ item.item_id }}">
+              <button class="w-full rounded-xl border border-rose-200/30 bg-rose-500/10 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-rose-100 transition hover:bg-rose-500/20" type="submit">Remove</button>
+            </form>
+          </article>
+        {% else %}
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-4 text-slate-300">No wardrobe items yet.</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+{% endblock %}

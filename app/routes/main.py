@@ -9,7 +9,9 @@ import html
 import re
 from datetime import datetime
 from pathlib import Path
-from urllib.parse import quote, urlsplit
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlsplit, urlencode
+from urllib.request import Request, urlopen
 
 from flask import Blueprint, render_template, current_app, jsonify, request, abort, redirect, url_for, flash, session, Response
 from flask_login import login_required, current_user, logout_user
@@ -18,6 +20,15 @@ from .. import db, limiter
 from ..models import Item, SellerOrder, SellerProduct, User
 from ..security import assign_role, audit, require_permission
 from ..storage import UploadStorageError, save_uploaded_file
+from ..style_worlds import (
+    STYLE_WORLD_OPTIONS as STYLE_WORLD_LIBRARY,
+    WARDROBE_SLOT_LABELS,
+    analyze_item_for_worlds,
+    analyze_wardrobe_worlds,
+    generate_outfit_systems_for_world,
+    score_item_for_world,
+    style_world_by_slug as world_definition_by_slug,
+)
 
 bp = Blueprint("main", __name__)
 
@@ -56,6 +67,19 @@ STYLE_OPTIONS = [
     "Athleisure",
     "Modest",
     "Religious",
+]
+
+STYLE_ENERGY_OPTIONS = [
+    "Minimal",
+    "Sharp",
+    "Quiet Luxury",
+    "Street",
+    "Avant-garde",
+    "Athletic",
+    "Soft",
+    "Dark Academia",
+    "Futuristic",
+    "Editorial",
 ]
 
 GENDER_OPTIONS = [
@@ -147,7 +171,64 @@ PROFILE_SETTING_DEFAULTS = {
     "show_intro_splash": True,
     "saved_look_reminders": False,
     "daily_outfit_suggestions": True,
+    "gender_fluid_recommendations": False,
 }
+
+FIT_PREFERENCE_OPTIONS = [
+    "Relaxed",
+    "Balanced",
+    "Tailored",
+    "Oversized",
+    "Body-skimming",
+]
+
+PRESENTATION_BY_GENDER = {
+    "Menswear": "masculine",
+    "Womenswear": "feminine",
+    "Unisex": "androgynous",
+}
+
+FIT_PROFILE_COMPATIBILITY = {
+    "relaxed": {"relaxed", "oversized", "balanced"},
+    "balanced": {"balanced", "tailored", "relaxed"},
+    "tailored": {"tailored", "structured", "balanced", "body-skimming"},
+    "oversized": {"oversized", "relaxed"},
+    "body-skimming": {"body-skimming", "tailored", "structured"},
+}
+
+MASCULINE_TITLE_HINTS = {
+    "menswear",
+    "mens",
+    "men",
+    "male",
+    "thobe",
+    "kandura",
+    "jubba",
+    "ghutra",
+    "kufi",
+}
+
+FEMININE_TITLE_HINTS = {
+    "womenswear",
+    "womens",
+    "women",
+    "female",
+    "dress",
+    "skirt",
+    "heel",
+    "hijab",
+    "abaya",
+    "buibui",
+}
+
+ANDROGYNOUS_TITLE_HINTS = {
+    "unisex",
+    "androgynous",
+    "oversized",
+    "boxy",
+}
+
+STYLE_WORLD_OPTIONS = STYLE_WORLD_LIBRARY
 
 BAG_TITLE_STOPWORDS = {
     "and",
@@ -191,6 +272,27 @@ TRYON_FULL_LENGTH_KEYWORDS = {
     "dress",
     "gown",
 }
+
+OPENVERSE_IMAGE_API = "https://api.openverse.org/v1/images/"
+OPENVERSE_TIMEOUT_SECONDS = 4
+SOURCE_METADATA_FILES = (
+    "shoe_sources.json",
+    "bag_sources.json",
+    "glasses_sources.json",
+    "jewel_sources.json",
+    "watch_sources.json",
+)
+ONLINE_SOURCE_BLOCKLIST = {
+    "clipart",
+    "icon",
+    "logo",
+    "vector",
+    "mockup",
+    "template",
+    "drawing",
+    "illustration",
+}
+WORLD_SOURCE_CACHE: list[dict] | None = None
 
 
 def catalog_item(sku: str, title: str, category: str, brand: str, price: int) -> dict:
@@ -1464,19 +1566,62 @@ def normalized_profile_data(data: dict | None) -> dict:
     profile["favorite_styles"] = [str(style) for style in favorite_styles] if isinstance(favorite_styles, list) else []
     favorite_brands = profile.get("favorite_brands")
     profile["favorite_brands"] = [str(brand) for brand in favorite_brands] if isinstance(favorite_brands, list) else []
+    style_energy = profile.get("style_energy")
+    profile["style_energy"] = [str(style) for style in style_energy] if isinstance(style_energy, list) else []
+    profile["fit_profile"] = profile.get("fit_profile") if isinstance(profile.get("fit_profile"), dict) else {}
+    profile["visual_training"] = profile.get("visual_training") if isinstance(profile.get("visual_training"), dict) else {}
+    if not profile.get("display_name") and profile.get("name"):
+        profile["display_name"] = str(profile.get("name"))
     for key, default in PROFILE_SETTING_DEFAULTS.items():
         profile[key] = parse_profile_bool(profile.get(key), default)
     return profile
 
 
+def saved_looks_cross_gender_signal(selected_gender: str) -> bool:
+    if selected_gender not in {"Menswear", "Womenswear"}:
+        return False
+    if not current_user.is_authenticated:
+        return False
+
+    saved_slugs = current_user.get_saved_looks()
+    if not isinstance(saved_slugs, list) or not saved_slugs:
+        return False
+
+    opposite_hits = 0
+    observed = 0
+    for slug in saved_slugs:
+        look = LOOKS_BY_SLUG.get(str(slug))
+        if not look:
+            continue
+        look_genders = set(look.get("genders", []))
+        if not look_genders:
+            continue
+        observed += 1
+        if selected_gender == "Menswear":
+            if "Womenswear" in look_genders and "Menswear" not in look_genders and "Unisex" not in look_genders:
+                opposite_hits += 1
+        elif selected_gender == "Womenswear":
+            if "Menswear" in look_genders and "Womenswear" not in look_genders and "Unisex" not in look_genders:
+                opposite_hits += 1
+
+    if observed < 3:
+        return False
+    ratio = opposite_hits / max(observed, 1)
+    return opposite_hits >= 2 and ratio >= 0.34
+
+
 def profile_data() -> dict:
     if not current_user.is_authenticated:
         return {}
-    return normalized_profile_data(current_user.get_profile_data())
+    profile = normalized_profile_data(current_user.get_profile_data())
+    gender = sanitize_text(profile.get("gender", ""), 60)
+    profile["behavior_cross_gender_preference"] = saved_looks_cross_gender_signal(gender)
+    return profile
 
 
 def profile_payload_from_form(existing: dict | None = None) -> dict:
     data = normalized_profile_data(existing)
+    data.pop("behavior_cross_gender_preference", None)
 
     favorite_styles = []
     for raw_style in request.form.getlist("favorite_styles"):
@@ -1490,21 +1635,60 @@ def profile_payload_from_form(existing: dict | None = None) -> dict:
         if brand and brand not in favorite_brands:
             favorite_brands.append(brand)
 
+    style_energy = []
+    for raw_energy in request.form.getlist("style_energy"):
+        energy = sanitize_text(raw_energy, 80)
+        if energy in STYLE_ENERGY_OPTIONS and energy not in style_energy:
+            style_energy.append(energy)
+
+    fit_profile = {
+        "height_cm": sanitize_text(request.form.get("height_cm", ""), 20),
+        "body_shape": sanitize_text(request.form.get("body_shape", ""), 80),
+        "sizing": sanitize_text(request.form.get("sizing", ""), 80),
+        "fit_preference": sanitize_text(request.form.get("fit_preference", ""), 80),
+    }
+
+    visual_training = data.get("visual_training", {})
+    raw_visual_training = (request.form.get("visual_training_json", "") or "").strip()
+    if raw_visual_training:
+        try:
+            parsed_training = json.loads(raw_visual_training)
+            if isinstance(parsed_training, dict):
+                visual_training = {
+                    "silhouette_preference": sanitize_text(str(parsed_training.get("silhouette_preference", "")), 80),
+                    "layering_tolerance": sanitize_text(str(parsed_training.get("layering_tolerance", "")), 80),
+                    "color_comfort": sanitize_text(str(parsed_training.get("color_comfort", "")), 80),
+                    "accessory_interest": sanitize_text(str(parsed_training.get("accessory_interest", "")), 80),
+                    "risk_appetite": sanitize_text(str(parsed_training.get("risk_appetite", "")), 80),
+                    "likes": max(0, min(int(parsed_training.get("likes", 0) or 0), 200)),
+                    "dislikes": max(0, min(int(parsed_training.get("dislikes", 0) or 0), 200)),
+                }
+        except (TypeError, ValueError):
+            pass
+
+    style_preference = sanitize_text(request.form.get("style_preference", ""), 80)
+    if not style_preference and style_energy:
+        style_preference = style_energy[0]
+
     data.update(
         {
             "gender": sanitize_text(request.form.get("gender", ""), 60),
             "religion": sanitize_text(request.form.get("religion", ""), 80),
-            "style_preference": sanitize_text(request.form.get("style_preference", ""), 80),
+            "style_preference": style_preference,
             "budget_range": sanitize_text(request.form.get("budget_range", ""), 80),
             "favorite_styles": favorite_styles,
             "body_type": sanitize_text(request.form.get("body_type", ""), 80),
             "favorite_brands": favorite_brands,
+            "style_energy": style_energy,
+            "fit_profile": fit_profile,
+            "visual_training": visual_training,
+            "identity_phase": sanitize_text(request.form.get("identity_phase", ""), 80),
         }
     )
 
     for key, default in PROFILE_SETTING_DEFAULTS.items():
         if key in request.form:
-            data[key] = request.form.get(key) == "1"
+            data[key] = "1" in request.form.getlist(key)
         else:
             data[key] = data.get(key, default)
 
@@ -1512,6 +1696,8 @@ def profile_payload_from_form(existing: dict | None = None) -> dict:
 
 
 def profile_vector_from(data: dict) -> dict:
+    style_energy = [sanitize_text(style, 80) for style in data.get("style_energy", []) if sanitize_text(style, 80)]
+    visual_training = data.get("visual_training", {}) if isinstance(data.get("visual_training"), dict) else {}
     vector = {
         "gender": data.get("gender", ""),
         "religion": data.get("religion", ""),
@@ -1519,6 +1705,14 @@ def profile_vector_from(data: dict) -> dict:
         "body_type": data.get("body_type", ""),
         "styles": {style: 1 for style in data.get("favorite_styles", [])},
         "brands": {brand: 1 for brand in data.get("favorite_brands", [])},
+        "style_energy": {style: 1 for style in style_energy},
+        "visual_training": {
+            "silhouette_preference": sanitize_text(str(visual_training.get("silhouette_preference", "")), 80),
+            "layering_tolerance": sanitize_text(str(visual_training.get("layering_tolerance", "")), 80),
+            "color_comfort": sanitize_text(str(visual_training.get("color_comfort", "")), 80),
+            "accessory_interest": sanitize_text(str(visual_training.get("accessory_interest", "")), 80),
+            "risk_appetite": sanitize_text(str(visual_training.get("risk_appetite", "")), 80),
+        },
     }
     return vector
 
@@ -1573,7 +1767,10 @@ def item_matches_accessory(item: dict, accessory: str) -> bool:
     if accessory == "Glasses":
         return any(term in title for term in ("glasses", "sunglasses", "shades"))
     if accessory == "Bags":
-        return any(term in title for term in ("bag", "tote", "pouch", "clutch", "satchel", "backpack"))
+        return any(
+            term in title
+            for term in ("bag", "tote", "pouch", "clutch", "satchel", "backpack", "sling", "sleeve", "strap", "case", "wallet")
+        )
     if accessory == "Jewelry":
         jewelry_tokens = {
             "ring",
@@ -1741,6 +1938,71 @@ def accessory_type_for_item(item: dict) -> str:
     return ""
 
 
+def item_visual_type_for_item(item: dict) -> str:
+    accessory_type = accessory_type_for_item(item)
+    if accessory_type:
+        return accessory_type
+
+    title = (item.get("title") or "").lower()
+    category = (item.get("category") or "").lower()
+
+    if category == "accessory":
+        if any(term in title for term in ("attar", "fragrance", "spray", "scent", "perfume", "cologne")):
+            return "Fragrance"
+        if any(term in title for term in ("tasbih", "bead")):
+            return "Prayer Beads"
+        if any(term in title for term in ("cap", "beanie", "headband", "visor", "kufi", "hijab", "scarf", "ghutra", "keffiyeh", "kaffiyeh", "shayla")):
+            return "Headwear"
+        if any(term in title for term in ("bag", "tote", "pouch", "clutch", "satchel", "backpack", "sling", "sleeve", "strap", "case", "wallet")):
+            return "Bags"
+        if any(term in title for term in ("sock", "socks")):
+            return "Socks"
+
+    if category == "top":
+        if any(term in title for term in ("hoodie", "sweatshirt")):
+            return "Hoodie"
+        return "Top"
+    if category == "bottom":
+        return "Bottom"
+    if category == "outerwear":
+        return "Outerwear"
+    if category == "dress":
+        return "Dress"
+    if category == "set":
+        return "Set"
+    if category == "headwear":
+        return "Headwear"
+    if category == "layer":
+        return "Layer"
+
+    if any(term in title for term in ("hoodie", "sweatshirt")):
+        return "Hoodie"
+    if any(term in title for term in ("shirt", "top", "tank", "blouse", "kurta")):
+        return "Top"
+    if any(term in title for term in ("trouser", "pant", "jean", "denim", "jogger", "churidar")):
+        return "Bottom"
+    if any(term in title for term in ("coat", "jacket", "blazer", "overcoat", "waistcoat", "bisht")):
+        return "Outerwear"
+    if any(term in title for term in ("dress", "abaya", "buibui", "jilbab", "kaftan", "gown")):
+        return "Dress"
+    if any(term in title for term in ("thobe", "kandura", "jubba", "jalabiya", "set", "co-ord")):
+        return "Set"
+    if any(term in title for term in ("hijab", "shayla", "ghutra", "keffiyeh", "kaffiyeh", "scarf", "kufi", "cap", "beanie", "headband", "visor")):
+        return "Headwear"
+    if any(term in title for term in ("slip", "underlayer", "underdress", "inner")):
+        return "Layer"
+    if any(term in title for term in ("attar", "fragrance", "spray", "scent", "perfume", "cologne")):
+        return "Fragrance"
+    if any(term in title for term in ("tasbih", "bead")):
+        return "Prayer Beads"
+
+    return ""
+
+
+def item_is_identified(item: dict) -> bool:
+    return bool(item_visual_type_for_item(item))
+
+
 def seeded_hue(seed_text: str, offset: int = 0) -> int:
     seed = sum((index + 1 + offset) * ord(char) for index, char in enumerate(seed_text))
     return seed % 360
@@ -1838,6 +2100,81 @@ def accessory_figure_svg(accessory_type: str, outline: str, accent: str, item_ti
             f'<circle cx="530" cy="430" r="118" fill="none" stroke="{accent}" stroke-width="22"/>'
             f'<circle cx="530" cy="430" r="64" fill="none" stroke="{outline}" stroke-width="12" opacity="0.8"/>'
             f'<path d="M732 316 L770 386 L844 398 L790 452 L804 528 L732 492 L660 528 L674 452 L620 398 L694 386 Z" fill="none" stroke="{outline}" stroke-width="14" stroke-linejoin="round"/>'
+        )
+    if accessory_type == "Hoodie":
+        return (
+            f'<path d="M450 272 C480 214 520 182 600 182 C680 182 720 214 750 272 L690 336 C668 304 642 286 600 286 C558 286 532 304 510 336 Z" fill="none" stroke="{accent}" stroke-width="20" stroke-linejoin="round"/>'
+            f'<path d="M382 626 L382 430 C382 360 440 304 510 304 L690 304 C760 304 818 360 818 430 L818 626" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
+            f'<line x1="472" y1="430" x2="472" y2="626" stroke="{outline}" stroke-width="14" opacity="0.75"/>'
+            f'<line x1="728" y1="430" x2="728" y2="626" stroke="{outline}" stroke-width="14" opacity="0.75"/>'
+            f'<path d="M540 430 L600 510 L660 430" fill="none" stroke="{outline}" stroke-width="12" stroke-linecap="round" opacity="0.76"/>'
+        )
+    if accessory_type == "Top":
+        return (
+            f'<path d="M402 626 L402 364 L470 304 H548 L600 346 L652 304 H730 L798 364 L798 626 Z" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
+            f'<path d="M548 304 C562 338 578 356 600 356 C622 356 638 338 652 304" fill="none" stroke="{outline}" stroke-width="12" stroke-linecap="round" opacity="0.76"/>'
+            f'<line x1="514" y1="474" x2="686" y2="474" stroke="{outline}" stroke-width="12" opacity="0.62"/>'
+        )
+    if accessory_type == "Bottom":
+        return (
+            f'<path d="M474 246 H726 L684 626 H558 L532 478 L506 626 H380 Z" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
+            f'<line x1="600" y1="246" x2="600" y2="468" stroke="{outline}" stroke-width="12" opacity="0.72"/>'
+            f'<path d="M402 626 H706" fill="none" stroke="{outline}" stroke-width="10" opacity="0.5"/>'
+        )
+    if accessory_type == "Outerwear":
+        return (
+            f'<path d="M388 626 V354 L500 268 H700 L812 354 V626" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
+            f'<path d="M540 268 L600 404 L660 268" fill="none" stroke="{outline}" stroke-width="12" stroke-linejoin="round" opacity="0.8"/>'
+            f'<line x1="600" y1="404" x2="600" y2="626" stroke="{outline}" stroke-width="12" opacity="0.74"/>'
+            f'<circle cx="600" cy="466" r="9" fill="{outline}" opacity="0.7"/>'
+            f'<circle cx="600" cy="526" r="9" fill="{outline}" opacity="0.7"/>'
+        )
+    if accessory_type == "Dress":
+        return (
+            f'<path d="M486 266 H714 L750 360 L840 626 H360 L450 360 Z" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
+            f'<path d="M486 266 C524 324 564 352 600 352 C636 352 676 324 714 266" fill="none" stroke="{outline}" stroke-width="12" stroke-linecap="round" opacity="0.8"/>'
+            f'<line x1="600" y1="352" x2="600" y2="626" stroke="{outline}" stroke-width="10" opacity="0.62"/>'
+        )
+    if accessory_type == "Set":
+        return (
+            f'<path d="M452 206 H748 L786 286 V626 H414 V286 Z" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
+            f'<line x1="600" y1="206" x2="600" y2="626" stroke="{outline}" stroke-width="10" opacity="0.72"/>'
+            f'<path d="M516 340 H684" fill="none" stroke="{outline}" stroke-width="10" opacity="0.62"/>'
+            f'<path d="M480 626 H720" fill="none" stroke="{outline}" stroke-width="10" opacity="0.42"/>'
+        )
+    if accessory_type == "Headwear":
+        return (
+            f'<path d="M390 458 C430 290 532 212 658 228 C772 242 850 336 846 474 C842 576 788 642 694 670 C564 708 440 648 398 548 Z" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
+            f'<path d="M518 334 C580 308 646 316 700 352" fill="none" stroke="{outline}" stroke-width="12" stroke-linecap="round" opacity="0.72"/>'
+            f'<path d="M462 520 C536 548 620 552 694 530" fill="none" stroke="{outline}" stroke-width="12" stroke-linecap="round" opacity="0.56"/>'
+        )
+    if accessory_type == "Layer":
+        return (
+            f'<path d="M504 246 H696 L732 350 L772 626 H428 L468 350 Z" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
+            f'<path d="M504 246 C536 286 564 308 600 308 C636 308 664 286 696 246" fill="none" stroke="{outline}" stroke-width="12" stroke-linecap="round" opacity="0.74"/>'
+            f'<line x1="600" y1="308" x2="600" y2="626" stroke="{outline}" stroke-width="10" opacity="0.5"/>'
+        )
+    if accessory_type == "Socks":
+        return (
+            f'<path d="M474 248 H574 V486 C574 534 536 572 488 572 H444 C418 572 396 594 396 620 H318 C318 544 380 482 456 482 H474 Z" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
+            f'<path d="M726 248 H626 V486 C626 534 664 572 712 572 H756 C782 572 804 594 804 620 H882 C882 544 820 482 744 482 H726 Z" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
+            f'<line x1="474" y1="324" x2="574" y2="324" stroke="{outline}" stroke-width="10" opacity="0.62"/>'
+            f'<line x1="626" y1="324" x2="726" y2="324" stroke="{outline}" stroke-width="10" opacity="0.62"/>'
+        )
+    if accessory_type == "Fragrance":
+        return (
+            f'<rect x="456" y="282" width="288" height="344" rx="48" fill="none" stroke="{accent}" stroke-width="24"/>'
+            f'<rect x="528" y="220" width="144" height="88" rx="20" fill="none" stroke="{outline}" stroke-width="14" opacity="0.84"/>'
+            f'<line x1="600" y1="350" x2="600" y2="548" stroke="{outline}" stroke-width="12" opacity="0.72"/>'
+            f'<circle cx="600" cy="424" r="58" fill="none" stroke="{outline}" stroke-width="10" opacity="0.55"/>'
+        )
+    if accessory_type == "Prayer Beads":
+        return (
+            f'<circle cx="600" cy="428" r="184" fill="none" stroke="{accent}" stroke-width="22"/>'
+            f'<circle cx="600" cy="228" r="34" fill="none" stroke="{outline}" stroke-width="12" opacity="0.8"/>'
+            f'<circle cx="600" cy="634" r="34" fill="none" stroke="{outline}" stroke-width="12" opacity="0.8"/>'
+            f'<path d="M600 612 L600 694" fill="none" stroke="{outline}" stroke-width="14" stroke-linecap="round"/>'
+            f'<path d="M578 694 L622 694" fill="none" stroke="{outline}" stroke-width="10" stroke-linecap="round" opacity="0.7"/>'
         )
     return (
         f'<path d="M304 548 C378 470 458 444 554 458 C652 472 708 526 812 530 C868 532 916 560 916 626 L330 626 C292 626 260 594 260 556 Z" fill="none" stroke="{accent}" stroke-width="24" stroke-linejoin="round"/>'
@@ -1963,18 +2300,17 @@ def item_image_url(item: dict, look: dict) -> str:
     explicit_image = (item.get("image_url") or "").strip()
     if explicit_image:
         return explicit_image
-    accessory_type = accessory_type_for_item(item)
-    if accessory_type:
-        # Prefer curated local assets whenever they exist. This avoids repeated
-        # placeholder photos and gives us stable previews for frequently browsed
-        # accessory categories.
-        local_asset = local_accessory_asset_url(item)
-        if local_asset:
-            return local_asset
-        if accessory_type in {"Shoes", "Watches", "Jewelry"}:
-            return accessory_preview_image(item, look, accessory_type)
-        return online_accessory_image_url(item, look, accessory_type)
-    return look.get("image_url", "")
+    item_type = item_visual_type_for_item(item)
+    if not item_type:
+        return ""
+
+    # Prefer curated local assets whenever they exist. This keeps title-to-object
+    # mapping stable and avoids mismatched random photos.
+    local_asset = local_accessory_asset_url(item)
+    if local_asset:
+        return local_asset
+
+    return accessory_preview_image(item, look, item_type)
 
 
 def tryon_wearable_items(look: dict) -> list[dict]:
@@ -2335,6 +2671,33 @@ def look_matches_gender(look: dict, gender: str) -> bool:
     return gender in look_genders or "Unisex" in look_genders
 
 
+def look_gender_presentation(look: dict) -> str:
+    look_genders = set(look.get("genders", []))
+    has_menswear = "Menswear" in look_genders
+    has_womenswear = "Womenswear" in look_genders
+    has_unisex = "Unisex" in look_genders
+    if has_unisex or (has_menswear and has_womenswear):
+        return "androgynous"
+    if has_menswear:
+        return "masculine"
+    if has_womenswear:
+        return "feminine"
+    return "neutral"
+
+
+def look_conflicts_with_gender(look: dict, gender: str) -> bool:
+    if gender not in {"Menswear", "Womenswear", "Unisex"}:
+        return False
+    look_genders = set(look.get("genders", []))
+    if not look_genders:
+        return False
+    if gender == "Menswear":
+        return "Womenswear" in look_genders and "Menswear" not in look_genders and "Unisex" not in look_genders
+    if gender == "Womenswear":
+        return "Menswear" in look_genders and "Womenswear" not in look_genders and "Unisex" not in look_genders
+    return "Unisex" not in look_genders and not ("Menswear" in look_genders and "Womenswear" in look_genders)
+
+
 def look_matches_gender_filter(look: dict, gender: str) -> bool:
     if not gender:
         return True
@@ -2356,6 +2719,240 @@ def look_matches_religion(look: dict, religion: str) -> bool:
     return religion in set(look.get("religions", []))
 
 
+def fit_preference_key(data: dict) -> str:
+    fit = data.get("fit_profile", {}) if isinstance(data.get("fit_profile"), dict) else {}
+    fit_pref = sanitize_text(str(fit.get("fit_preference", "")), 80).strip().lower()
+    fit_pref = fit_pref.replace("_", "-").replace(" ", "-")
+    return fit_pref if fit_pref in FIT_PROFILE_COMPATIBILITY else ""
+
+
+def look_fit_structures(look: dict) -> set[str]:
+    haystack_parts = [look.get("title", ""), look.get("tagline", "")]
+    haystack_parts.extend(item.get("title", "") for item in look.get("items", []))
+    tokens = set(re.sub(r"[^a-z0-9\-]+", " ", " ".join(haystack_parts).lower()).split())
+    structures = {"balanced"}
+
+    if tokens.intersection({"oversized", "loose", "relaxed", "baggy"}):
+        structures.update({"oversized", "relaxed"})
+    if tokens.intersection({"tailored", "structured", "blazer", "trouser", "coat", "sharp"}):
+        structures.update({"tailored", "structured"})
+    if tokens.intersection({"fitted", "slim", "bodycon", "bias", "cut"}):
+        structures.add("body-skimming")
+
+    styles = set(look_styles(look))
+    if styles.intersection({"Streetwear", "Athleisure"}):
+        structures.add("relaxed")
+    if styles.intersection({"Formal", "Minimalist"}):
+        structures.add("tailored")
+    return structures
+
+
+def fit_preference_compatible(look: dict, fit_pref_key: str) -> bool:
+    if not fit_pref_key:
+        return True
+    compatible = FIT_PROFILE_COMPATIBILITY.get(fit_pref_key, set())
+    return bool(look_fit_structures(look).intersection(compatible))
+
+
+def world_supports_androgynous(world_slug: str) -> bool:
+    world = style_world_by_slug(world_slug)
+    if not world:
+        return False
+    return bool(world.get("supports_androgynous", False))
+
+
+def style_energy_trend_targets(data: dict) -> set[str]:
+    mapping = {
+        "minimal": {"Minimalist", "Formal"},
+        "sharp": {"Formal", "Minimalist"},
+        "quiet luxury": {"Formal", "Minimalist", "Casual"},
+        "street": {"Streetwear", "Casual"},
+        "avant-garde": {"Formal", "Streetwear"},
+        "athletic": {"Athleisure", "Casual"},
+        "soft": {"Casual", "Minimalist"},
+        "dark academia": {"Vintage", "Formal"},
+        "futuristic": {"Streetwear", "Minimalist"},
+        "editorial": {"Formal", "Streetwear"},
+    }
+    targets = set()
+    for raw_energy in data.get("style_energy", []):
+        energy = sanitize_text(str(raw_energy), 80).lower()
+        targets.update(mapping.get(energy, set()))
+    return targets
+
+
+def trend_relevance_score(look: dict, data: dict) -> int:
+    score = 0
+    styles = set(look_styles(look))
+    trend_targets = style_energy_trend_targets(data)
+    if trend_targets:
+        score += min(7, len(styles.intersection(trend_targets)) * 3)
+    creator = sanitize_text(look.get("creator", ""), 80).lower()
+    if creator in {"community trend", "daily drop"}:
+        score += 2
+    if styles.intersection({"Streetwear", "Athleisure"}):
+        score += 1
+    return min(score, 10)
+
+
+def style_world_confidence_for_look(look: dict, world_slug: str) -> tuple[int, dict | None]:
+    if world_slug:
+        world_score = score_item_for_world(look_world_proxy_item(look), world_slug)
+        return int(world_score.get("confidence", 0)), world_score
+    top_world = look.get("top_style_world")
+    if isinstance(top_world, dict):
+        return int(top_world.get("confidence", 0)), top_world
+    fallback = look_world_scores(look).get("best_world")
+    if isinstance(fallback, dict):
+        return int(fallback.get("confidence", 0)), fallback
+    return 0, None
+
+
+def recommendation_policy(data: dict, *, world_slug: str = "") -> dict:
+    gender = sanitize_text(data.get("gender", ""), 60)
+    religion = sanitize_text(data.get("religion", ""), 80)
+    body_type = sanitize_text(data.get("body_type", ""), 80)
+    fit = data.get("fit_profile", {}) if isinstance(data.get("fit_profile"), dict) else {}
+    fit_pref_key = fit_preference_key(data)
+    sizing = sanitize_text(str(fit.get("sizing", "")), 80)
+
+    fluid_opt_in = parse_profile_bool(data.get("gender_fluid_recommendations"), False)
+    behavior_cross_gender = parse_profile_bool(data.get("behavior_cross_gender_preference"), False)
+    world_androgynous = world_supports_androgynous(world_slug)
+    allow_cross_gender = fluid_opt_in or behavior_cross_gender or world_androgynous
+
+    return {
+        "gender": gender,
+        "presentation": PRESENTATION_BY_GENDER.get(gender, ""),
+        "religion": religion,
+        "body_type": body_type,
+        "fit_pref_key": fit_pref_key,
+        "sizing": sizing,
+        "fluid_opt_in": fluid_opt_in,
+        "behavior_cross_gender": behavior_cross_gender,
+        "world_androgynous": world_androgynous,
+        "allow_cross_gender": allow_cross_gender,
+    }
+
+
+def evaluate_look_hierarchy(look: dict, data: dict, *, world_slug: str = "") -> dict:
+    policy = recommendation_policy(data, world_slug=world_slug)
+    style_set = set(look_styles(look))
+    look_brands = set(look.get("brands", []))
+    look_religions = set(look.get("religions", []))
+    look_body_types = set(look.get("body_types", []))
+
+    identity_score = 0
+    body_fit_score = 0
+    presentation_score = 0
+    rejection_reason = ""
+
+    gender = policy["gender"]
+    if gender and look_conflicts_with_gender(look, gender) and not policy["allow_cross_gender"]:
+        return {
+            "allowed": False,
+            "score": -1000,
+            "reason_code": "gender_conflict",
+            "stage_scores": {},
+            "world_confidence": 0,
+            "world_score": None,
+            "world_variant": "androgynous" if policy["world_androgynous"] else policy.get("presentation", ""),
+        }
+
+    style_preference = sanitize_text(data.get("style_preference", ""), 80)
+    favorite_styles = set(data.get("favorite_styles", []))
+    favorite_brands = set(data.get("favorite_brands", []))
+
+    if style_preference and style_preference in style_set:
+        identity_score += 16
+    if favorite_styles:
+        identity_score += min(14, len(favorite_styles.intersection(style_set)) * 5)
+    if favorite_brands:
+        identity_score += min(12, len(favorite_brands.intersection(look_brands)) * 4)
+
+    user_budget = sanitize_text(data.get("budget_range", ""), 80)
+    if user_budget:
+        if user_budget == look.get("budget", ""):
+            identity_score += 12
+        else:
+            identity_score += max(0, 6 - budget_distance(user_budget, look.get("budget", "")) * 2)
+
+    religion = policy["religion"]
+    if religion:
+        if religion in look_religions:
+            identity_score += 16
+        elif look_religions:
+            rejection_reason = "religion_conflict"
+
+    body_type = policy["body_type"]
+    if not rejection_reason and body_type:
+        if body_type in look_body_types:
+            body_fit_score += 24
+        elif look_body_types:
+            rejection_reason = "body_mismatch"
+        else:
+            body_fit_score += 7
+
+    fit_pref_key = policy["fit_pref_key"]
+    if not rejection_reason and fit_pref_key:
+        if fit_preference_compatible(look, fit_pref_key):
+            body_fit_score += 20
+        else:
+            rejection_reason = "fit_mismatch"
+
+    if policy["sizing"]:
+        body_fit_score += 4
+
+    if not rejection_reason and gender:
+        look_genders = set(look.get("genders", []))
+        if gender in look_genders and not look_conflicts_with_gender(look, gender):
+            presentation_score += 18
+        elif look_gender_presentation(look) == "androgynous" or "Unisex" in look_genders:
+            presentation_score += 14
+        elif policy["allow_cross_gender"]:
+            presentation_score += 6
+        else:
+            rejection_reason = "presentation_conflict"
+    elif not gender:
+        presentation_score += 9
+
+    if rejection_reason:
+        return {
+            "allowed": False,
+            "score": -1000,
+            "reason_code": rejection_reason,
+            "stage_scores": {},
+            "world_confidence": 0,
+            "world_score": None,
+            "world_variant": "androgynous" if policy["world_androgynous"] else policy.get("presentation", ""),
+        }
+
+    world_confidence, world_score = style_world_confidence_for_look(look, world_slug)
+    world_score_value = int(round(world_confidence * 0.34))
+    trend_score = trend_relevance_score(look, data)
+    total = identity_score * 5 + body_fit_score * 4 + presentation_score * 3 + world_score_value * 2 + trend_score
+
+    world_variant = policy.get("presentation") or look_gender_presentation(look)
+    if policy["world_androgynous"] and (policy["allow_cross_gender"] or world_variant == "androgynous"):
+        world_variant = "androgynous"
+
+    return {
+        "allowed": True,
+        "score": total,
+        "reason_code": "",
+        "stage_scores": {
+            "identity": identity_score,
+            "body_fit": body_fit_score,
+            "gender_presentation": presentation_score,
+            "style_world": world_score_value,
+            "trend": trend_score,
+        },
+        "world_confidence": world_confidence,
+        "world_score": world_score,
+        "world_variant": world_variant,
+    }
+
+
 def ensure_onboarding():
     if not current_user.is_authenticated:
         return None
@@ -2369,93 +2966,138 @@ def ensure_onboarding():
     return redirect(url_for("main.onboarding"))
 
 
-def score_look(look: dict, data: dict) -> int:
-    score = 0
-    style_preference = data.get("style_preference", "")
-    favorite_styles = set(data.get("favorite_styles", []))
-    favorite_brands = set(data.get("favorite_brands", []))
-    gender = data.get("gender", "")
-    religion = data.get("religion", "")
-    body_type = data.get("body_type", "")
-    style_set = set(look_styles(look))
-
-    if style_preference and style_preference in style_set:
-        score += 12
-    if favorite_styles:
-        score += len(favorite_styles.intersection(style_set)) * 6
-    if favorite_brands:
-        score += len(favorite_brands.intersection(set(look["brands"]))) * 5
-    if data.get("budget_range") == look["budget"]:
-        score += 5
-    else:
-        score += max(0, 2 - budget_distance(data.get("budget_range", ""), look["budget"]))
-
-    look_genders = set(look.get("genders", []))
-    if gender:
-        if gender in look_genders:
-            score += 4
-        elif look_matches_gender(look, gender):
-            score += 2
-        elif look_genders:
-            score -= 3
-
-    look_religions = set(look.get("religions", []))
-    if religion:
-        if religion in look_religions:
-            score += 8
-        elif look_religions:
-            score -= 2
-
-    look_body_types = set(look.get("body_types", []))
-    if body_type:
-        if body_type in look_body_types:
-            score += 4
-        elif look_body_types:
-            score -= 1
-
-    return score
+def score_look(look: dict, data: dict, *, world_slug: str = "") -> int:
+    evaluation = evaluate_look_hierarchy(look, data, world_slug=world_slug)
+    return int(evaluation.get("score", -1000))
 
 
-def match_reason(look: dict, data: dict) -> str:
+def match_reason(look: dict, data: dict, *, world_slug: str = "") -> str:
+    evaluation = evaluate_look_hierarchy(look, data, world_slug=world_slug)
+    if not evaluation.get("allowed"):
+        return "Filtered out by identity and fit constraints."
+
+    stage_scores = evaluation.get("stage_scores", {})
     reasons = []
-    style_preference = data.get("style_preference", "")
-    favorite_styles = set(data.get("favorite_styles", []))
-    favorite_brands = set(data.get("favorite_brands", []))
-    gender = data.get("gender", "")
-    religion = data.get("religion", "")
-    body_type = data.get("body_type", "")
-    style_set = set(look_styles(look))
-
-    if style_preference and style_preference in style_set:
-        reasons.append(f"{style_preference} styling")
-
-    matched_styles = sorted(favorite_styles.intersection(style_set))
-    if matched_styles:
-        reasons.append("favorite styles")
-
-    matched_brands = sorted(favorite_brands.intersection(set(look["brands"])))
-    if matched_brands:
-        reasons.append(", ".join(matched_brands[:2]))
-
-    if data.get("budget_range") == look["budget"]:
-        reasons.append(f"{look['budget'].lower()} budget")
-
-    if gender and look_matches_gender(look, gender):
-        reasons.append("profile fit")
-
-    if religion and look_matches_religion(look, religion):
-        if religion == "Islam":
-            reasons.append("modest Muslim-friendly styling")
-        else:
-            reasons.append("religion-aware styling")
-
-    if body_type and body_type in look.get("body_types", []):
-        reasons.append(f"{body_type.lower()} body match")
+    if stage_scores.get("identity", 0):
+        reasons.append("identity constraints")
+    if stage_scores.get("body_fit", 0):
+        reasons.append("body + fit compatibility")
+    if stage_scores.get("gender_presentation", 0):
+        reasons.append("gender presentation alignment")
+    world_conf = int(evaluation.get("world_confidence", 0))
+    if world_conf:
+        reasons.append(f"style world coherence ({world_conf}%)")
+    if stage_scores.get("trend", 0):
+        reasons.append("current trend relevance")
 
     if reasons:
-        return "Matched for " + " + ".join(reasons[:3]) + "."
-
+        return "Matched for " + " + ".join(reasons[:4]) + "."
     return look["match_text"]
+
+
+def style_dna_profile(data: dict, looks: list[dict]) -> dict:
+    style_weights: dict[str, int] = {}
+    for style in data.get("favorite_styles", []):
+        style_weights[style] = style_weights.get(style, 0) + 3
+    if data.get("style_preference"):
+        style = str(data.get("style_preference"))
+        style_weights[style] = style_weights.get(style, 0) + 4
+    for style in data.get("style_energy", []):
+        style_weights[str(style)] = style_weights.get(str(style), 0) + 2
+
+    for look in looks[:12]:
+        for style in look.get("styles", []):
+            style_weights[style] = style_weights.get(style, 0) + 1
+
+    dominant = sorted(style_weights.items(), key=lambda entry: (-entry[1], entry[0]))
+    dominant_styles = [style for style, _ in dominant[:4]]
+    style_total = sum(weight for _, weight in dominant[:6])
+    confidence = min(96, 44 + style_total * 2)
+    experimentation = min(100, 28 + max(0, len(data.get("style_energy", [])) - 1) * 12 + len(data.get("favorite_styles", [])) * 3)
+
+    color_counts: dict[str, int] = {}
+    for look in looks[:10]:
+        color = sanitize_text(look.get("color", ""), 40)
+        if not color:
+            continue
+        color_counts[color] = color_counts.get(color, 0) + 1
+    palette = [name for name, _ in sorted(color_counts.items(), key=lambda entry: (-entry[1], entry[0]))[:3]]
+
+    return {
+        "dominant_styles": dominant_styles,
+        "confidence": confidence,
+        "experimentation": experimentation,
+        "signature_palette": palette,
+    }
+
+
+def identity_suggestions(data: dict, looks: list[dict]) -> list[str]:
+    suggestions: list[str] = []
+    dna = style_dna_profile(data, looks)
+    dominant = dna.get("dominant_styles", [])
+    palette = dna.get("signature_palette", [])
+    visual_training = data.get("visual_training", {}) if isinstance(data.get("visual_training"), dict) else {}
+
+    if dominant:
+        suggestions.append(f"Your strongest identity signal is {dominant[0].lower()} direction right now.")
+    if len(dominant) > 1:
+        suggestions.append(f"Your layering patterns now blend {dominant[0].lower()} with {dominant[1].lower()} cues.")
+    if palette:
+        suggestions.append(f"Muted {palette[0].lower()} tones dominate your saved mood.")
+    if visual_training.get("silhouette_preference"):
+        suggestions.append(
+            f"Your swipe training leans toward {str(visual_training.get('silhouette_preference')).lower()} silhouettes."
+        )
+    if visual_training.get("risk_appetite"):
+        suggestions.append(f"Risk appetite currently reads as {str(visual_training.get('risk_appetite')).lower()}.")
+    if data.get("budget_range"):
+        suggestions.append(f"Your system is optimizing for {str(data.get('budget_range')).lower()} pieces.")
+
+    deduped: list[str] = []
+    seen = set()
+    for text in suggestions:
+        key = text.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(text)
+    return deduped[:5]
+
+
+def identity_evolution_timeline(data: dict) -> list[dict]:
+    style_pref = sanitize_text(data.get("style_preference", ""), 80) or "Adaptive"
+    energy = [sanitize_text(value, 80) for value in data.get("style_energy", []) if sanitize_text(value, 80)]
+    fit = data.get("fit_profile", {}) if isinstance(data.get("fit_profile"), dict) else {}
+    fit_pref = sanitize_text(fit.get("fit_preference", ""), 80) or "Balanced"
+    silhouette = sanitize_text((data.get("visual_training", {}) or {}).get("silhouette_preference", ""), 80) or "structured"
+    palette = sanitize_text((data.get("visual_training", {}) or {}).get("color_comfort", ""), 80) or "muted"
+
+    return [
+        {
+            "period": "Week 1",
+            "headline": f"Identity baseline anchored in {style_pref.lower()} styling.",
+            "detail": "Initial behavior showed preference for cleaner silhouettes and lower-noise layering.",
+        },
+        {
+            "period": "Week 2",
+            "headline": f"Exploration expanded into {', '.join(energy[:2]).lower() if energy else 'new aesthetic'} territory.",
+            "detail": "The system registered faster saves on looks with stronger directional cues.",
+        },
+        {
+            "period": "Week 3",
+            "headline": f"Fit behavior stabilized around {fit_pref.lower()} proportions.",
+            "detail": f"Swipe training indicated {silhouette.lower()} forms and {palette.lower()} color comfort.",
+        },
+        {
+            "period": "This week",
+            "headline": "Style confidence increased with more intentional pattern repetition.",
+            "detail": "You are moving from browsing outfits to designing a repeatable personal system.",
+        },
+    ]
+
+
+def style_world_by_slug(slug: str) -> dict | None:
+    return world_definition_by_slug(slug)
 
 
 def normalize_scan_bucket(value: str, allowed: set[str]) -> str:
@@ -2673,13 +3315,426 @@ def build_tryon_style_suggestions(scan: dict, limit: int = 3) -> list[dict]:
     return suggestions
 
 
-def enrich_look(look: dict, data: dict) -> dict:
+def look_world_proxy_item(look: dict) -> dict:
+    item_titles = " ".join(item.get("title", "") for item in look.get("items", []))
+    style_text = " ".join(look.get("styles", []))
+    category = "Set"
+    categories = {str(item.get("category", "")).strip().lower() for item in look.get("items", [])}
+    if "dress" in categories:
+        category = "Dress"
+    elif "outerwear" in categories:
+        category = "Outerwear"
+    elif "top" in categories:
+        category = "Top"
+    elif "bottom" in categories:
+        category = "Bottom"
+
+    return {
+        "id": look.get("slug", ""),
+        "title": f"{look.get('title', '')} {look.get('tagline', '')} {item_titles}".strip(),
+        "category": category,
+        "color": look.get("color", ""),
+        "texture": "",
+        "occasion": style_text,
+        "layer_role": "System look",
+        "aesthetic_category": style_text,
+    }
+
+
+def look_world_scores(look: dict) -> dict:
+    return analyze_item_for_worlds(look_world_proxy_item(look))
+
+
+def _source_category_from_title(title: str) -> str:
+    lowered = (title or "").lower()
+    if any(token in lowered for token in ("coat", "jacket", "blazer", "overcoat")):
+        return "Outerwear"
+    if any(token in lowered for token in ("dress", "abaya", "buibui", "jilbab", "kaftan", "gown")):
+        return "Dress"
+    if any(token in lowered for token in ("trouser", "pant", "jean", "jogger", "skirt", "short")):
+        return "Bottom"
+    if any(token in lowered for token in ("shoe", "loafer", "sandal", "boot", "trainer", "heel", "sneaker", "flat", "slide")):
+        return "Shoes"
+    if any(token in lowered for token in ("hoodie", "shirt", "tee", "top", "knit", "kurta", "thobe", "kandura", "jubba")):
+        return "Top"
+    if any(token in lowered for token in ("hijab", "shayla", "ghutra", "scarf", "cap", "hat", "kufi")):
+        return "Headwear"
+    if any(token in lowered for token in ("layer", "inner", "slip")):
+        return "Layer"
+    return "Accessory"
+
+
+def _source_image_url(metadata: dict) -> str:
+    expected = str(metadata.get("expected_file", "")).strip()
+    if expected:
+        expected = expected.replace("\\", "/")
+        if expected.startswith("app/"):
+            return "/" + expected[4:]
+        if expected.startswith("/"):
+            return expected
+        return "/" + expected
+    source_url = str(metadata.get("source_url", "")).strip()
+    return source_url
+
+
+def infer_candidate_genders(title: str) -> list[str]:
+    tokens = set(re.sub(r"[^a-z0-9]+", " ", (title or "").lower()).split())
+    has_masculine = bool(tokens.intersection(MASCULINE_TITLE_HINTS))
+    has_feminine = bool(tokens.intersection(FEMININE_TITLE_HINTS))
+    has_androgynous = bool(tokens.intersection(ANDROGYNOUS_TITLE_HINTS))
+
+    if has_androgynous or (has_masculine and has_feminine):
+        return ["Menswear", "Womenswear", "Unisex"]
+    if has_masculine:
+        return ["Menswear"]
+    if has_feminine:
+        return ["Womenswear"]
+    return []
+
+
+def candidate_matches_identity_constraints(candidate: dict, data: dict, world_slug: str) -> bool:
+    policy = recommendation_policy(data, world_slug=world_slug)
+    candidate_genders = set(candidate.get("genders", []))
+    if not candidate_genders:
+        candidate_genders = set(infer_candidate_genders(candidate.get("title", "")))
+
+    gender = policy.get("gender", "")
+    if gender:
+        gender_view = {"genders": list(candidate_genders)}
+        if not candidate_genders:
+            return False
+        if look_conflicts_with_gender(gender_view, gender) and not policy["allow_cross_gender"]:
+            return False
+
+    body_type = policy.get("body_type", "")
+    candidate_body_types = set(candidate.get("body_types", []))
+    if body_type and candidate_body_types and body_type not in candidate_body_types:
+        return False
+
+    fit_pref_key = policy.get("fit_pref_key", "")
+    if fit_pref_key:
+        fit_value = analyze_item_for_worlds(candidate).get("attributes", {}).get("fit", "")
+        compatible = FIT_PROFILE_COMPATIBILITY.get(fit_pref_key, set())
+        if fit_value and fit_value not in compatible:
+            return False
+
+    return True
+
+
+def cached_world_source_catalog() -> list[dict]:
+    global WORLD_SOURCE_CACHE
+    if WORLD_SOURCE_CACHE is not None:
+        return WORLD_SOURCE_CACHE
+
+    sources: list[dict] = []
+    accessory_dir = Path(__file__).resolve().parent.parent / "static" / "img" / "accessories"
+    for filename in SOURCE_METADATA_FILES:
+        source_path = accessory_dir / filename
+        if not source_path.exists():
+            continue
+        try:
+            payload = json.loads(source_path.read_text(encoding="utf-8"))
+        except (TypeError, ValueError, OSError):
+            continue
+        if not isinstance(payload, dict):
+            continue
+        for sku, metadata in payload.items():
+            if not isinstance(metadata, dict):
+                continue
+            image_url = _source_image_url(metadata)
+            if not image_url:
+                continue
+            title = sanitize_text(metadata.get("title", ""), 200) or sku
+            category = _source_category_from_title(title)
+            sources.append(
+                {
+                    "id": f"source:{sku}",
+                    "title": title,
+                    "category": category,
+                    "color": "",
+                    "texture": "",
+                    "image_url": image_url,
+                    "brand": sanitize_text(metadata.get("brand", ""), 120),
+                    "source_type": "curated-source",
+                    "source_label": sanitize_text(metadata.get("source", "archive"), 80) or "archive",
+                    "price": 0.0,
+                    "genders": infer_candidate_genders(title),
+                }
+            )
+
+    WORLD_SOURCE_CACHE = sources
+    return WORLD_SOURCE_CACHE
+
+
+def world_marketplace_candidates(limit: int = 160) -> list[dict]:
+    try:
+        entries = Item.query.order_by(Item.created_at.desc()).limit(max(20, min(limit, 400))).all()
+    except Exception:
+        return []
+
+    candidates = []
+    for entry in entries:
+        title = sanitize_text(entry.title, 220)
+        if not title:
+            continue
+        candidates.append(
+            {
+                "id": f"market:{entry.id}",
+                "title": title,
+                "category": _source_category_from_title(title),
+                "color": "",
+                "texture": "",
+                "image_url": sanitize_url(entry.image_url or "", MAX_URL_LENGTH),
+                "brand": "Marketplace",
+                "source_type": "marketplace",
+                "source_label": "marketplace",
+                "price": float(entry.price or 0),
+                "genders": infer_candidate_genders(title),
+            }
+        )
+    return candidates
+
+
+def world_openverse_queries(world_slug: str, slot_name: str, data: dict) -> list[str]:
+    world = style_world_by_slug(world_slug) or {}
+    title = world.get("title", "fashion")
+    policy = recommendation_policy(data, world_slug=world_slug)
+    gender_term = {
+        "Menswear": "menswear",
+        "Womenswear": "womenswear",
+        "Unisex": "androgynous unisex",
+    }.get(policy.get("gender", ""), "")
+    fit_term = {
+        "tailored": "tailored fit",
+        "oversized": "oversized fit",
+        "relaxed": "relaxed fit",
+        "body-skimming": "body-skimming fit",
+        "balanced": "balanced fit",
+    }.get(policy.get("fit_pref_key", ""), "")
+    body_term = f"{policy.get('body_type', '').lower()} body fit" if policy.get("body_type") else ""
+
+    slot_query_map = {
+        "outerwear": ["coat", "jacket", "blazer"],
+        "footwear": ["shoe", "boot", "loafer", "sneaker"],
+        "accessories": ["bag", "watch", "glasses", "jewelry"],
+        "layering pieces": ["vest", "cardigan", "overshirt", "layered top"],
+        "statement items": ["statement fashion", "runway piece", "editorial styling"],
+        "essentials": ["minimal fashion basic", "wardrobe essential", "tailored basics"],
+    }
+    slot_terms = slot_query_map.get(slot_name, ["fashion item"])
+    queries = []
+    for term in slot_terms:
+        prefix = " ".join(part for part in (gender_term, fit_term, body_term, title) if part)
+        queries.append(f"{prefix} {term} editorial fashion photography")
+    return queries
+
+
+def is_editorial_candidate(title: str) -> bool:
+    lowered = (title or "").strip().lower()
+    if not lowered:
+        return False
+    return not any(term in lowered for term in ONLINE_SOURCE_BLOCKLIST)
+
+
+def fetch_online_world_candidates(world_slug: str, slot_name: str, data: dict, limit: int = 3) -> list[dict]:
+    world = style_world_by_slug(world_slug)
+    if not world:
+        return []
+
+    policy = recommendation_policy(data, world_slug=world_slug)
+    collected = []
+    seen_urls = set()
+    for query in world_openverse_queries(world_slug, slot_name, data):
+        params = {
+            "q": query,
+            "page_size": "18",
+            "license_type": "commercial",
+            "mature": "false",
+            "filter_dead": "true",
+        }
+        request_url = f"{OPENVERSE_IMAGE_API}?{urlencode(params)}"
+        request_obj = Request(
+            request_url,
+            headers={
+                "User-Agent": "StyleBridge/1.0 (+fashion world sourcing)",
+                "Accept": "application/json",
+            },
+        )
+        try:
+            with urlopen(request_obj, timeout=OPENVERSE_TIMEOUT_SECONDS) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except (HTTPError, URLError, TimeoutError, ValueError, json.JSONDecodeError):
+            continue
+
+        for entry in payload.get("results", []):
+            title = sanitize_text(entry.get("title", ""), 220) or "Editorial fashion item"
+            if not is_editorial_candidate(title):
+                continue
+            image_url = sanitize_url(entry.get("url", "") or entry.get("thumbnail", ""), MAX_URL_LENGTH)
+            if not image_url or image_url in seen_urls:
+                continue
+            seen_urls.add(image_url)
+            candidate_genders = infer_candidate_genders(title)
+            if not candidate_genders and policy.get("gender"):
+                candidate_genders = [policy["gender"]]
+            candidate = {
+                "id": f"openverse:{entry.get('id', '')}",
+                "title": title,
+                "category": _source_category_from_title(title),
+                "color": "",
+                "texture": "",
+                "image_url": image_url,
+                "brand": sanitize_text(entry.get("creator", ""), 120) or "Openverse creator",
+                "source_type": "online",
+                "source_label": sanitize_text(entry.get("source", "openverse"), 80) or "openverse",
+                "price": 0.0,
+                "genders": candidate_genders,
+            }
+            collected.append(candidate)
+            if len(collected) >= limit:
+                return collected
+        if len(collected) >= limit:
+            break
+
+    return collected
+
+
+def world_aligned_item_recommendations(
+    data: dict,
+    world_slug: str,
+    missing_slots: list[str],
+    *,
+    limit_per_slot: int = 3,
+) -> list[dict]:
+    if not missing_slots:
+        return []
+
+    candidates = []
+    seen_ids = set()
+    for raw_look in LOOKS:
+        look = enrich_look(raw_look, data, world_slug=world_slug)
+        if not look.get("eligible", True):
+            continue
+        for item in look.get("items", []):
+            candidate_id = f"look:{look.get('slug', '')}:{item.get('sku', '')}"
+            if candidate_id in seen_ids:
+                continue
+            seen_ids.add(candidate_id)
+            candidates.append(
+                {
+                    "id": candidate_id,
+                    "title": item.get("title", ""),
+                    "category": item.get("category", "Accessory"),
+                    "color": look.get("color", ""),
+                    "texture": "",
+                    "image_url": item.get("image_url", "") or look.get("image_url", ""),
+                    "brand": item.get("brand", ""),
+                    "source_type": "look-catalog",
+                    "source_label": look.get("title", "look catalog"),
+                    "price": float(item.get("price", 0) or 0),
+                    "genders": list(look.get("genders", [])),
+                    "body_types": list(look.get("body_types", [])),
+                }
+            )
+
+    candidates.extend(cached_world_source_catalog())
+    candidates.extend(world_marketplace_candidates())
+
+    scored = []
+    seen_keys = set()
+    for candidate in candidates:
+        if not candidate_matches_identity_constraints(candidate, data, world_slug):
+            continue
+        analysis = analyze_item_for_worlds(candidate)
+        slot_name = analysis.get("slot_name", "")
+        if slot_name not in missing_slots:
+            continue
+        world_score = score_item_for_world(candidate, world_slug)
+        if world_score.get("confidence", 0) < 58:
+            continue
+        key = ((candidate.get("title") or "").strip().lower(), (candidate.get("image_url") or "").strip())
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        scored.append(
+            {
+                "slot_name": slot_name,
+                "title": candidate.get("title", ""),
+                "category": candidate.get("category", ""),
+                "image_url": candidate.get("image_url", ""),
+                "brand": candidate.get("brand", ""),
+                "price": candidate.get("price", 0),
+                "confidence": int(world_score.get("confidence", 0)),
+                "source_type": candidate.get("source_type", "catalog"),
+                "source_label": candidate.get("source_label", "catalog"),
+                "compatibility": world_score.get("compatibility", "aligned"),
+            }
+        )
+
+    scored.sort(key=lambda item: (-item["confidence"], item["slot_name"], item["title"]))
+    selections = []
+    taken_per_slot = {slot: 0 for slot in missing_slots}
+    for candidate in scored:
+        slot_name = candidate["slot_name"]
+        if slot_name not in taken_per_slot:
+            continue
+        if taken_per_slot[slot_name] >= limit_per_slot:
+            continue
+        selections.append(candidate)
+        taken_per_slot[slot_name] += 1
+
+    remaining_slots = [slot for slot, count in taken_per_slot.items() if count == 0]
+    for slot_name in remaining_slots:
+        online_candidates = fetch_online_world_candidates(world_slug, slot_name, data, limit=limit_per_slot)
+        for candidate in online_candidates:
+            if not candidate_matches_identity_constraints(candidate, data, world_slug):
+                continue
+            world_score = score_item_for_world(candidate, world_slug)
+            if world_score.get("confidence", 0) < 56:
+                continue
+            selections.append(
+                {
+                    "slot_name": slot_name,
+                    "title": candidate.get("title", ""),
+                    "category": candidate.get("category", ""),
+                    "image_url": candidate.get("image_url", ""),
+                    "brand": candidate.get("brand", ""),
+                    "price": candidate.get("price", 0),
+                    "confidence": int(world_score.get("confidence", 0)),
+                    "source_type": "online",
+                    "source_label": candidate.get("source_label", "openverse"),
+                    "compatibility": world_score.get("compatibility", "aligned"),
+                }
+            )
+
+    selections.sort(key=lambda item: (-item["confidence"], item["slot_name"], item["title"]))
+    return selections
+
+
+def enrich_look(look: dict, data: dict, *, world_slug: str = "") -> dict:
     enriched = dict(look)
     enriched["styles"] = look_styles(look)
     enriched["garment_tags"] = look_garment_tags(look)
-    enriched["items"] = [{**item, "image_url": item_image_url(item, look)} for item in look["items"]]
-    enriched["match_score"] = score_look(look, data)
-    enriched["match_reason"] = match_reason(look, data)
+    identified_items = []
+    for item in look.get("items", []):
+        image_url = item_image_url(item, look)
+        if not image_url:
+            continue
+        identified_items.append({**item, "image_url": image_url})
+    enriched["items"] = identified_items
+    enriched["price_total"] = sum(float(item.get("price", 0)) for item in identified_items)
+    evaluation = evaluate_look_hierarchy(look, data, world_slug=world_slug)
+    enriched["eligible"] = bool(evaluation.get("allowed"))
+    enriched["match_score"] = int(evaluation.get("score", -1000))
+    enriched["match_reason"] = match_reason(look, data, world_slug=world_slug)
+    enriched["hierarchy_scores"] = evaluation.get("stage_scores", {})
+    enriched["world_variant"] = evaluation.get("world_variant", "")
+    if world_slug and isinstance(evaluation.get("world_score"), dict):
+        enriched["selected_world_score"] = evaluation["world_score"]
+        enriched["world_confidence"] = int(evaluation.get("world_confidence", 0))
+    world_analysis = look_world_scores(enriched)
+    enriched["style_world_scores"] = world_analysis.get("world_scores", [])
+    enriched["top_style_world"] = world_analysis.get("best_world")
     return enriched
 
 
@@ -2697,6 +3752,8 @@ def accessory_catalog(
     accessories = []
     for raw_look in LOOKS:
         look = enrich_look(raw_look, data)
+        if not look.get("eligible", True):
+            continue
         if style and style not in look["styles"]:
             continue
         if budget and budget != look["budget"]:
@@ -2783,6 +3840,7 @@ def dedupe_looks_by_image(looks: list[dict]) -> list[dict]:
 def personalized_looks() -> list[dict]:
     data = profile_data()
     enriched = [enrich_look(look, data) for look in LOOKS]
+    enriched = [look for look in enriched if look.get("eligible", True)]
     ordered = sorted(
         enriched,
         key=lambda look: (-look["match_score"], budget_distance(data.get("budget_range", ""), look["budget"]), look["title"]),
@@ -2871,12 +3929,23 @@ def record_seller_orders(order_payload: dict) -> None:
 
 @bp.get("/")
 def home():
-    if current_user.is_authenticated:
+    force_cinematic_home = str(request.args.get("cinema", "")).strip().lower() in {"1", "true", "yes", "on"}
+    force_cinematic_home = force_cinematic_home or str(request.args.get("splash", "")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+    if current_user.is_authenticated and not force_cinematic_home:
         if current_user.has_role("seller"):
             profile = getattr(current_user, "seller_profile", None)
             if profile and profile.onboarding_complete:
                 return redirect(url_for("seller.dashboard"))
             return redirect(url_for("seller.onboarding"))
+        if current_user.onboarding_complete:
+            return redirect(url_for("main.feed"))
+        return redirect(url_for("main.onboarding"))
     return render_template("home.html")
 
 
@@ -2942,6 +4011,9 @@ def feedback_post():
 @bp.route("/onboarding", methods=["GET", "POST"])
 @login_required
 def onboarding():
+    if current_user.onboarding_complete and request.method == "GET" and request.args.get("edit") != "1":
+        return redirect(url_for("main.feed"))
+
     existing = profile_data()
 
     if request.method == "POST":
@@ -2951,16 +4023,34 @@ def onboarding():
         current_user.set_profile_vector(profile_vector_from(data))
         db.session.commit()
         audit("profile.onboarding_completed", target=f"user:{current_user.id}")
-        flash("Your style profile is ready.", "success")
+        flash("Identity system configured. Your style operating home is ready.", "success")
         return redirect(url_for("main.feed"))
+
+    phase = sanitize_text(request.args.get("phase", "identity"), 60) or "identity"
+    training_looks = []
+    for look in LOOKS[:12]:
+        training_looks.append(
+            {
+                "slug": look.get("slug", ""),
+                "title": look.get("title", ""),
+                "image_url": look.get("image_url", ""),
+                "style_hint": " | ".join(look.get("styles", [])[:2]),
+                "silhouette": "Structured" if any(term in " ".join(item.get("title", "").lower() for item in look.get("items", [])) for term in ("tailored", "coat", "blazer", "structured", "kandura", "thobe")) else "Fluid",
+                "color_energy": sanitize_text(look.get("color", ""), 40) or "Neutral",
+            }
+        )
 
     return render_template(
         "onboarding.html",
         gender_options=GENDER_OPTIONS,
         religion_options=RELIGION_OPTIONS,
         style_options=STYLE_OPTIONS,
+        style_energy_options=STYLE_ENERGY_OPTIONS,
         budget_options=BUDGET_OPTIONS,
         body_type_options=BODY_TYPE_OPTIONS,
+        fit_preference_options=FIT_PREFERENCE_OPTIONS,
+        training_looks=training_looks,
+        phase=phase,
         existing=existing,
     )
 
@@ -2971,9 +4061,22 @@ def feed():
     maybe_redirect = ensure_onboarding()
     if maybe_redirect:
         return maybe_redirect
+    data = profile_data()
     looks = personalized_looks()
     saved = set(current_user.get_saved_looks())
-    return render_template("feed.html", looks=looks, saved=saved, profile=profile_data())
+    dna = style_dna_profile(data, looks)
+    suggestions = identity_suggestions(data, looks)
+    timeline = identity_evolution_timeline(data)
+    return render_template(
+        "feed.html",
+        looks=looks,
+        saved=saved,
+        profile=data,
+        style_dna=dna,
+        identity_suggestions=suggestions,
+        evolution_timeline=timeline,
+        style_world_options=STYLE_WORLD_OPTIONS,
+    )
 
 
 @bp.get("/accessories")
@@ -3043,12 +4146,18 @@ def discover():
     religion = (request.args.get("religion") or "").strip()
     garment = (request.args.get("garment") or "").strip()
     accessory = (request.args.get("accessory") or "").strip()
+    style_world = (request.args.get("style_world") or "").strip().lower()
     brand = (request.args.get("brand") or "").strip().lower()
     color = (request.args.get("color") or "").strip().lower()
+    world_entry = style_world_by_slug(style_world) if style_world else None
+    if style_world and not world_entry:
+        style_world = ""
 
     results = []
     for raw_look in LOOKS:
-        look = enrich_look(raw_look, data)
+        look = enrich_look(raw_look, data, world_slug=style_world)
+        if not look.get("eligible", True):
+            continue
         item_terms = " ".join(
             f"{item.get('title', '')} {item.get('category', '')} {item.get('brand', '')}" for item in look["items"]
         )
@@ -3068,6 +4177,15 @@ def discover():
             continue
         if style and style not in look["styles"]:
             continue
+        if style_world:
+            world_score = look.get("selected_world_score") or score_item_for_world(look_world_proxy_item(look), style_world)
+            look["selected_world_score"] = world_score
+            look["world_confidence"] = int(world_score.get("confidence", 0))
+            if look["world_confidence"] < 58:
+                continue
+        else:
+            top_world = look.get("top_style_world", {})
+            look["world_confidence"] = int((top_world or {}).get("confidence", 0))
         if budget and budget != look["budget"]:
             continue
         if gender and not look_matches_gender_filter(look, gender):
@@ -3084,10 +4202,33 @@ def discover():
             continue
         results.append(look)
 
-    results.sort(
-        key=lambda look: (-look["match_score"], budget_distance(data.get("budget_range", ""), look["budget"]), look["title"])
-    )
+    if style_world:
+        results.sort(
+            key=lambda look: (
+                -int(look.get("world_confidence", 0)),
+                -look["match_score"],
+                budget_distance(data.get("budget_range", ""), look["budget"]),
+                look["title"],
+            )
+        )
+    else:
+        results.sort(
+            key=lambda look: (
+                -look["match_score"],
+                -int(look.get("world_confidence", 0)),
+                budget_distance(data.get("budget_range", ""), look["budget"]),
+                look["title"],
+            )
+        )
     results = dedupe_looks_by_image(results)
+    world_expansion = []
+    if style_world and world_entry and len(results) < 8:
+        world_expansion = world_aligned_item_recommendations(
+            data,
+            style_world,
+            ["outerwear", "footwear", "accessories", "layering pieces"],
+            limit_per_slot=2,
+        )
 
     return render_template(
         "discover.html",
@@ -3096,6 +4237,10 @@ def discover():
         religion_options=RELIGION_OPTIONS,
         garment_options=GARMENT_OPTIONS,
         accessory_options=ACCESSORY_OPTIONS,
+        style_world_options=STYLE_WORLD_OPTIONS,
+        active_world=world_entry,
+        world_expansion=world_expansion,
+        selected_style_world=style_world,
         style_options=STYLE_OPTIONS,
         budget_options=BUDGET_OPTIONS,
         filters={
@@ -3106,6 +4251,7 @@ def discover():
             "religion": religion,
             "garment": garment,
             "accessory": accessory,
+            "style_world": style_world,
             "brand": brand,
             "color": color,
         },
@@ -3168,7 +4314,10 @@ def cart_add():
         abort(404)
 
     basket = cart_items()
-    items_to_add = look["items"] if buy_all else [item for item in look["items"] if item["sku"] == item_sku]
+    if buy_all:
+        items_to_add = [item for item in look["items"] if item_is_identified(item)]
+    else:
+        items_to_add = [item for item in look["items"] if item["sku"] == item_sku and item_is_identified(item)]
     if not items_to_add:
         abort(400)
 
@@ -3180,6 +4329,7 @@ def cart_add():
                 "look_title": look["title"],
                 "title": item["title"],
                 "brand": item["brand"],
+                "category": item.get("category", ""),
                 "price": item["price"],
                 "quantity": 1,
             }
@@ -3275,19 +4425,185 @@ def profile():
         return maybe_redirect
 
     data = profile_data()
+    ranked_looks = personalized_looks()
     saved_looks = [enrich_look(LOOKS_BY_SLUG[slug], data) for slug in current_user.get_saved_looks() if slug in LOOKS_BY_SLUG]
     saved_looks = dedupe_looks_by_image(saved_looks)
+    dna = style_dna_profile(data, ranked_looks)
+    suggestions = identity_suggestions(data, ranked_looks)
+    timeline = identity_evolution_timeline(data)
     return render_template(
         "profile.html",
         profile=profile_data(),
         profile_vector=current_user.get_profile_vector(),
         saved_looks=saved_looks,
         orders=current_user.get_order_history(),
+        style_dna=dna,
+        identity_suggestions=suggestions,
+        evolution_timeline=timeline,
         gender_options=GENDER_OPTIONS,
         religion_options=RELIGION_OPTIONS,
         style_options=STYLE_OPTIONS,
+        style_energy_options=STYLE_ENERGY_OPTIONS,
         budget_options=BUDGET_OPTIONS,
         body_type_options=BODY_TYPE_OPTIONS,
+        fit_preference_options=FIT_PREFERENCE_OPTIONS,
+    )
+
+
+@bp.route("/wardrobe", methods=["GET", "POST"])
+@login_required
+def wardrobe():
+    maybe_redirect = ensure_onboarding()
+    if maybe_redirect:
+        return maybe_redirect
+
+    data = profile_data()
+    wardrobe_items = data.get("wardrobe_items", []) if isinstance(data.get("wardrobe_items"), list) else []
+
+    if request.method == "POST":
+        remove_item_id = sanitize_text(request.form.get("remove_item_id", ""), 64)
+        if remove_item_id:
+            wardrobe_items = [item for item in wardrobe_items if str(item.get("id", "")) != remove_item_id]
+            flash("Item removed from your digital closet.", "info")
+        else:
+            title = sanitize_text(request.form.get("title", ""), 140)
+            if not title:
+                flash("Add an item name first.", "error")
+                return redirect(url_for("main.wardrobe"))
+
+            category = sanitize_text(request.form.get("category", ""), 80) or "Accessory"
+            color = sanitize_text(request.form.get("color", ""), 60)
+            texture = sanitize_text(request.form.get("texture", ""), 60)
+            occasion = sanitize_text(request.form.get("occasion", ""), 80)
+            layer_role = sanitize_text(request.form.get("layer_role", ""), 80)
+            silhouette = sanitize_text(request.form.get("silhouette", ""), 60)
+            fit = sanitize_text(request.form.get("fit", ""), 60)
+            color_palette = sanitize_text(request.form.get("color_palette", ""), 60)
+            material_appearance = sanitize_text(request.form.get("material_appearance", ""), 60)
+            aesthetic_category = sanitize_text(request.form.get("aesthetic_category", ""), 80)
+            fashion_era_influence = sanitize_text(request.form.get("fashion_era_influence", ""), 80)
+
+            layering_potential = ""
+            formality_level = ""
+            visual_aggression = ""
+
+            raw_layering = sanitize_text(request.form.get("layering_potential", ""), 20)
+            raw_formality = sanitize_text(request.form.get("formality_level", ""), 20)
+            raw_aggression = sanitize_text(request.form.get("visual_aggression", ""), 20)
+
+            if raw_layering and raw_layering not in {"0", "0.0"}:
+                try:
+                    layering_potential = max(0.0, min(float(raw_layering), 1.0))
+                except (TypeError, ValueError):
+                    layering_potential = ""
+            if raw_formality and raw_formality not in {"0", "0.0"}:
+                try:
+                    formality_level = max(0.0, min(float(raw_formality), 1.0))
+                except (TypeError, ValueError):
+                    formality_level = ""
+            if raw_aggression and raw_aggression not in {"0", "0.0"}:
+                try:
+                    visual_aggression = max(0.0, min(float(raw_aggression), 1.0))
+                except (TypeError, ValueError):
+                    visual_aggression = ""
+
+            wardrobe_items.insert(
+                0,
+                {
+                    "id": uuid.uuid4().hex[:10],
+                    "title": title,
+                    "category": category,
+                    "color": color,
+                    "texture": texture,
+                    "occasion": occasion,
+                    "layer_role": layer_role,
+                    "silhouette": silhouette,
+                    "fit": fit,
+                    "layering_potential": layering_potential,
+                    "color_palette": color_palette,
+                    "material_appearance": material_appearance,
+                    "formality_level": formality_level,
+                    "visual_aggression": visual_aggression,
+                    "aesthetic_category": aesthetic_category,
+                    "fashion_era_influence": fashion_era_influence,
+                    "added_at": datetime.utcnow().strftime("%Y-%m-%d"),
+                },
+            )
+            flash("Item added to your digital closet.", "success")
+
+        data["wardrobe_items"] = wardrobe_items[:240]
+        current_user.set_profile_data(data)
+        current_user.set_profile_vector(profile_vector_from(data))
+        db.session.commit()
+        audit("wardrobe.updated", target=f"user:{current_user.id}", meta={"count": len(wardrobe_items)})
+        return redirect(url_for("main.wardrobe"))
+
+    wardrobe_analysis = analyze_wardrobe_worlds(wardrobe_items)
+    world_rankings = wardrobe_analysis.get("world_rankings", [])
+    item_analyses = wardrobe_analysis.get("item_analyses", [])
+    missing_slots = wardrobe_analysis.get("missing_slots", [])
+
+    requested_world = sanitize_text(request.args.get("world", ""), 80).lower()
+    selected_world = requested_world if style_world_by_slug(requested_world) else ""
+    if not selected_world and world_rankings:
+        selected_world = world_rankings[0].get("slug", "")
+    selected_world_entry = style_world_by_slug(selected_world) if selected_world else None
+
+    outfit_systems = generate_outfit_systems_for_world(wardrobe_items, selected_world, limit=4) if selected_world else []
+    if not outfit_systems and wardrobe_items:
+        # Lightweight fallback summary when not enough structured pieces exist yet.
+        outfit_systems = [
+            {
+                "world_slug": selected_world,
+                "world_title": selected_world_entry.get("title", "Style World") if selected_world_entry else "Style World",
+                "confidence": 52,
+                "narrative": "Add one outerwear layer, one shoe option, and one accessory to unlock stronger world systems.",
+                "items": [],
+            }
+        ]
+
+    aligned_recommendations = []
+    if selected_world and missing_slots:
+        aligned_recommendations = world_aligned_item_recommendations(
+            data,
+            selected_world,
+            missing_slots,
+            limit_per_slot=3,
+        )
+
+    showcase_missing_slots = []
+    for slot in WARDROBE_SLOT_LABELS:
+        if slot in missing_slots:
+            showcase_missing_slots.append(slot)
+
+    return render_template(
+        "wardrobe.html",
+        profile=data,
+        wardrobe_items=wardrobe_items,
+        item_analyses=item_analyses,
+        world_rankings=world_rankings,
+        selected_world=selected_world_entry,
+        outfit_systems=outfit_systems,
+        missing_slots=showcase_missing_slots,
+        aligned_recommendations=aligned_recommendations,
+    )
+
+
+@bp.get("/evolution")
+@login_required
+def evolution():
+    maybe_redirect = ensure_onboarding()
+    if maybe_redirect:
+        return maybe_redirect
+
+    data = profile_data()
+    looks = personalized_looks()
+    return render_template(
+        "evolution.html",
+        profile=data,
+        style_dna=style_dna_profile(data, looks),
+        identity_suggestions=identity_suggestions(data, looks),
+        evolution_timeline=identity_evolution_timeline(data),
     )
 
 

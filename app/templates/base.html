@@ -11,13 +11,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@500;700&family=Bebas+Neue&family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;700&family=Manrope:wght@400;500;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Orbitron:wght@500;700&family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Rajdhani:wght@500;600;700&family=Sora:wght@400;500;700&family=Source+Serif+4:wght@400;500;700&family=Space+Mono:wght@400;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
     <script>
       (function() {
         const root = document.documentElement;
         const splashAllowed = {{ "true" if show_intro_splash else "false" }};
         const forceSplash = {{ "true" if force_intro_splash else "false" }};
-        const storageKey = "sb-intro-seen-v4";
-        const minimumDelay = 3000;
+        const storageKey = "sb-intro-seen-v5";
         let shouldShow = forceSplash;
 
         function cleanSplashUrl() {
@@ -55,7 +55,15 @@
           root.classList.remove("sb-loading");
           cleanSplashUrl();
 
-          const removalDelay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 180 : 580;
+          const main = document.getElementById("sb-main");
+          if (main && root.dataset.sbSplash === "show") {
+            main.classList.add("sb-main-reveal-once");
+            window.setTimeout(() => {
+              main.classList.remove("sb-main-reveal-once");
+            }, 1100);
+          }
+
+          const removalDelay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 180 : 620;
           window.setTimeout(removeSplashNode, removalDelay);
         }
 
@@ -73,13 +81,37 @@
 
         if (shouldShow) {
           root.classList.add("sb-loading");
-          window.setTimeout(revealSite, minimumDelay);
         } else {
           cleanSplashUrl();
         }
       })();
     </script>
     <style>
+      :root {
+        --sb-font-body: "Space Grotesk";
+        --sb-font-display: "Space Grotesk";
+        --sb-world-accent: #7dd3fc;
+        --sb-world-accent-rgb: 125, 211, 252;
+        --sb-world-surface: rgba(15, 23, 42, 0.88);
+        --sb-world-glow: rgba(125, 211, 252, 0.2);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: var(--sb-font-body), sans-serif;
+      }
+
+      h1,
+      h2,
+      h3,
+      .sb-world-heading {
+        font-family: var(--sb-font-display), var(--sb-font-body), sans-serif;
+        letter-spacing: 0.01em;
+      }
+
       html.sb-loading body {
         overflow: hidden;
       }
@@ -92,12 +124,11 @@
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        background:
-          radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.98), rgba(250, 251, 253, 0.98) 44%, rgba(234, 239, 245, 0.98) 100%);
+        background: #030508;
         opacity: 1;
         visibility: visible;
         pointer-events: none;
-        transition: opacity 560ms ease, visibility 0s linear 560ms;
+        transition: opacity 640ms ease, visibility 0s linear 640ms;
       }
 
       html.sb-loading #sb-splash {
@@ -110,85 +141,343 @@
         visibility: hidden;
       }
 
-      .sb-splash-card {
+      .sb-splash-inner {
         position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: clamp(0.85rem, 2.4vw, 1.45rem);
         width: 100%;
         min-height: 100vh;
         padding: clamp(1.75rem, 5vw, 4rem);
-        transform: translateY(0) scale(1);
-        opacity: 1;
-        transition: transform 560ms ease, opacity 560ms ease;
+        perspective: 1100px;
+        transform-style: preserve-3d;
+        transition: transform 620ms ease, opacity 620ms ease;
       }
 
-      html.sb-ready .sb-splash-card {
-        transform: scale(1.015);
+      html.sb-ready .sb-splash-inner {
+        transform: scale(1.02);
         opacity: 0;
       }
 
       .sb-splash-glow {
         position: absolute;
         inset: 50% auto auto 50%;
-        width: min(88vw, 58rem);
-        height: min(88vw, 58rem);
+        width: min(92vw, 52rem);
+        height: min(92vw, 52rem);
         border-radius: 999px;
-        background: radial-gradient(circle, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0) 70%);
-        filter: blur(30px);
-        transform: translate(-50%, -50%);
+        background:
+          radial-gradient(circle, rgba(94, 184, 224, 0.14) 0%, rgba(148, 163, 184, 0.06) 38%, rgba(3, 5, 8, 0) 72%);
+        filter: blur(42px);
+        transform: translate(-50%, -50%) scale(0.75);
+        opacity: 0;
       }
 
-      .sb-splash-mark {
-        position: relative;
-        width: min(94vw, 44rem);
+      .sb-splash-inner.sb-splash-run .sb-splash-glow {
+        animation: sb-splash-glow 1.35s ease forwards;
       }
 
-      .sb-splash-logo {
-        position: relative;
-        display: block;
-        width: 100%;
-        max-width: none;
-        height: auto;
-        object-fit: contain;
-        object-position: center;
-        filter: none;
-        mix-blend-mode: multiply;
-        transform: scale(1.02);
-        animation: sb-float 2200ms ease-in-out infinite alternate;
-      }
-
-      .sb-splash-copy {
-        margin: 0;
-        font-size: clamp(0.7rem, 1.2vw, 0.92rem);
-        font-weight: 700;
-        letter-spacing: 0.3em;
-        text-transform: uppercase;
-        color: rgba(15, 23, 42, 0.58);
-        text-align: center;
-      }
-
-      @keyframes sb-float {
-        from {
-          transform: translateY(0) scale(1.02);
-        }
+      @keyframes sb-splash-glow {
         to {
-          transform: translateY(-8px) scale(1.05);
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+
+      .sb-splash-title-wrap {
+        position: relative;
+        z-index: 2;
+        transform-style: preserve-3d;
+        opacity: 1;
+      }
+
+      .sb-splash-inner.sb-splash-run .sb-splash-title-wrap {
+        animation: sb-splash-pass 1.35s cubic-bezier(0.62, 0.02, 0.27, 1) 2.15s forwards;
+      }
+
+      @keyframes sb-splash-pass {
+        to {
+          opacity: 0;
+          transform: translate3d(0, 0, 220px) scale(2.25);
+          filter: blur(14px);
+        }
+      }
+
+      .sb-splash-letters {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: clamp(0.06em, 0.9vw, 0.14em);
+        font-size: clamp(1.35rem, 4.2vw, 2.85rem);
+        font-weight: 500;
+        letter-spacing: 0.42em;
+        text-transform: uppercase;
+        color: rgba(248, 250, 252, 0.94);
+      }
+
+      .sb-splash-letters span {
+        display: inline-block;
+        opacity: 0;
+        transform: translate3d(0, 0, -120px) scale(0.92);
+        filter: blur(10px);
+        text-shadow:
+          0 0 42px rgba(94, 184, 224, 0.35),
+          0 1px 0 rgba(255, 255, 255, 0.12);
+      }
+
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span {
+        animation: sb-splash-letter 1.55s cubic-bezier(0.22, 0.82, 0.22, 1) forwards;
+      }
+
+      @keyframes sb-splash-letter {
+        to {
+          opacity: 1;
+          transform: translate3d(0, 0, 0) scale(1);
+          filter: blur(0);
+        }
+      }
+
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(1) { animation-delay: 0.12s; }
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(2) { animation-delay: 0.18s; }
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(3) { animation-delay: 0.24s; }
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(4) { animation-delay: 0.3s; }
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(5) { animation-delay: 0.36s; }
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(6) { animation-delay: 0.42s; }
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(7) { animation-delay: 0.48s; }
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(8) { animation-delay: 0.54s; }
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(9) { animation-delay: 0.6s; }
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(10) { animation-delay: 0.66s; }
+      .sb-splash-inner.sb-splash-run .sb-splash-letters span:nth-child(11) { animation-delay: 0.72s; }
+
+      .sb-splash-tag {
+        margin: clamp(1.25rem, 3vw, 2rem) 0 0;
+        max-width: 22rem;
+        text-align: center;
+        font-size: clamp(0.62rem, 1.05vw, 0.78rem);
+        font-weight: 600;
+        letter-spacing: 0.38em;
+        text-transform: uppercase;
+        color: rgba(148, 163, 184, 0.55);
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      .sb-splash-inner.sb-splash-run .sb-splash-tag {
+        animation: sb-splash-tag 0.9s ease 1.05s forwards;
+      }
+
+      @keyframes sb-splash-tag {
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
       }
 
       @media (prefers-reduced-motion: reduce) {
-        #sb-splash,
-        .sb-splash-card {
-          transition-duration: 220ms;
+        html {
+          scroll-behavior: auto;
         }
 
-        .sb-splash-logo,
-        .sb-splash-glow {
-          animation: none;
+        #sb-splash,
+        .sb-splash-inner {
+          transition-duration: 200ms;
         }
+
+        .sb-splash-inner.sb-splash-run .sb-splash-glow,
+        .sb-splash-inner.sb-splash-run .sb-splash-letters span,
+        .sb-splash-inner.sb-splash-run .sb-splash-title-wrap,
+        .sb-splash-inner.sb-splash-run .sb-splash-tag {
+          animation: none !important;
+        }
+
+        .sb-splash-glow {
+          opacity: 0.55;
+          transform: translate(-50%, -50%) scale(1);
+        }
+
+        .sb-splash-letters span {
+          opacity: 1;
+          transform: none;
+          filter: none;
+        }
+
+        .sb-splash-tag {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      #sb-site-shell {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      #sb-site-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      #sb-nav-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 35;
+        pointer-events: none;
+        opacity: 0;
+        background:
+          radial-gradient(circle at 42% 36%, rgba(var(--sb-world-accent-rgb), 0.16), rgba(var(--sb-world-accent-rgb), 0) 52%),
+          radial-gradient(circle at 78% 58%, rgba(212, 196, 176, 0.06), rgba(212, 196, 176, 0) 48%),
+          linear-gradient(195deg, rgba(3, 5, 8, 0.5), rgba(15, 18, 24, 0.82));
+        transition: opacity 340ms ease;
+      }
+
+      #sb-nav-overlay.sb-nav-overlay-active {
+        opacity: 1;
+      }
+
+      html.sb-nav-freeze body {
+        overflow: hidden;
+      }
+
+      #sb-main.sb-main-exit {
+        opacity: 0;
+        transform: perspective(1200px) translate3d(0, 22px, -80px) rotateX(5deg) scale(0.96);
+        transform-origin: 50% 12%;
+        filter: blur(12px) saturate(0.88);
+        transition: opacity 320ms ease, transform 320ms ease, filter 320ms ease;
+      }
+
+      #sb-main.sb-main-exit.sb-tx-home-discover {
+        transform: perspective(1100px) translate3d(-6%, 8px, -120px) rotateY(5deg) rotateX(3deg) scale(0.94);
+        filter: blur(14px) saturate(0.85);
+        transition-duration: 380ms, 380ms, 380ms;
+      }
+
+      #sb-main.sb-main-enter {
+        opacity: 0;
+        transform: perspective(1200px) translate3d(0, 18px, -40px) rotateX(-4deg) scale(0.985);
+        transform-origin: 50% 10%;
+        filter: blur(11px) saturate(0.9);
+      }
+
+      #sb-main.sb-main-enter.sb-main-enter-active {
+        opacity: 1;
+        transform: perspective(1200px) translate3d(0, 0, 0) rotateX(0) scale(1);
+        filter: blur(0);
+        transition: opacity 480ms cubic-bezier(0.22, 0.82, 0.22, 1), transform 480ms cubic-bezier(0.22, 0.82, 0.22, 1),
+          filter 480ms cubic-bezier(0.22, 0.82, 0.22, 1);
+      }
+
+      #sb-main.sb-main-enter.sb-tx-home-discover {
+        transform: perspective(1100px) translate3d(5%, 14px, -70px) rotateY(-4deg) rotateX(-2deg) scale(0.97);
+        filter: blur(13px) saturate(0.88);
+      }
+
+      #sb-main.sb-main-enter.sb-tx-home-discover.sb-main-enter-active {
+        transform: perspective(1100px) translate3d(0, 0, 0) rotateY(0) rotateX(0) scale(1);
+      }
+
+      #sb-main {
+        will-change: transform, opacity, filter;
+      }
+
+      html.sb-ready:not(.sb-loading) #sb-main.sb-main-reveal-once {
+        animation: sb-main-assemble 0.95s cubic-bezier(0.22, 0.82, 0.22, 1) both;
+      }
+
+      @keyframes sb-main-assemble {
+        from {
+          opacity: 0;
+          transform: perspective(1400px) translate3d(0, 12px, -36px) scale(0.992);
+          filter: blur(6px);
+        }
+        to {
+          opacity: 1;
+          transform: perspective(1400px) translate3d(0, 0, 0) scale(1);
+          filter: blur(0);
+        }
+      }
+
+      .sb-glass-card {
+        --sb-tx: 0deg;
+        --sb-ty: 0deg;
+        transform-style: preserve-3d;
+        transform: perspective(900px) rotateX(var(--sb-tx)) rotateY(var(--sb-ty)) translateZ(0);
+        box-shadow:
+          0 18px 40px rgba(0, 0, 0, 0.35),
+          0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+        transition:
+          transform 220ms ease,
+          box-shadow 320ms ease,
+          border-color 320ms ease,
+          background-color 320ms ease;
+      }
+
+      .sb-glass-card:hover {
+        border-color: rgba(var(--sb-world-accent-rgb), 0.3) !important;
+        box-shadow:
+          0 26px 56px rgba(0, 0, 0, 0.45),
+          0 0 0 1px rgba(var(--sb-world-accent-rgb), 0.25) inset,
+          0 0 48px rgba(var(--sb-world-accent-rgb), 0.1);
+      }
+
+      .sb-glass-card .sb-glass-card-media {
+        transition: transform 420ms cubic-bezier(0.22, 0.82, 0.22, 1);
+        will-change: transform;
+      }
+
+      .sb-glass-card:hover .sb-glass-card-media {
+        transform: scale(1.04);
+      }
+
+      .sb-glass-card .sb-glass-card-copy {
+        transition: transform 520ms cubic-bezier(0.18, 0.82, 0.22, 1), opacity 400ms ease;
+      }
+
+      .sb-glass-card:hover .sb-glass-card-copy {
+        transform: translate3d(0, 2px, 8px);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .sb-glass-card,
+        .sb-glass-card .sb-glass-card-media,
+        .sb-glass-card .sb-glass-card-copy {
+          transition: none !important;
+          transform: none !important;
+        }
+
+        .sb-glass-card:hover .sb-glass-card-media {
+          transform: none;
+        }
+      }
+
+      #sb-brand-mark {
+        position: relative;
+        display: inline-block;
+        transform-style: preserve-3d;
+        transition: transform 280ms ease, filter 280ms ease;
+        text-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.12),
+          0 6px 18px rgba(0, 0, 0, 0.55);
+        filter: drop-shadow(0 6px 14px rgba(var(--sb-world-accent-rgb), 0.18));
+      }
+
+      #sb-brand-mark::before {
+        content: "STYLEBRIDGE";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        color: rgba(148, 163, 184, 0.35);
+        transform: translate3d(0, 0, -6px);
+        filter: blur(0.35px);
+      }
+
+      #sb-brand-mark:hover {
+        transform: perspective(900px) rotateX(6deg) rotateY(-6deg) translateZ(2px);
+        filter: drop-shadow(0 10px 20px rgba(var(--sb-world-accent-rgb), 0.24));
       }
     </style>
     <noscript>
@@ -204,34 +493,133 @@
     </noscript>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body class="min-h-full bg-slate-950 text-slate-100" style="font-family: 'Space Grotesk', sans-serif;">
+  <body class="min-h-full bg-slate-950 text-slate-100" data-sb-route="{{ request.endpoint or '' }}" data-sb-cart-avatar='{{ cart_avatar|tojson|safe }}' data-sb-world="{{ active_style_world or '' }}">
     {% set endpoint = request.endpoint or '' %}
     {% if current_user.is_authenticated and is_seller_account %}
       {% set brand_home = url_for('seller.dashboard') if has_completed_seller_onboarding else url_for('seller.onboarding') %}
     {% elif current_user.is_authenticated %}
-      {% set brand_home = url_for('main.demo') %}
+      {% set brand_home = url_for('main.home', cinema=1) %}
     {% else %}
       {% set brand_home = url_for('main.home') %}
     {% endif %}
 
     <div id="sb-splash" aria-hidden="true">
-      <div class="sb-splash-card">
-        <div class="sb-splash-glow"></div>
-        <div class="sb-splash-mark" aria-hidden="true">
-          <img
-            src="{{ url_for('static', filename='images/stylebridge-logo.png', v='20260402-splash1') }}"
-            alt="StyleBridge"
-            class="sb-splash-logo"
-          >
+      <div class="sb-splash-inner" id="sb-splash-inner">
+        <div class="sb-splash-glow" aria-hidden="true"></div>
+        <div class="sb-splash-title-wrap">
+          <div class="sb-splash-letters" aria-label="StyleBridge">
+            <span>S</span><span>T</span><span>Y</span><span>L</span><span>E</span><span>B</span><span>R</span><span>I</span><span>D</span><span>G</span><span>E</span>
+          </div>
         </div>
-        <p class="sb-splash-copy">Enter your style universe</p>
+        <p class="sb-splash-tag">Digital identity system</p>
       </div>
     </div>
+
+    <script>
+      (function () {
+        const root = document.documentElement;
+        if (root.dataset.sbSplash !== "show") {
+          return;
+        }
+
+        const reveal = window.__sbRevealSplash;
+        if (typeof reveal !== "function") {
+          return;
+        }
+
+        const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const inner = document.getElementById("sb-splash-inner");
+        const introMs = prefersReduced ? 520 : 3920;
+        const minHold = 880;
+        const started = performance.now();
+
+        const runReveal = () => {
+          const elapsed = performance.now() - started;
+          const wait = Math.max(0, minHold - elapsed);
+          window.setTimeout(() => reveal(), wait);
+        };
+
+        if (prefersReduced) {
+          runReveal();
+          return;
+        }
+
+        if (inner) {
+          inner.classList.add("sb-splash-run");
+        }
+
+        window.setTimeout(runReveal, introMs);
+        window.setTimeout(reveal, 7600);
+      })();
+    </script>
+    <script>
+      (function () {
+        if (document.documentElement.dataset.sbSplash !== "show") {
+          return;
+        }
+        let started = false;
+        const startAmbient = () => {
+          if (started) {
+            return;
+          }
+          started = true;
+          try {
+            const audio = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audio.currentTime;
+            const master = audio.createGain();
+            master.gain.setValueAtTime(0.0001, now);
+            master.gain.exponentialRampToValueAtTime(0.03, now + 1.8);
+            master.connect(audio.destination);
+
+            const makeTone = (freq, detune) => {
+              const osc = audio.createOscillator();
+              const gain = audio.createGain();
+              osc.type = "sine";
+              osc.frequency.value = freq;
+              osc.detune.value = detune;
+              gain.gain.value = 0.18;
+              osc.connect(gain);
+              gain.connect(master);
+              osc.start();
+              return { osc, gain };
+            };
+
+            const t1 = makeTone(92, -4);
+            const t2 = makeTone(138, 3);
+            const t3 = makeTone(184, -1);
+
+            window.setTimeout(() => {
+              const t = audio.currentTime;
+              master.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+              window.setTimeout(() => {
+                [t1, t2, t3].forEach((tone) => {
+                  tone.osc.stop();
+                  tone.osc.disconnect();
+                  tone.gain.disconnect();
+                });
+                master.disconnect();
+                audio.close();
+              }, 1400);
+            }, 5200);
+          } catch (error) {
+            // Audio is optional; browsers may block it before interaction.
+          }
+        };
+
+        window.addEventListener("pointerdown", startAmbient, { once: true, passive: true });
+        window.addEventListener("keydown", startAmbient, { once: true });
+      })();
+    </script>
+
+    <div id="sb-site-shell" aria-hidden="true">
+      <canvas id="sb-site-canvas"></canvas>
+    </div>
+    <div id="sb-nav-overlay" aria-hidden="true"></div>
 
     <div class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
       <div class="mx-auto max-w-7xl px-4 py-3 md:px-6">
         <div class="flex items-center justify-between gap-4">
-          <a href="{{ brand_home }}" class="text-lg font-black tracking-[0.18em] text-white">
+          <a href="{{ brand_home }}" id="sb-brand-mark" class="text-lg font-black tracking-[0.18em] text-white">
             STYLEBRIDGE
           </a>
 
@@ -247,10 +635,11 @@
             </nav>
           {% elif current_user.is_authenticated and has_completed_onboarding %}
             <nav class="hidden items-center gap-2 text-sm font-bold text-slate-300 md:flex">
-              <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.feed' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.feed') }}">Feed</a>
+              <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.feed' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.feed') }}">Identity Home</a>
               <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.discover' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.discover') }}">Discover</a>
-              <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.accessories' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.accessories') }}">Accessories</a>
-              <a class="rounded-full px-4 py-2 transition {% if endpoint in ['main.cart', 'main.checkout'] %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.cart') }}">Cart{% if cart_count %} ({{ cart_count }}){% endif %}</a>
+              <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.wardrobe' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.wardrobe') }}">Wardrobe</a>
+              <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.evolution' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.evolution') }}">Evolution</a>
+              <a class="rounded-full px-4 py-2 transition {% if endpoint in ['main.cart', 'main.checkout'] %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.cart') }}">Shop{% if cart_count %} ({{ cart_count }}){% endif %}</a>
               <a class="rounded-full px-4 py-2 transition {% if endpoint == 'main.profile' %}bg-white/10 text-white{% else %}hover:bg-white/10 hover:text-white{% endif %}" href="{{ url_for('main.profile') }}">Profile</a>
             </nav>
           {% elif current_user.is_authenticated %}
@@ -259,9 +648,8 @@
             </nav>
           {% else %}
             <nav class="hidden items-center gap-2 text-sm font-bold text-slate-300 md:flex">
-              <a class="rounded-full px-4 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('main.demo') }}">Try Demo</a>
-              <a class="rounded-full px-4 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('main.feedback') }}">Feedback</a>
               <a class="rounded-full px-4 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('auth.register') }}">Create Account</a>
+              <a class="rounded-full px-4 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('auth.login') }}">Sign In</a>
             </nav>
           {% endif %}
 
@@ -291,24 +679,23 @@
         {% elif current_user.is_authenticated and has_completed_onboarding %}
           <div class="mt-3 hidden items-center justify-between rounded-3xl border border-white/10 bg-white/5 px-4 py-3 md:flex">
             <div>
-              <div class="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Find your style. Wear it better.</div>
-              <div class="mt-1 text-sm text-slate-400">Your feed, saved looks, cart, and profile now follow one clear shopper loop.</div>
+              <div class="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Identity system online.</div>
+              <div class="mt-1 text-sm text-slate-400">Track your style DNA, evolve weekly, and build outfits from your personal wardrobe intelligence.</div>
             </div>
-            <a href="{{ url_for('main.checkout') if cart_count else url_for('main.discover') }}" class="rounded-full bg-cyan-300 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-cyan-200">
-              {{ 'Finish checkout' if cart_count else 'Discover looks' }}
+            <a href="{{ url_for('main.wardrobe') }}" class="rounded-full bg-cyan-300 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-cyan-200">
+              Open wardrobe
             </a>
           </div>
         {% elif not current_user.is_authenticated %}
           <nav class="mt-3 flex gap-2 overflow-x-auto text-xs font-black uppercase tracking-[0.18em] text-slate-400 md:hidden">
-            <a class="whitespace-nowrap rounded-full border border-white/10 px-3 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('main.demo') }}">Try Demo</a>
-            <a class="whitespace-nowrap rounded-full border border-white/10 px-3 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('main.feedback') }}">Feedback</a>
             <a class="whitespace-nowrap rounded-full border border-white/10 px-3 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('auth.register') }}">Create Account</a>
+            <a class="whitespace-nowrap rounded-full border border-white/10 px-3 py-2 transition hover:bg-white/10 hover:text-white" href="{{ url_for('auth.login') }}">Sign In</a>
           </nav>
         {% endif %}
       </div>
     </div>
 
-    <main class="mx-auto max-w-7xl px-4 py-8 pb-28 md:px-6 md:py-10 md:pb-10">
+    <main id="sb-main" class="relative z-10 mx-auto max-w-7xl px-4 py-8 pb-28 md:px-6 md:py-10 md:pb-10">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           <div class="mb-6 space-y-2">
@@ -325,7 +712,7 @@
 
       <section class="mt-10 rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-300">
         <div class="flex flex-wrap items-center gap-2">
-          <span>Built by a 17yo Kenyan dev - feedback welcome.</span>
+          <span>Help us improve StyleBridge.</span>
           <a href="{{ url_for('main.feedback') }}" class="font-bold text-cyan-200 hover:text-cyan-100">Feedback form</a>
           <a href="https://x.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-cyan-200 hover:text-cyan-100">X</a>
           <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" class="font-bold text-cyan-200 hover:text-cyan-100">TikTok</a>
@@ -348,10 +735,11 @@
       </nav>
     {% elif current_user.is_authenticated and has_completed_onboarding %}
       <nav class="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 items-center justify-between rounded-full border border-white/10 bg-slate-950/90 px-3 py-2 shadow-2xl backdrop-blur-xl md:hidden">
-        <a href="{{ url_for('main.feed') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.feed' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Feed</a>
-        <a href="{{ url_for('main.discover') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.discover' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Search</a>
-        <a href="{{ url_for('main.accessories') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.accessories' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Accs</a>
-        <a href="{{ url_for('main.cart') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint in ['main.cart', 'main.checkout'] %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Cart{% if cart_count %} {{ cart_count }}{% endif %}</a>
+        <a href="{{ url_for('main.feed') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.feed' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Home</a>
+        <a href="{{ url_for('main.discover') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.discover' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Discover</a>
+        <a href="{{ url_for('main.wardrobe') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.wardrobe' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Wardrobe</a>
+        <a href="{{ url_for('main.evolution') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.evolution' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Evolve</a>
+        <a href="{{ url_for('main.cart') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint in ['main.cart', 'main.checkout'] %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Shop{% if cart_count %} {{ cart_count }}{% endif %}</a>
         <a href="{{ url_for('main.profile') }}" class="flex-1 rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] {% if endpoint == 'main.profile' %}bg-white/10 text-white{% else %}text-slate-400{% endif %}">Profile</a>
       </nav>
     {% endif %}
@@ -371,6 +759,92 @@
         clearTimeout(window.__sbToastTimer);
         window.__sbToastTimer = setTimeout(() => el.classList.add('hidden'), 2400);
       };
+    </script>
+
+    <script>
+      window.__sbWorldThemes = {{ style_world_theme_map|tojson|safe }};
+      window.__sbApplyWorldTheme = function(slug) {
+        const themes = window.__sbWorldThemes || {};
+        const selected = String(slug || "").trim().toLowerCase();
+        const root = document.documentElement;
+        const body = document.body;
+        const fallback = {
+          typography: "Space Grotesk + Space Grotesk",
+          palette: ["#7dd3fc", "#0f172a", "#1e293b", "#334155"],
+        };
+        const theme = themes[selected] || fallback;
+
+        const typography = String(theme.typography || fallback.typography).split("+");
+        const displayFont = (typography[0] || "Space Grotesk").trim();
+        const bodyFont = (typography[1] || typography[0] || "Space Grotesk").trim();
+        const palette = Array.isArray(theme.palette) && theme.palette.length ? theme.palette : fallback.palette;
+        const accent = String(palette[0] || "#7dd3fc");
+
+        const hex = accent.replace("#", "");
+        const safeHex = hex.length === 3 ? hex.split("").map((char) => char + char).join("") : hex.padEnd(6, "0").slice(0, 6);
+        const r = parseInt(safeHex.slice(0, 2), 16);
+        const g = parseInt(safeHex.slice(2, 4), 16);
+        const b = parseInt(safeHex.slice(4, 6), 16);
+
+        root.style.setProperty("--sb-font-display", displayFont);
+        root.style.setProperty("--sb-font-body", bodyFont);
+        root.style.setProperty("--sb-world-accent", accent);
+        root.style.setProperty("--sb-world-accent-rgb", `${r}, ${g}, ${b}`);
+        if (body) {
+          body.dataset.sbWorld = selected;
+        }
+      };
+
+      window.addEventListener("DOMContentLoaded", () => {
+        window.__sbApplyWorldTheme(document.body?.dataset?.sbWorld || "");
+      });
+      window.addEventListener("sb:content-replaced", () => {
+        window.__sbApplyWorldTheme(document.body?.dataset?.sbWorld || "");
+      });
+    </script>
+
+    <script>
+      (function() {
+        const mark = document.getElementById("sb-brand-mark");
+        if (!mark) return;
+        mark.addEventListener("pointermove", (event) => {
+          const rect = mark.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dx = (event.clientX - cx) / Math.max(rect.width / 2, 1);
+          const dy = (event.clientY - cy) / Math.max(rect.height / 2, 1);
+          const rx = Math.max(-14, Math.min(14, -dy * 10));
+          const ry = Math.max(-16, Math.min(16, dx * 12));
+          mark.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(3px)`;
+        }, { passive: true });
+        mark.addEventListener("pointerleave", () => {
+          mark.style.transform = "";
+        });
+      })();
+    </script>
+
+    <script type="module">
+      import { bootSiteShell3D } from "{{ url_for('static', filename='js/site_shell_3d.js', v='20260512-cinema1') }}";
+      import { bootPageTransitions } from "{{ url_for('static', filename='js/page_transitions.js', v='20260512-cinema1') }}";
+      import { bootGlassCards } from "{{ url_for('static', filename='js/glass_cards.js', v='20260512-cinema1') }}";
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const shell = bootSiteShell3D({
+          canvasId: "sb-site-canvas",
+          getRoute: () => document.body?.dataset?.sbRoute || "",
+          getWorld: () => document.body?.dataset?.sbWorld || "",
+          getCartAvatar: () => {
+            try {
+              return JSON.parse(document.body?.dataset?.sbCartAvatar || "{}");
+            } catch {
+              return {};
+            }
+          },
+        });
+        bootPageTransitions({ mainId: "sb-main", shell });
+        bootGlassCards();
+        window.addEventListener("sb:content-replaced", () => bootGlassCards(document.getElementById("sb-main") || document));
+      });
     </script>
   </body>
 </html>

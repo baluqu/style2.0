@@ -1,26 +1,84 @@
 {% extends "base.html" %}
-{% block title %}Feed | StyleBridge{% endblock %}
+{% block title %}Identity Home | StyleBridge{% endblock %}
 {% block content %}
   <div class="space-y-6">
     <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
-      <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Personalized feed</div>
-          <h1 class="mt-3 text-4xl font-black text-white">Looks matched to your style profile.</h1>
+          <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Identity Home</div>
+          <h1 class="mt-3 text-4xl font-black text-white">Your personal style operating system.</h1>
           <p class="mt-3 max-w-3xl text-base leading-8 text-slate-300">
-            Scroll, save, and shop the look. Your current profile leans toward
-            <span class="font-bold text-white">{{ profile.get('style_preference', 'Style discovery') }}</span>
-            with a
-            <span class="font-bold text-white">{{ profile.get('budget_range', 'flexible') }}</span>
-            budget range{% if profile.get('religion') %}, with religion set to
-            <span class="font-bold text-white">{{ profile.get('religion') }}</span>{% endif %}.
+            You are currently anchored in <span class="font-black text-white">{{ profile.get('style_preference', 'adaptive') }}</span> with a
+            <span class="font-black text-white">{{ profile.get('budget_range', 'flexible') }}</span> range.
+            This feed updates with your style signals, not random trend churn.
           </p>
         </div>
-        <a href="{{ url_for('main.discover') }}" class="rounded-full border border-white/15 px-5 py-3 text-sm font-black text-white transition hover:bg-white/10">Open search</a>
+        <div class="flex flex-wrap gap-2">
+          <a href="{{ url_for('main.discover') }}" class="rounded-full border border-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">Discover worlds</a>
+          <a href="{{ url_for('main.wardrobe') }}" class="rounded-full border border-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">Open wardrobe</a>
+          <a href="{{ url_for('main.evolution') }}" class="rounded-full bg-cyan-300 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-cyan-200">Weekly evolution</a>
+        </div>
       </div>
     </section>
 
+    <section class="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+      <article class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5">
+        <div class="text-xs font-black uppercase tracking-[0.2em] text-fuchsia-200">Your current style DNA</div>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Identity confidence</div>
+            <div class="mt-2 text-4xl font-black text-white">{{ style_dna.confidence }}%</div>
+          </div>
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Experimentation</div>
+            <div class="mt-2 text-4xl font-black text-white">{{ style_dna.experimentation }}%</div>
+          </div>
+        </div>
+        <div class="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+          <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Dominant aesthetics</div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            {% for style in style_dna.dominant_styles %}
+              <span class="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-cyan-100">{{ style }}</span>
+            {% else %}
+              <span class="text-sm text-slate-400">No dominant styles detected yet.</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+          <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Signature palettes</div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            {% for tone in style_dna.signature_palette %}
+              <span class="rounded-full border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-fuchsia-100">{{ tone }}</span>
+            {% else %}
+              <span class="text-sm text-slate-400">Palette signal builds as you save more looks.</span>
+            {% endfor %}
+          </div>
+        </div>
+      </article>
+
+      <article class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5">
+        <div class="text-xs font-black uppercase tracking-[0.2em] text-emerald-200">Smart suggestions</div>
+        <div class="mt-4 space-y-3">
+          {% for suggestion in identity_suggestions %}
+            <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-sm leading-7 text-slate-200">{{ suggestion }}</div>
+          {% else %}
+            <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-sm leading-7 text-slate-200">Save and adapt looks to unlock smarter identity guidance.</div>
+          {% endfor %}
+        </div>
+        <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Evolution snapshot</div>
+          <div class="mt-2 text-sm leading-7 text-slate-300">{{ evolution_timeline[-1].headline if evolution_timeline else "Your evolution stream will appear here." }}</div>
+          <a href="{{ url_for('main.evolution') }}" class="mt-3 inline-flex text-sm font-black text-cyan-200 hover:text-cyan-100">Open full weekly report</a>
+        </div>
+      </article>
+    </section>
+
     <section class="space-y-5">
+      <div class="flex items-center justify-between">
+        <div class="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Daily identity feed</div>
+        <a href="{{ url_for('main.discover') }}" class="text-sm font-black text-cyan-200 hover:text-cyan-100">Explore all looks</a>
+      </div>
+
       {% for look in looks %}
         <article class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-5 md:p-6">
           <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -28,37 +86,19 @@
               <img src="{{ look.image_url }}" alt="{{ look.title }}" class="h-full min-h-[320px] w-full object-cover" loading="lazy" referrerpolicy="no-referrer">
               <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/25 to-transparent"></div>
               <div class="absolute inset-x-0 bottom-0 p-6">
-                <div class="inline-flex w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white">
-                  {{ look.creator }}
-                </div>
-                {% if look.genders %}
-                  <div class="mt-3 inline-flex w-fit rounded-full border border-fuchsia-300/25 bg-fuchsia-300/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-fuchsia-50">
-                    {{ look.genders | join(' / ') }}
-                  </div>
-                {% endif %}
-                {% if look.religions %}
-                  <div class="mt-3 inline-flex w-fit rounded-full border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-50">
-                    {{ look.religions | join(' / ') }} edit
-                  </div>
-                {% endif %}
-                {% if look.garment_tags %}
-                  <div class="mt-3 flex max-w-xl flex-wrap gap-2">
-                    {% for tag in look.garment_tags[:4] %}
-                      <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-white">{{ tag }}</span>
-                    {% endfor %}
-                  </div>
-                {% endif %}
+                <div class="inline-flex w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white">{{ look.creator }}</div>
                 <div class="mt-4 text-sm font-bold uppercase tracking-[0.16em] text-white/70">{{ look.styles | join(' | ') }}</div>
-                <div class="mt-3 text-4xl font-black text-white">{{ look.title }}</div>
-                <div class="mt-3 max-w-xl text-sm leading-7 text-white/80">{{ look.tagline }}</div>
+                {% if look.world_variant %}
+                  <div class="mt-2 text-xs font-black uppercase tracking-[0.16em] text-cyan-200">{{ look.world_variant }} variant</div>
+                {% endif %}
+                <div class="mt-2 text-4xl font-black text-white">{{ look.title }}</div>
               </div>
             </div>
 
             <div class="flex flex-col justify-between">
               <div>
-                <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Shop the look</div>
-                <div class="mt-3 text-2xl font-black text-white">${{ '%.2f'|format(look.price_total) }}</div>
-                <div class="mt-2 text-sm leading-7 text-slate-300">{{ look.match_reason }}</div>
+                <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Identity match</div>
+                <div class="mt-3 text-sm leading-7 text-slate-300">{{ look.match_reason }}</div>
                 <div class="mt-4 flex flex-wrap gap-2">
                   {% for item in look["items"] %}
                     <span class="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-200">{{ item.title }} | ${{ '%.2f'|format(item.price) }}</span>
@@ -67,12 +107,10 @@
               </div>
 
               <div class="mt-6 flex flex-wrap gap-3">
-                <a href="{{ url_for('main.look_detail', slug=look.slug) }}" class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200">Shop this look</a>
+                <a href="{{ url_for('main.look_detail', slug=look.slug) }}" class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200">Open system look</a>
                 <form method="post" action="{{ url_for('main.save_look', slug=look.slug) }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button class="rounded-full border border-white/15 px-5 py-3 text-sm font-black text-white transition hover:bg-white/10" type="submit">
-                    {{ 'Saved' if look.slug in saved else 'Save look' }}
-                  </button>
+                  <button class="rounded-full border border-white/15 px-5 py-3 text-sm font-black text-white transition hover:bg-white/10" type="submit">{{ 'Saved' if look.slug in saved else 'Save look' }}</button>
                 </form>
               </div>
             </div>

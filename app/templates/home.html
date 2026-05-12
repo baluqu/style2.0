@@ -1,50 +1,1186 @@
 {% extends "base.html" %}
-
-{% block title %}StyleBridge | Free 3D Fashion Preview Tool{% endblock %}
-
+{% block title %}StyleBridge | Cinematic Identity Interface{% endblock %}
 {% block content %}
-  <div class="space-y-6">
-    <section class="rounded-[2rem] border border-white/10 bg-slate-900/85 p-6 md:p-8">
-      <h1 class="text-3xl font-black leading-tight text-white md:text-5xl">Free 3D Fashion Preview Tool - Upload GLB -> See it move. Built by a 17yo in Kenya.</h1>
-      <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300">No pitch deck language. Open the demo, load a model, test motion, lighting, and palette, then share or export.</p>
-      <div class="mt-6 flex flex-wrap gap-3">
-        <a href="{{ url_for('main.demo') }}" class="rounded-full bg-cyan-300 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200">Try Demo Now</a>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Syne:wght@500;700;800&display=swap");
+
+    #sb-main {
+      max-width: none;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .sb-cinematic-home {
+      --chapter-count: 8;
+      --panel-radius: clamp(1.25rem, 2vw, 2rem);
+      --panel-bg: linear-gradient(156deg, rgba(15, 22, 32, 0.78), rgba(6, 10, 16, 0.7));
+      --panel-border: rgba(185, 212, 235, 0.16);
+      --panel-glow: rgba(80, 177, 226, 0.2);
+      position: relative;
+      margin: -0.5rem;
+      padding: clamp(0.75rem, 2vw, 2rem);
+      overflow: hidden;
+      color: rgba(245, 248, 252, 0.96);
+    }
+
+    .sb-cinematic-home::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 22% 12%, rgba(82, 174, 226, 0.16), rgba(82, 174, 226, 0) 44%),
+        radial-gradient(circle at 78% 20%, rgba(204, 211, 226, 0.1), rgba(204, 211, 226, 0) 40%),
+        radial-gradient(circle at 52% 80%, rgba(89, 153, 196, 0.12), rgba(89, 153, 196, 0) 48%);
+    }
+
+    .sb-home-prelude {
+      position: relative;
+      z-index: 2;
+      margin: 0 auto clamp(2rem, 5vw, 3.5rem);
+      max-width: 85rem;
+      border: 1px solid rgba(186, 211, 234, 0.13);
+      border-radius: clamp(1.2rem, 2vw, 1.8rem);
+      background:
+        linear-gradient(132deg, rgba(10, 15, 23, 0.9), rgba(6, 8, 13, 0.84)),
+        radial-gradient(circle at 82% 24%, rgba(93, 182, 226, 0.16), transparent 42%);
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.44),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(18px);
+      padding: clamp(1.3rem, 2.5vw, 2.4rem);
+    }
+
+    .sb-prelude-grid {
+      display: grid;
+      gap: clamp(1.2rem, 2vw, 2rem);
+      align-items: end;
+    }
+
+    .sb-prelude-tag {
+      font: 700 0.67rem/1.2 "Manrope", "Space Grotesk", sans-serif;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: rgba(178, 213, 235, 0.92);
+    }
+
+    .sb-prelude-title {
+      margin-top: 0.9rem;
+      max-width: 21ch;
+      font-family: "Syne", "Space Grotesk", sans-serif;
+      font-size: clamp(2.1rem, 6.2vw, 5.2rem);
+      font-weight: 700;
+      line-height: 0.98;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: rgba(249, 252, 255, 0.98);
+    }
+
+    .sb-prelude-copy {
+      margin-top: 1.2rem;
+      max-width: 58ch;
+      font: 500 clamp(0.92rem, 1.4vw, 1.04rem) / 1.84 "Manrope", "Space Grotesk", sans-serif;
+      color: rgba(197, 209, 223, 0.9);
+    }
+
+    .sb-prelude-actions {
+      margin-top: clamp(1.2rem, 2vw, 1.8rem);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .sb-btn-primary,
+    .sb-btn-ghost {
+      border-radius: 999px;
+      padding: 0.72rem 1.4rem;
+      font: 700 0.76rem/1 "Manrope", "Space Grotesk", sans-serif;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      transition: transform 240ms ease, box-shadow 280ms ease, border-color 260ms ease, background-color 260ms ease;
+      border: 1px solid transparent;
+    }
+
+    .sb-btn-primary {
+      color: #04131d;
+      background: linear-gradient(125deg, rgba(184, 233, 255, 0.94), rgba(126, 197, 233, 0.94));
+      box-shadow: 0 12px 36px rgba(75, 172, 219, 0.34);
+    }
+
+    .sb-btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 36px rgba(75, 172, 219, 0.38);
+    }
+
+    .sb-btn-ghost {
+      border-color: rgba(189, 214, 237, 0.32);
+      color: rgba(230, 240, 249, 0.96);
+      background: rgba(13, 20, 31, 0.34);
+      backdrop-filter: blur(10px);
+    }
+
+    .sb-btn-ghost:hover {
+      transform: translateY(-1px);
+      border-color: rgba(189, 214, 237, 0.52);
+      background: rgba(13, 20, 31, 0.58);
+    }
+
+    .sb-prelude-meta {
+      display: grid;
+      gap: 0.52rem;
+      justify-self: end;
+      width: min(100%, 24rem);
+      border: 1px solid rgba(178, 202, 229, 0.15);
+      border-radius: 1rem;
+      background: rgba(7, 12, 18, 0.58);
+      backdrop-filter: blur(10px);
+      padding: 0.9rem;
+    }
+
+    .sb-prelude-meta div {
+      padding: 0.58rem 0.72rem;
+      border-radius: 0.7rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(184, 212, 240, 0.1);
+      font: 500 0.79rem/1.5 "Manrope", "Space Grotesk", sans-serif;
+      color: rgba(203, 216, 229, 0.88);
+    }
+
+    .sb-prelude-meta strong {
+      display: block;
+      font: 700 0.67rem/1.2 "Manrope", "Space Grotesk", sans-serif;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(224, 238, 250, 0.95);
+      margin-bottom: 0.24rem;
+    }
+
+    .sb-cinema-wrap {
+      position: relative;
+      z-index: 1;
+      min-height: calc(var(--chapter-count) * 90vh);
+      margin: 0 auto;
+      max-width: 85rem;
+    }
+
+    .sb-cinema-stage {
+      --sb-hero-curtain-opacity: 0;
+      position: sticky;
+      top: 0.35rem;
+      height: calc(100vh - 0.7rem);
+      overflow: hidden;
+      isolation: isolate;
+      border-radius: clamp(1.35rem, 2.4vw, 2.2rem);
+      border: 1px solid rgba(178, 201, 224, 0.15);
+      background:
+        radial-gradient(circle at var(--home-pointer-x, 50%) var(--home-pointer-y, 40%), rgba(91, 179, 226, 0.14), transparent 46%),
+        radial-gradient(circle at 72% 26%, rgba(183, 193, 211, 0.1), transparent 40%),
+        linear-gradient(168deg, rgba(6, 9, 14, 0.96), rgba(2, 4, 8, 0.96));
+      box-shadow:
+        0 28px 72px rgba(0, 0, 0, 0.52),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+      perspective: 1800px;
+      transform-style: preserve-3d;
+      backdrop-filter: blur(8px);
+    }
+
+    .sb-cinema-stage::before,
+    .sb-cinema-stage::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      inset: -25%;
+      z-index: 1;
+      background: radial-gradient(circle at 50% 50%, rgba(111, 191, 232, 0.16), rgba(111, 191, 232, 0) 58%);
+      filter: blur(42px);
+      opacity: 0.36;
+      transform: translate3d(0, 0, -360px);
+    }
+
+    .sb-cinema-stage::after {
+      opacity: 0.2;
+      background: radial-gradient(circle at 50% 50%, rgba(226, 230, 240, 0.16), rgba(226, 230, 240, 0) 56%);
+      transform: translate3d(-18%, -12%, -540px) scale(1.18);
+    }
+
+    .sb-cinema-stage .sb-hero-cinema-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate3d(0, 0, -80px) scale(1.025);
+      transition: opacity 1150ms cubic-bezier(0.2, 0.82, 0.2, 1), transform 1400ms cubic-bezier(0.2, 0.82, 0.2, 1);
+      will-change: transform, opacity;
+    }
+
+    .sb-cinema-stage.sb-hero-model-on .sb-hero-cinema-layer {
+      opacity: 1;
+      transform: translate3d(0, 0, -10px) scale(1);
+    }
+
+    .sb-hero-model-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .sb-hero-vignette,
+    .sb-hero-atmosphere,
+    .sb-hero-curtain {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .sb-hero-atmosphere {
+      background:
+        radial-gradient(circle at 48% 56%, rgba(116, 182, 233, 0.18), rgba(116, 182, 233, 0) 44%),
+        radial-gradient(circle at 70% 28%, rgba(213, 220, 231, 0.12), rgba(213, 220, 231, 0) 38%),
+        radial-gradient(circle at 28% 32%, rgba(91, 156, 205, 0.13), rgba(91, 156, 205, 0) 46%);
+      mix-blend-mode: screen;
+      opacity: 0.76;
+    }
+
+    .sb-hero-vignette {
+      background:
+        radial-gradient(circle at 50% 50%, rgba(3, 5, 9, 0) 45%, rgba(3, 5, 9, 0.78) 100%),
+        linear-gradient(180deg, rgba(3, 5, 9, 0.68), rgba(3, 5, 9, 0.1) 24%, rgba(3, 5, 9, 0.72));
+    }
+
+    .sb-hero-curtain {
+      z-index: 5;
+      background:
+        radial-gradient(circle at 50% 48%, rgba(6, 8, 12, 0.1), rgba(3, 4, 7, 0.95) 62%),
+        linear-gradient(180deg, rgba(3, 4, 7, 0.95), rgba(3, 4, 7, 0.92));
+      opacity: var(--sb-hero-curtain-opacity);
+      transition: opacity 940ms ease;
+    }
+
+    .sb-hero-intro {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      pointer-events: none;
+      display: grid;
+      place-items: center;
+      gap: clamp(0.55rem, 1.3vw, 0.95rem);
+      text-align: center;
+      transform-style: preserve-3d;
+      padding-inline: 1.5rem;
+    }
+
+    .sb-hero-wordmark {
+      margin: 0;
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: clamp(0.05em, 0.8vw, 0.11em);
+      font-family: "Syne", "Space Grotesk", sans-serif;
+      font-size: clamp(1.52rem, 5vw, 3.9rem);
+      font-weight: 700;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: rgba(242, 248, 255, 0.95);
+      text-shadow: 0 0 24px rgba(138, 195, 236, 0.2), 0 2px 26px rgba(0, 0, 0, 0.65);
+      transform-style: preserve-3d;
+      transform: translate3d(0, 0, 0) scale(1);
+      transition: transform 1000ms cubic-bezier(0.65, 0.02, 0.25, 1), opacity 860ms ease, filter 860ms ease;
+    }
+
+    .sb-hero-wordmark span {
+      display: inline-block;
+      opacity: 0;
+      transform: translate3d(0, 0, -84px);
+      filter: blur(9px);
+    }
+
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span {
+      animation: sb-hero-letter-in 900ms cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+    }
+
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(1) { animation-delay: 0.08s; }
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(2) { animation-delay: 0.12s; }
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(3) { animation-delay: 0.16s; }
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(4) { animation-delay: 0.2s; }
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(5) { animation-delay: 0.24s; }
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(6) { animation-delay: 0.28s; }
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(7) { animation-delay: 0.32s; }
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(8) { animation-delay: 0.36s; }
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(9) { animation-delay: 0.4s; }
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(10) { animation-delay: 0.44s; }
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-wordmark span:nth-child(11) { animation-delay: 0.48s; }
+
+    .sb-hero-subline {
+      margin: 0;
+      font: 600 clamp(0.58rem, 1.1vw, 0.75rem) / 1.2 "Manrope", "Space Grotesk", sans-serif;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: rgba(173, 196, 219, 0.72);
+      opacity: 0;
+      transform: translateY(10px);
+      filter: blur(6px);
+      transition: opacity 680ms ease, transform 700ms cubic-bezier(0.2, 0.82, 0.2, 1), filter 700ms ease;
+    }
+
+    .sb-cinema-stage.sb-hero-text-on .sb-hero-subline {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    .sb-cinema-stage.sb-hero-text-push .sb-hero-wordmark {
+      opacity: 0;
+      transform: scale(2.15) translate3d(0, 0, 280px);
+      filter: blur(15px);
+    }
+
+    .sb-cinema-stage.sb-hero-text-push .sb-hero-subline {
+      opacity: 0;
+      transform: translateY(-8px);
+      filter: blur(7px);
+    }
+
+    .sb-hero-status {
+      position: absolute;
+      left: clamp(0.84rem, 2vw, 1.38rem);
+      bottom: clamp(0.82rem, 2vw, 1.3rem);
+      z-index: 8;
+      border: 1px solid rgba(162, 192, 220, 0.2);
+      border-radius: 999px;
+      background: rgba(5, 8, 13, 0.62);
+      backdrop-filter: blur(9px);
+      font: 700 0.57rem/1.2 "Manrope", "Space Grotesk", sans-serif;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(195, 216, 236, 0.92);
+      padding: 0.48rem 0.72rem 0.46rem;
+      transition: opacity 420ms ease, transform 420ms ease;
+    }
+
+    .sb-hero-status.is-muted {
+      opacity: 0.52;
+    }
+
+    .sb-cinema-stage.sb-hero-sequence .sb-panel-stack,
+    .sb-cinema-stage.sb-hero-sequence .sb-chapter-rail,
+    .sb-cinema-stage.sb-hero-sequence .sb-cinema-hud {
+      opacity: 0;
+      transform: translate3d(0, 22px, 85px);
+      filter: blur(11px);
+      transition: opacity 940ms cubic-bezier(0.2, 0.82, 0.2, 1), transform 1060ms cubic-bezier(0.2, 0.82, 0.2, 1),
+        filter 900ms ease;
+    }
+
+    .sb-cinema-stage.sb-hero-ui-live .sb-panel-stack,
+    .sb-cinema-stage.sb-hero-ui-live .sb-chapter-rail,
+    .sb-cinema-stage.sb-hero-ui-live .sb-cinema-hud {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      filter: blur(0);
+    }
+
+    @keyframes sb-hero-letter-in {
+      to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+      }
+    }
+
+    .sb-chapter-rail {
+      position: absolute;
+      left: clamp(0.6rem, 2vw, 1.25rem);
+      top: 50%;
+      z-index: 7;
+      display: grid;
+      gap: 0.45rem;
+      transform: translateY(-50%);
+      width: clamp(12rem, 16vw, 15rem);
+      pointer-events: none;
+    }
+
+    .sb-chapter-rail button {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.58rem;
+      width: 100%;
+      text-align: left;
+      padding: 0.4rem 0.5rem;
+      border-radius: 0.72rem;
+      border: 1px solid rgba(177, 202, 228, 0.08);
+      background: rgba(7, 11, 17, 0.48);
+      color: rgba(181, 198, 216, 0.76);
+      font: 600 0.62rem/1.2 "Manrope", "Space Grotesk", sans-serif;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
+      transition: color 220ms ease, border-color 220ms ease, transform 220ms ease, background-color 220ms ease;
+    }
+
+    .sb-chapter-dot {
+      display: inline-flex;
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(162, 186, 210, 0.6);
+      background: rgba(107, 176, 218, 0.14);
+      box-shadow: 0 0 0 0 rgba(110, 185, 233, 0.34);
+      transition: box-shadow 220ms ease, transform 220ms ease, background-color 220ms ease, border-color 220ms ease;
+    }
+
+    .sb-chapter-rail button.is-active {
+      border-color: rgba(167, 208, 238, 0.4);
+      color: rgba(234, 246, 255, 0.98);
+      transform: translateX(3px);
+      background: rgba(10, 17, 27, 0.76);
+    }
+
+    .sb-chapter-rail button.is-active .sb-chapter-dot {
+      transform: scale(1.16);
+      border-color: rgba(186, 223, 248, 0.95);
+      background: rgba(132, 201, 242, 0.95);
+      box-shadow: 0 0 0 7px rgba(110, 185, 233, 0.12);
+    }
+
+    .sb-cinema-hud {
+      position: absolute;
+      right: clamp(0.8rem, 2vw, 1.5rem);
+      top: clamp(0.8rem, 2vw, 1.4rem);
+      z-index: 7;
+      display: grid;
+      gap: 0.3rem;
+      justify-items: end;
+      text-align: right;
+      pointer-events: none;
+    }
+
+    .sb-hud-step {
+      font: 600 0.6rem/1.2 "Manrope", "Space Grotesk", sans-serif;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(174, 191, 210, 0.72);
+    }
+
+    .sb-hud-title {
+      max-width: 18ch;
+      font-family: "Syne", "Space Grotesk", sans-serif;
+      font-size: clamp(1.2rem, 2.9vw, 2rem);
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: rgba(241, 249, 255, 0.98);
+      text-transform: uppercase;
+    }
+
+    .sb-panel-stack {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: grid;
+      place-items: center;
+      transform-style: preserve-3d;
+    }
+
+    .sb-depth-panel {
+      position: absolute;
+      width: min(66rem, calc(100% - 12rem));
+      border-radius: var(--panel-radius);
+      border: 1px solid var(--panel-border);
+      background: var(--panel-bg);
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.56),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(18px);
+      padding: clamp(1.05rem, 2.2vw, 2rem);
+      transform-style: preserve-3d;
+      transition:
+        transform 420ms cubic-bezier(0.22, 0.82, 0.22, 1),
+        opacity 320ms ease,
+        filter 320ms ease,
+        border-color 320ms ease,
+        box-shadow 360ms ease;
+      will-change: transform, opacity, filter;
+    }
+
+    .sb-depth-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(140deg, rgba(176, 224, 252, 0.1), rgba(176, 224, 252, 0) 36%);
+      pointer-events: none;
+    }
+
+    .sb-depth-panel.is-active {
+      border-color: rgba(177, 220, 249, 0.4);
+      box-shadow:
+        0 34px 90px rgba(0, 0, 0, 0.62),
+        0 0 0 1px rgba(189, 227, 251, 0.15) inset,
+        0 0 44px var(--panel-glow);
+    }
+
+    .sb-panel-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: baseline;
+      justify-content: space-between;
+      position: relative;
+      z-index: 2;
+    }
+
+    .sb-panel-index {
+      font: 700 0.6rem/1.2 "Manrope", "Space Grotesk", sans-serif;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(176, 196, 218, 0.9);
+    }
+
+    .sb-panel-label {
+      font: 700 0.64rem/1.2 "Manrope", "Space Grotesk", sans-serif;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(165, 202, 230, 0.9);
+    }
+
+    .sb-panel-title {
+      margin-top: 0.75rem;
+      max-width: 18ch;
+      font-family: "Syne", "Space Grotesk", sans-serif;
+      font-size: clamp(1.48rem, 3.3vw, 3rem);
+      font-weight: 700;
+      line-height: 0.98;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      color: rgba(249, 252, 255, 0.98);
+    }
+
+    .sb-panel-copy {
+      margin-top: 0.85rem;
+      max-width: 64ch;
+      font: 500 clamp(0.88rem, 1.2vw, 1rem) / 1.8 "Manrope", "Space Grotesk", sans-serif;
+      color: rgba(195, 210, 224, 0.9);
+    }
+
+    .sb-panel-grid {
+      margin-top: 1.2rem;
+      display: grid;
+      gap: 0.72rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      position: relative;
+      z-index: 2;
+    }
+
+    .sb-chip {
+      border: 1px solid rgba(173, 205, 230, 0.16);
+      border-radius: 0.9rem;
+      background: rgba(9, 14, 21, 0.55);
+      padding: 0.72rem;
+      font: 600 0.74rem/1.4 "Manrope", "Space Grotesk", sans-serif;
+      color: rgba(212, 224, 235, 0.88);
+    }
+
+    .sb-panel-foot {
+      margin-top: 1.05rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.52rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .sb-pill {
+      border-radius: 999px;
+      border: 1px solid rgba(175, 202, 229, 0.18);
+      background: rgba(8, 13, 19, 0.5);
+      color: rgba(190, 206, 222, 0.9);
+      font: 600 0.63rem/1.2 "Manrope", "Space Grotesk", sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.46rem 0.7rem;
+    }
+
+    .sb-home-tail {
+      position: relative;
+      z-index: 2;
+      margin: clamp(2rem, 5vw, 3rem) auto 0;
+      max-width: 85rem;
+      border: 1px solid rgba(182, 207, 232, 0.14);
+      border-radius: 1.4rem;
+      background: linear-gradient(160deg, rgba(8, 12, 19, 0.8), rgba(6, 10, 16, 0.78));
+      box-shadow:
+        0 18px 52px rgba(0, 0, 0, 0.42),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
+      padding: clamp(1.2rem, 2.2vw, 1.8rem);
+      display: grid;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .sb-home-tail h3 {
+      font-family: "Syne", "Space Grotesk", sans-serif;
+      font-size: clamp(1.22rem, 2.2vw, 2rem);
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      color: rgba(246, 251, 255, 0.98);
+      line-height: 1.05;
+    }
+
+    .sb-home-tail p {
+      font: 500 0.92rem/1.8 "Manrope", "Space Grotesk", sans-serif;
+      color: rgba(196, 210, 224, 0.9);
+      max-width: 66ch;
+    }
+
+    @media (min-width: 980px) {
+      .sb-prelude-grid {
+        grid-template-columns: 1.1fr 0.9fr;
+      }
+
+      .sb-home-tail {
+        grid-template-columns: 1.1fr auto;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .sb-chapter-rail {
+        width: 9rem;
+      }
+
+      .sb-depth-panel {
+        width: min(100%, calc(100% - 8rem));
+      }
+
+      .sb-panel-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 840px) {
+      .sb-cinematic-home {
+        margin: -0.25rem;
+        padding: 0.4rem;
+      }
+
+      .sb-cinema-wrap {
+        min-height: auto;
+      }
+
+      .sb-cinema-stage {
+        position: relative;
+        top: auto;
+        height: auto;
+        min-height: auto;
+      }
+
+      .sb-chapter-rail,
+      .sb-cinema-hud {
+        position: static;
+        transform: none;
+        width: 100%;
+        padding: 0.8rem;
+      }
+
+      .sb-chapter-rail {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.38rem;
+      }
+
+      .sb-cinema-hud {
+        justify-items: start;
+        text-align: left;
+      }
+
+      .sb-panel-stack {
+        position: relative;
+        padding: 0.7rem;
+        display: grid;
+        gap: 0.8rem;
+      }
+
+      .sb-depth-panel {
+        position: relative;
+        width: 100%;
+        transform: none !important;
+        opacity: 1 !important;
+        filter: none !important;
+      }
+
+      .sb-panel-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sb-cinema-stage .sb-hero-intro {
+        display: none;
+      }
+
+      .sb-cinema-stage .sb-hero-status {
+        left: 0.7rem;
+        bottom: 0.7rem;
+      }
+
+      .sb-cinema-stage .sb-hero-cinema-layer {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sb-cinema-wrap {
+        min-height: auto;
+      }
+
+      .sb-cinema-stage {
+        position: relative;
+        top: auto;
+        height: auto;
+      }
+
+      .sb-chapter-rail,
+      .sb-cinema-hud {
+        position: static;
+        transform: none;
+        width: 100%;
+        padding: 0.7rem;
+      }
+
+      .sb-panel-stack {
+        position: relative;
+        padding: 0.7rem;
+        display: grid;
+        gap: 0.74rem;
+      }
+
+      .sb-depth-panel {
+        position: relative;
+        width: 100%;
+        transform: none !important;
+        opacity: 1 !important;
+        filter: none !important;
+      }
+
+      .sb-cinema-stage .sb-hero-intro,
+      .sb-cinema-stage .sb-hero-curtain {
+        display: none;
+      }
+
+      .sb-cinema-stage .sb-hero-cinema-layer,
+      .sb-cinema-stage .sb-panel-stack,
+      .sb-cinema-stage .sb-chapter-rail,
+      .sb-cinema-stage .sb-cinema-hud {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+      }
+    }
+  </style>
+
+  <section id="sb-cinematic-home" class="sb-cinematic-home">
+    <header class="sb-home-prelude sb-glass-card">
+      <div class="sb-prelude-grid">
+        <div>
+          <p class="sb-prelude-tag">Stylebridge identity interface</p>
+          <h1 class="sb-prelude-title">This is not a clothing app. This is your digital identity system.</h1>
+          <p class="sb-prelude-copy">
+            STYLEBRIDGE is designed as a living spatial atmosphere. You move through style intelligence chapters, train your aesthetic signals,
+            and evolve your identity with cinematic continuity from one interface layer to the next.
+          </p>
+          <div class="sb-prelude-actions">
+            <a href="{{ url_for('auth.register') }}" class="sb-btn-primary">Build identity</a>
+            <a href="{{ url_for('auth.login') }}" class="sb-btn-ghost">Open system</a>
+          </div>
+        </div>
+        <div class="sb-prelude-meta">
+          <div><strong>Core mood</strong>Luxury minimalism with spatial depth and controlled emotion.</div>
+          <div><strong>Motion language</strong>Momentum-preserving transitions across z layers and blur gradients.</div>
+          <div><strong>Intelligence layer</strong>Style DNA, wardrobe cognition, and evolving identity feedback.</div>
+        </div>
+      </div>
+    </header>
+
+    <div id="sb-cinema-wrap" class="sb-cinema-wrap" style="--chapter-count:8;">
+      <div id="sb-cinema-stage" class="sb-cinema-stage">
+        <div class="sb-hero-cinema-layer" aria-hidden="true">
+          <div id="sb-hero-model-canvas" class="sb-hero-model-canvas"></div>
+          <div class="sb-hero-atmosphere"></div>
+          <div class="sb-hero-vignette"></div>
+          <div class="sb-hero-curtain"></div>
+        </div>
+
+        <div id="sb-hero-intro" class="sb-hero-intro" aria-hidden="true">
+          <h2 class="sb-hero-wordmark">
+            <span>S</span><span>T</span><span>Y</span><span>L</span><span>E</span><span>B</span><span>R</span><span>I</span><span>D</span><span>G</span><span>E</span>
+          </h2>
+          <p class="sb-hero-subline">Digital identity artifact</p>
+        </div>
+
+        <div id="sb-hero-status" class="sb-hero-status" aria-live="polite">Loading artifact 0%</div>
+
+        <aside class="sb-chapter-rail" id="sb-chapter-rail">
+          <button type="button" data-jump="0"><span class="sb-chapter-dot"></span>Landing</button>
+          <button type="button" data-jump="1"><span class="sb-chapter-dot"></span>Onboarding</button>
+          <button type="button" data-jump="2"><span class="sb-chapter-dot"></span>Style DNA</button>
+          <button type="button" data-jump="3"><span class="sb-chapter-dot"></span>Worlds</button>
+          <button type="button" data-jump="4"><span class="sb-chapter-dot"></span>Wardrobe</button>
+          <button type="button" data-jump="5"><span class="sb-chapter-dot"></span>AI Stylist</button>
+          <button type="button" data-jump="6"><span class="sb-chapter-dot"></span>Profile</button>
+          <button type="button" data-jump="7"><span class="sb-chapter-dot"></span>Moodboard</button>
+        </aside>
+
+        <div class="sb-cinema-hud">
+          <div class="sb-hud-step" id="sb-hud-step">Chapter 01 / 08</div>
+          <div class="sb-hud-title" id="sb-hud-title">Cinematic Landing</div>
+        </div>
+
+        <div class="sb-panel-stack" id="sb-panel-stack">
+          <article class="sb-depth-panel sb-glass-card" data-title="Cinematic Landing">
+            <div class="sb-panel-head">
+              <span class="sb-panel-index">01</span>
+              <span class="sb-panel-label">Cinematic landing page</span>
+            </div>
+            <h2 class="sb-panel-title">Black screen. minimal logo. controlled entry.</h2>
+            <p class="sb-panel-copy">
+              STYLEBRIDGE opens in silence and depth. Typography separates in subtle 3D space and the camera moves through the wordmark into the living interface.
+              No clutter. No rushed CTA. Atmosphere comes first.
+            </p>
+            <div class="sb-panel-grid">
+              <div class="sb-chip">Matte black with graphite gradients</div>
+              <div class="sb-chip">Soft bloom, restrained electric blue accents</div>
+              <div class="sb-chip">Continuity from splash to system panels</div>
+            </div>
+            <div class="sb-panel-foot">
+              <span class="sb-pill">logo depth split</span>
+              <span class="sb-pill">camera push-through</span>
+              <span class="sb-pill">ambient reveal</span>
+            </div>
+          </article>
+
+          <article class="sb-depth-panel sb-glass-card" data-title="Identity Onboarding">
+            <div class="sb-panel-head">
+              <span class="sb-panel-index">02</span>
+              <span class="sb-panel-label">Identity onboarding flow</span>
+            </div>
+            <h2 class="sb-panel-title">Build your identity, not a generic profile.</h2>
+            <p class="sb-panel-copy">
+              The onboarding system is a progression engine: style energy cards, rapid visual preference training, and fit profile calibration.
+              Every action is designed to move the user from wearing clothes to understanding personal identity mechanics.
+            </p>
+            <div class="sb-panel-grid">
+              <div class="sb-chip">Floating style energy cards with motion response</div>
+              <div class="sb-chip">Swipe-based preference signal training</div>
+              <div class="sb-chip">Fit profile without forced photo upload</div>
+            </div>
+            <div class="sb-panel-foot">
+              <span class="sb-pill">minimal</span>
+              <span class="sb-pill">quiet luxury</span>
+              <span class="sb-pill">editorial</span>
+              <span class="sb-pill">futuristic</span>
+            </div>
+          </article>
+
+          <article class="sb-depth-panel sb-glass-card" data-title="Style DNA Dashboard">
+            <div class="sb-panel-head">
+              <span class="sb-panel-index">03</span>
+              <span class="sb-panel-label">Style DNA dashboard</span>
+            </div>
+            <h2 class="sb-panel-title">Personal style operating system.</h2>
+            <p class="sb-panel-copy">
+              Home is reframed as a live identity cockpit with daily feed intelligence, confidence shifts, and experimentation signals.
+              Visual hierarchy uses floating geometry and layered transparency instead of corporate dashboard blocks.
+            </p>
+            <div class="sb-panel-grid">
+              <div class="sb-chip">Daily identity feed with mood-linked curation</div>
+              <div class="sb-chip">Dynamic style DNA map and confidence movement</div>
+              <div class="sb-chip">Smart guidance generated from behavior patterns</div>
+            </div>
+            <div class="sb-panel-foot">
+              <span class="sb-pill">signal clarity</span>
+              <span class="sb-pill">evolution intelligence</span>
+            </div>
+          </article>
+
+          <article class="sb-depth-panel sb-glass-card" data-title="Discover Worlds">
+            <div class="sb-panel-head">
+              <span class="sb-panel-index">04</span>
+              <span class="sb-panel-label">Discover worlds</span>
+            </div>
+            <h2 class="sb-panel-title">Curated style worlds, not infinite scroll.</h2>
+            <p class="sb-panel-copy">
+              Discover is treated as cinematic browsing through coherent universes. Each world carries its own motion language, contrast signature,
+              and editorial pacing to preserve premium perception.
+            </p>
+            <div class="sb-panel-grid">
+              <div class="sb-chip">Neo Minimal and Monochrome Utility modules</div>
+              <div class="sb-chip">Creator spaces focused on systems and moodboards</div>
+              <div class="sb-chip">High-signal curation with no visual noise</div>
+            </div>
+            <div class="sb-panel-foot">
+              <span class="sb-pill">tokyo street</span>
+              <span class="sb-pill">nordic clean</span>
+              <span class="sb-pill">modern tailored</span>
+            </div>
+          </article>
+
+          <article class="sb-depth-panel sb-glass-card" data-title="Digital Wardrobe">
+            <div class="sb-panel-head">
+              <span class="sb-panel-index">05</span>
+              <span class="sb-panel-label">Digital wardrobe system</span>
+            </div>
+            <h2 class="sb-panel-title">Tactile closet intelligence.</h2>
+            <p class="sb-panel-copy">
+              The wardrobe layer is built for retention. Pieces are cataloged by texture, layering role, color behavior, and occasion relevance.
+              Outfit assembly feels precise, grounded, and premium.
+            </p>
+            <div class="sb-panel-grid">
+              <div class="sb-chip">Auto categorization for fabrics and silhouette roles</div>
+              <div class="sb-chip">Drag-and-compose outfit builder with depth motion</div>
+              <div class="sb-chip">Gap analysis for missing essentials</div>
+            </div>
+            <div class="sb-panel-foot">
+              <span class="sb-pill">wardrobe cognition</span>
+              <span class="sb-pill">smart recombination</span>
+            </div>
+          </article>
+
+          <article class="sb-depth-panel sb-glass-card" data-title="AI Stylist">
+            <div class="sb-panel-head">
+              <span class="sb-panel-index">06</span>
+              <span class="sb-panel-label">AI stylist interface</span>
+            </div>
+            <h2 class="sb-panel-title">Conversational style intelligence.</h2>
+            <p class="sb-panel-copy">
+              The AI Stylist feels like a premium co-director. It proposes options, explains reasoning, and adapts to event context,
+              risk appetite, and personal trajectory without reducing the user to generic templates.
+            </p>
+            <div class="sb-panel-grid">
+              <div class="sb-chip">Intent-aware prompts and adaptive recommendations</div>
+              <div class="sb-chip">Missing-piece suggestions based on existing closet</div>
+              <div class="sb-chip">Weekly identity report generation</div>
+            </div>
+            <div class="sb-panel-foot">
+              <span class="sb-pill">advice mode</span>
+              <span class="sb-pill">scenario styling</span>
+              <span class="sb-pill">evolution reports</span>
+            </div>
+          </article>
+
+          <article class="sb-depth-panel sb-glass-card" data-title="Identity Profile">
+            <div class="sb-panel-head">
+              <span class="sb-panel-index">07</span>
+              <span class="sb-panel-label">Fashion identity profile</span>
+            </div>
+            <h2 class="sb-panel-title">A digital identity archive.</h2>
+            <p class="sb-panel-copy">
+              Profile becomes a living historical lens: style timeline, signature palette, silhouette tendencies, and adaptation patterns.
+              It is built to show growth, not just social vanity metrics.
+            </p>
+            <div class="sb-panel-grid">
+              <div class="sb-chip">Evolution timeline and experimentation history</div>
+              <div class="sb-chip">Saved systems and personal style heuristics</div>
+              <div class="sb-chip">Alignment scoring for confidence calibration</div>
+            </div>
+            <div class="sb-panel-foot">
+              <span class="sb-pill">identity archive</span>
+              <span class="sb-pill">trajectory view</span>
+            </div>
+          </article>
+
+          <article class="sb-depth-panel sb-glass-card" data-title="Floating Moodboard">
+            <div class="sb-panel-head">
+              <span class="sb-panel-index">08</span>
+              <span class="sb-panel-label">Floating moodboard environment</span>
+            </div>
+            <h2 class="sb-panel-title">Editorial worlds in living space.</h2>
+            <p class="sb-panel-copy">
+              Moodboards float as layered architecture with parallax depth, subtle blur transitions, and momentum continuity.
+              Users leave with clarity and emotional ownership of their visual identity.
+            </p>
+            <div class="sb-panel-grid">
+              <div class="sb-chip">Spatial collage rails with cinematic transitions</div>
+              <div class="sb-chip">Inspired, saved, adapted reactions in place of likes</div>
+              <div class="sb-chip">Commerce as a secondary layer, never the core screen</div>
+            </div>
+            <div class="sb-panel-foot">
+              <span class="sb-pill">holographic editorial</span>
+              <span class="sb-pill">controlled emotion</span>
+              <span class="sb-pill">premium atmosphere</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <section class="sb-home-tail sb-glass-card">
+      <div>
+        <h3>When the user exits, they should understand themselves better.</h3>
+        <p>
+          This flow keeps fashion commerce in a supporting role while making identity psychology and cinematic interaction the primary experience.
+          The system is designed to feel expensive, intelligent, and emotionally controlled from first frame to final action.
+        </p>
+      </div>
+      <div class="sb-prelude-actions">
+        <a href="{{ url_for('auth.register') }}" class="sb-btn-primary">Start identity build</a>
+        <a href="{{ url_for('main.feedback') }}" class="sb-btn-ghost">Share feedback</a>
       </div>
     </section>
+  </section>
 
-    <section class="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
-      <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Social proof</div>
-      <div class="mt-2 text-lg font-black text-white">Early testers: [placeholder until real]</div>
-      <p class="mt-2 text-sm text-slate-400">Keeping this section honest until there are verified numbers worth showing.</p>
-    </section>
+  <script>
+    (function () {
+      const wrap = document.getElementById("sb-cinema-wrap");
+      const stage = document.getElementById("sb-cinema-stage");
+      const stack = document.getElementById("sb-panel-stack");
+      const rail = document.getElementById("sb-chapter-rail");
+      const hudStep = document.getElementById("sb-hud-step");
+      const hudTitle = document.getElementById("sb-hud-title");
+      if (!wrap || !stage || !stack || !rail || !hudStep || !hudTitle) {
+        return;
+      }
 
-    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
-      <div class="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Sample GLB demos</div>
-      <div class="mt-4 grid gap-3 md:grid-cols-3">
-        <a href="{{ url_for('main.demo', model='/static/models/toji-reference.glb') }}" class="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
-          <div class="text-sm font-black text-white">Reference Character</div>
-          <div class="mt-1 text-xs text-slate-400">Fast starter model</div>
-        </a>
-        <a href="{{ url_for('main.demo', model='/static/models/formal-olive-look.glb') }}" class="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
-          <div class="text-sm font-black text-white">Formal Olive Look</div>
-          <div class="mt-1 text-xs text-slate-400">Balanced silhouette test</div>
-        </a>
-        <a href="{{ url_for('main.demo', model='/static/models/satin-slip-dress.glb') }}" class="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
-          <div class="text-sm font-black text-white">Satin Slip Dress</div>
-          <div class="mt-1 text-xs text-slate-400">Dress movement test</div>
-        </a>
-      </div>
-    </section>
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const mobile = window.matchMedia("(max-width: 840px)").matches;
+      if (reduced || mobile) {
+        return;
+      }
 
-    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
-      <div class="text-sm text-slate-300">Built by a 17yo Kenyan dev - feedback welcome.</div>
-      <div class="mt-3 flex flex-wrap gap-2">
-        <a href="{{ url_for('main.feedback') }}" class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">Feedback form</a>
-        <a href="https://x.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">X</a>
-        <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">TikTok</a>
-        <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">Instagram</a>
-        <a href="https://discord.com/" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">Discord</a>
-      </div>
-    </section>
-  </div>
+      const panels = [...stack.querySelectorAll(".sb-depth-panel")];
+      const navButtons = [...rail.querySelectorAll("button[data-jump]")];
+      if (!panels.length || !navButtons.length) {
+        return;
+      }
+
+      let ticking = false;
+      let active = 0;
+
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+      const ease = (x) => 1 - Math.pow(1 - x, 2.2);
+
+      const updateRail = (index) => {
+        navButtons.forEach((button, i) => {
+          button.classList.toggle("is-active", i === index);
+        });
+        panels.forEach((panel, i) => {
+          panel.classList.toggle("is-active", i === index);
+        });
+      };
+
+      const updateHud = (index) => {
+        const name = panels[index]?.dataset?.title || "Identity Chapter";
+        const step = String(index + 1).padStart(2, "0");
+        const total = String(panels.length).padStart(2, "0");
+        hudStep.textContent = `Chapter ${step} / ${total}`;
+        hudTitle.textContent = name;
+      };
+
+      const render = () => {
+        ticking = false;
+        const rect = wrap.getBoundingClientRect();
+        const total = Math.max(1, rect.height - window.innerHeight);
+        const raw = clamp(-rect.top / total, 0, 1);
+        const timeline = raw * (panels.length - 1);
+        const baseActive = clamp(Math.round(timeline), 0, panels.length - 1);
+
+        if (baseActive !== active) {
+          active = baseActive;
+          updateRail(active);
+          updateHud(active);
+        }
+
+        stage.dispatchEvent(
+          new CustomEvent("sb:home-progress", {
+            detail: {
+              progress: raw,
+              timeline,
+            },
+          })
+        );
+
+        panels.forEach((panel, index) => {
+          const delta = index - timeline;
+          const absDelta = Math.abs(delta);
+          const distance = clamp(absDelta / Math.max(1, panels.length - 1), 0, 1);
+          const eased = ease(clamp(1 - distance * 1.85, 0, 1));
+          const z = -absDelta * 300 + eased * 150;
+          const y = delta * 17.5;
+          const x = Math.sin((timeline + index) * 0.7) * 1.8;
+          const rotY = clamp(delta * -8, -18, 18);
+          const rotX = clamp(absDelta * 3.5, 0, 8);
+          const scale = clamp(1 - absDelta * 0.12, 0.6, 1);
+          const opacity = clamp(1 - absDelta * 0.26, 0.12, 1);
+          const blur = clamp(absDelta * 2.8, 0, 12);
+
+          panel.style.zIndex = String(300 - Math.round(absDelta * 40));
+          panel.style.opacity = opacity.toFixed(3);
+          panel.style.filter = `blur(${blur.toFixed(2)}px) saturate(${(0.82 + eased * 0.26).toFixed(3)})`;
+          panel.style.transform =
+            `translate3d(${x.toFixed(2)}vw, ${y.toFixed(2)}vh, ${z.toFixed(2)}px) ` +
+            `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+        });
+      };
+
+      const requestRender = () => {
+        if (ticking) {
+          return;
+        }
+        ticking = true;
+        window.requestAnimationFrame(render);
+      };
+
+      navButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const jump = Number(button.dataset.jump || "0");
+          const chapter = clamp(jump, 0, panels.length - 1);
+          const total = Math.max(1, wrap.offsetHeight - window.innerHeight);
+          const target = wrap.offsetTop + total * (chapter / Math.max(1, panels.length - 1));
+          window.scrollTo({ top: target, behavior: "smooth" });
+        });
+      });
+
+      stage.addEventListener(
+        "pointermove",
+        (event) => {
+          const rect = stage.getBoundingClientRect();
+          const x = ((event.clientX - rect.left) / Math.max(1, rect.width)) * 100;
+          const y = ((event.clientY - rect.top) / Math.max(1, rect.height)) * 100;
+          stage.style.setProperty("--home-pointer-x", `${x.toFixed(2)}%`);
+          stage.style.setProperty("--home-pointer-y", `${y.toFixed(2)}%`);
+        },
+        { passive: true }
+      );
+
+      window.addEventListener("scroll", requestRender, { passive: true });
+      window.addEventListener("resize", requestRender, { passive: true });
+      render();
+    })();
+  </script>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1?dev",
+        "react-dom": "https://esm.sh/react-dom@18.3.1?dev",
+        "react-dom/": "https://esm.sh/react-dom@18.3.1&dev/",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?dev",
+        "three": "https://esm.sh/three@0.161.0?dev",
+        "three/": "https://esm.sh/three@0.161.0&dev/",
+        "@react-three/fiber": "https://esm.sh/@react-three/fiber@8.16.8?dev&external=react,react-dom,three"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import { bootHomeHeroScene } from "{{ url_for('static', filename='js/home_hero_scene.js', v='20260512-hero2') }}";
+
+    window.addEventListener("DOMContentLoaded", () => {
+      bootHomeHeroScene({
+        stageId: "sb-cinema-stage",
+        canvasId: "sb-hero-model-canvas",
+        introId: "sb-hero-intro",
+        statusId: "sb-hero-status",
+        modelUrl: "{{ url_for('static', filename='models/jujutsu_kaisen_toji_fushiguro.glb', v='20260512-hero2') }}",
+        fallbackUrl: "{{ url_for('static', filename='models/toji-reference.glb', v='20260402-toji1') }}",
+      });
+    });
+  </script>
 {% endblock %}

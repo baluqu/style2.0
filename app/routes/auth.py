@@ -43,7 +43,9 @@ def with_query_params(target: str, **params: object) -> str:
 
 
 class RegisterForm(FlaskForm):
-    identity = StringField("Email or username", validators=[DataRequired(), Length(min=3, max=220)])
+    name = StringField("Name", validators=[DataRequired(), Length(min=2, max=120)])
+    username = StringField("Username", validators=[DataRequired(), Length(min=3, max=40)])
+    email = StringField("Email", validators=[DataRequired(), Email(), Length(max=220)])
     password = PasswordField("Password", validators=[DataRequired(), Length(min=8, max=200)])
 
 
@@ -79,10 +81,55 @@ def normalize_identity(raw_identity: str) -> str:
     return f"{slug}@stylebridge.local"
 
 
+def username_slug(raw_username: str) -> str:
+    return re.sub(r"[^a-z0-9._-]+", "", (raw_username or "").strip().lower()).strip("._-")
+
+
+def username_taken(username: str) -> bool:
+    wanted = username_slug(username)
+    if not wanted:
+        return True
+    users = User.query.all()
+    for user in users:
+        profile = user.get_profile_data() if hasattr(user, "get_profile_data") else {}
+        existing = username_slug(str(profile.get("username", ""))) if isinstance(profile, dict) else ""
+        if existing == wanted:
+            return True
+    return False
+
+
+def find_user_for_login(raw_identity: str) -> User | None:
+    identity = (raw_identity or "").strip()
+    if not identity:
+        return None
+
+    lowered = identity.lower()
+    if "@" in lowered:
+        return User.query.filter_by(email=lowered).first()
+
+    legacy_email = normalize_identity(identity)
+    if legacy_email:
+        user = User.query.filter_by(email=legacy_email).first()
+        if user:
+            return user
+
+    wanted_username = username_slug(identity)
+    if not wanted_username:
+        return None
+    for user in User.query.all():
+        profile = user.get_profile_data() if hasattr(user, "get_profile_data") else {}
+        existing = username_slug(str(profile.get("username", ""))) if isinstance(profile, dict) else ""
+        if existing == wanted_username:
+            return user
+    return None
+
+
 @bp.get("/register")
 def register():
     if current_user.is_authenticated and not current_user.has_role("seller"):
-        return redirect(url_for("main.demo"))
+        if current_user.onboarding_complete:
+            return redirect(url_for("main.feed"))
+        return redirect(url_for("main.onboarding"))
     form = RegisterForm()
     return render_template("auth/register.html", form=form)
 
@@ -95,23 +142,40 @@ def register_post():
         flash("Please fix the errors and try again.", "error")
         return render_template("auth/register.html", form=form), 400
 
-    email = normalize_identity(form.identity.data)
-    if not email:
-        flash("Enter a valid email or username.", "error")
+    full_name = form.name.data.strip()
+    username = username_slug(form.username.data)
+    email = form.email.data.strip().lower()
+
+    if not username:
+        flash("Choose a valid username.", "error")
         return render_template("auth/register.html", form=form), 400
+
+    if username_taken(username):
+        flash("That username is already taken.", "error")
+        return render_template("auth/register.html", form=form), 400
+
     if User.query.filter_by(email=email).first():
         flash("Email already registered. Please log in.", "error")
         return redirect(url_for("auth.login"))
 
     user = User(email=email)
     user.set_password(form.password.data)
+    user.set_profile_data(
+        {
+            "display_name": full_name,
+            "username": username,
+            "show_intro_splash": True,
+            "saved_look_reminders": False,
+            "daily_outfit_suggestions": True,
+        }
+    )
     assign_role(user, "user")
     db.session.add(user)
     db.session.commit()
     login_user(user)
-    audit("auth.register", target=f"user:{user.id}", meta={"email": user.email})
-    flash("Account created.", "success")
-    return redirect(with_query_params(url_for("main.demo"), splash=1))
+    audit("auth.register", target=f"user:{user.id}", meta={"email": user.email, "username": username})
+    flash("Account created. Build your identity to unlock your personalized style system.", "success")
+    return redirect(with_query_params(url_for("main.onboarding"), splash=1, phase="identity"))
 
 
 @bp.get("/seller-register")
@@ -159,7 +223,9 @@ def seller_register_post():
 @bp.get("/login")
 def login():
     if current_user.is_authenticated and not current_user.has_role("seller"):
-        return redirect(url_for("main.demo"))
+        if current_user.onboarding_complete:
+            return redirect(url_for("main.feed"))
+        return redirect(url_for("main.onboarding"))
     form = LoginForm()
     return render_template("auth/login.html", form=form)
 
@@ -172,11 +238,7 @@ def login_post():
         flash("Invalid input.", "error")
         return render_template("auth/login.html", form=form), 400
 
-    email = normalize_identity(form.identity.data)
-    if not email:
-        flash("Enter a valid email or username.", "error")
-        return render_template("auth/login.html", form=form), 400
-    user = User.query.filter_by(email=email).first()
+    user = find_user_for_login(form.identity.data)
     if not user or not user.check_password(form.password.data):
         flash("Invalid credentials.", "error")
         return render_template("auth/login.html", form=form), 401
@@ -192,12 +254,14 @@ def login_post():
         if seller_profile and seller_profile.onboarding_complete:
             return redirect(with_query_params(url_for("seller.dashboard"), splash=1))
         return redirect(with_query_params(url_for("seller.onboarding"), splash=1))
-    return redirect(with_query_params(url_for("main.demo"), splash=1))
+    if user.onboarding_complete:
+        return redirect(with_query_params(url_for("main.feed"), splash=1))
+    return redirect(with_query_params(url_for("main.onboarding"), splash=1, phase="identity"))
 
 
 @bp.get("/google")
 def google_login():
-    flash("Google login is the recommended next integration point. Email login is live right now.", "info")
+    flash("Google sign-in is queued for integration. Email signup is live now.", "info")
     return redirect(url_for("auth.login"))
 
 

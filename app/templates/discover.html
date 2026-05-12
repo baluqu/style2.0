@@ -1,16 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Discover | StyleBridge{% endblock %}
+{% block title %}Discover Worlds | StyleBridge{% endblock %}
 {% block content %}
   <div class="space-y-6">
     <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
-      <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Discovery / Search</div>
-      <h1 class="mt-3 text-4xl font-black text-white">Search by item, clothing tag, accessory, style, color, brand, or vibe.</h1>
-      <div class="mt-4 flex flex-wrap gap-3">
-        <a href="{{ url_for('main.discover') }}" class="rounded-full bg-cyan-300 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-cyan-200">Browse looks</a>
-        <a href="{{ url_for('main.accessories') }}" class="rounded-full border border-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/10">Browse all accessories</a>
-      </div>
+      <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Discover / Style worlds</div>
+      <h1 class="mt-3 text-4xl font-black text-white">Curated cinematic browsing, not infinite scroll noise.</h1>
+      <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
+        Explore mood-specific worlds with distinct motion and lighting personalities. Filter by world, style, garment language, and identity signals.
+      </p>
+
       <form method="get" class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
         <input type="text" name="q" value="{{ filters.q }}" placeholder="abaya, watch, glasses, kandura, or jubba" class="xl:col-span-2 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+        <select name="style_world" class="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+          <option value="">All style worlds</option>
+          {% for world in style_world_options %}
+            <option value="{{ world.slug }}" {% if filters.style_world == world.slug %}selected{% endif %}>{{ world.title }}</option>
+          {% endfor %}
+        </select>
         <select name="style" class="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
           <option value="">All styles</option>
           {% for option in style_options %}
@@ -49,47 +55,99 @@
         </select>
         <input type="text" name="brand" value="{{ filters.brand }}" placeholder="brand" class="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
         <input type="text" name="color" value="{{ filters.color }}" placeholder="color" class="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
-        <button class="rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200 xl:col-span-6" type="submit">Search</button>
+        <button class="rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200 xl:col-span-6" type="submit">Search worlds</button>
       </form>
-      <div class="mt-4 rounded-3xl border border-emerald-300/20 bg-emerald-400/10 p-4 text-sm leading-7 text-slate-200">
-        Accessory filter here narrows outfit cards. If you want to browse watches, bags, glasses, jewelry, or shoes directly, open <a href="{{ url_for('main.accessories') }}" class="font-black text-emerald-100 underline decoration-emerald-200/40 underline-offset-4">Browse all accessories</a>.
+    </section>
+
+    <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {% for world in style_world_options %}
+        <a href="{{ url_for('main.discover', style_world=world.slug) }}" class="group rounded-[1.5rem] border border-white/10 bg-slate-900/80 p-5 transition hover:border-cyan-300/35 hover:bg-slate-900/95">
+          <div class="text-xs font-black uppercase tracking-[0.2em] text-cyan-100">{{ world.title }}</div>
+          <div class="mt-3 text-sm leading-7 text-slate-300">{{ world.mood }}</div>
+          <div class="mt-4 space-y-2 text-xs uppercase tracking-[0.14em] text-slate-400">
+            <div>Lighting: {{ world.lighting }}</div>
+            <div>Motion: {{ world.motion }}</div>
+          </div>
+          <div class="mt-4 text-xs font-black uppercase tracking-[0.16em] text-cyan-200 group-hover:text-cyan-100">Enter world</div>
+        </a>
+      {% endfor %}
+    </section>
+
+    {% if active_world %}
+      <section class="rounded-[2rem] border border-cyan-300/30 bg-slate-900/85 p-6">
+        <div class="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Active world</div>
+        <h2 class="mt-3 text-3xl font-black text-white sb-world-heading">{{ active_world.title }}</h2>
+        <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-300">{{ active_world.mood }}</p>
+        <div class="mt-4 grid gap-3 md:grid-cols-3">
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs uppercase tracking-[0.14em] text-slate-300">Lighting: {{ active_world.lighting }}</div>
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs uppercase tracking-[0.14em] text-slate-300">Motion: {{ active_world.motion }}</div>
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs uppercase tracking-[0.14em] text-slate-300">Typography: {{ active_world.typography }}</div>
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6">
+      <div class="text-xs font-black uppercase tracking-[0.2em] text-fuchsia-200">Creator spaces</div>
+      <div class="mt-3 text-sm leading-7 text-slate-300">
+        Publish outfit systems, curated aesthetics, and moodboard-level direction. This social layer prioritizes philosophy and styling logic over selfie metrics.
+      </div>
+      <div class="mt-4 flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.14em]">
+        <span class="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-slate-200">Saved</span>
+        <span class="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-slate-200">Inspired</span>
+        <span class="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-slate-200">Adapted</span>
       </div>
     </section>
 
     <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       {% for look in looks %}
-        <a href="{{ url_for('main.look_detail', slug=look.slug) }}" class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5 transition hover:-translate-y-1 hover:border-cyan-300/30">
-          <div class="overflow-hidden rounded-[1.5rem]">
+        <a href="{{ url_for('main.look_detail', slug=look.slug) }}" class="sb-glass-card group relative block overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md transition hover:bg-slate-900/85">
+          <div class="sb-glass-card-media overflow-hidden rounded-[1.5rem]">
             <img src="{{ look.image_url }}" alt="{{ look.title }}" class="h-72 w-full object-cover" loading="lazy" referrerpolicy="no-referrer">
           </div>
-          <div class="mt-4 text-xs font-black uppercase tracking-[0.18em] text-slate-400">{{ look.styles | join(' | ') }}</div>
-          {% if look.genders %}
-            <div class="mt-2 inline-flex rounded-full border border-fuchsia-300/20 bg-fuchsia-300/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-fuchsia-100">
-              {{ look.genders | join(' / ') }}
-            </div>
+          <div class="sb-glass-card-copy mt-4 text-xs font-black uppercase tracking-[0.18em] text-slate-400">{{ look.styles | join(' | ') }}</div>
+          {% if look.world_variant %}
+            <div class="sb-glass-card-copy mt-2 text-xs font-black uppercase tracking-[0.16em] text-cyan-200">{{ look.world_variant }} variant</div>
           {% endif %}
-          {% if look.religions %}
-            <div class="mt-2 inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-cyan-100">
-              {{ look.religions | join(' / ') }} edit
-            </div>
-          {% endif %}
-          {% if look.garment_tags %}
-            <div class="mt-3 flex flex-wrap gap-2">
-              {% for tag in look.garment_tags[:4] %}
-                <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-slate-200">{{ tag }}</span>
-              {% endfor %}
-            </div>
-          {% endif %}
-          <div class="mt-2 text-2xl font-black text-white">{{ look.title }}</div>
-          <div class="mt-2 text-sm leading-7 text-slate-300">{{ look.match_reason }}</div>
-          <div class="mt-4 flex items-center justify-between">
+          <div class="sb-glass-card-copy mt-2 text-2xl font-black text-white">{{ look.title }}</div>
+          <div class="sb-glass-card-copy mt-2 text-sm leading-7 text-slate-300">{{ look.match_reason }}</div>
+          <div class="sb-glass-card-copy mt-4 flex items-center justify-between">
             <div class="text-sm text-slate-300">{{ look.brands | join(', ') }}</div>
             <div class="text-sm font-black text-white">${{ '%.2f'|format(look.price_total) }}</div>
           </div>
+          {% if look.selected_world_score %}
+            <div class="sb-glass-card-copy mt-3 text-xs font-black uppercase tracking-[0.14em] text-cyan-200">
+              {{ look.selected_world_score.world_title }} confidence {{ look.selected_world_score.confidence }}%
+            </div>
+          {% elif look.top_style_world %}
+            <div class="sb-glass-card-copy mt-3 text-xs font-black uppercase tracking-[0.14em] text-cyan-200">
+              Best world: {{ look.top_style_world.world_title }} ({{ look.top_style_world.confidence }}%)
+            </div>
+          {% endif %}
         </a>
       {% else %}
-        <div class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-6 text-slate-300">No looks matched that filter yet.</div>
+        <div class="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-6 text-slate-300">No looks matched this world filter yet.</div>
       {% endfor %}
     </section>
+
+    {% if world_expansion %}
+      <section class="rounded-[2rem] border border-emerald-300/30 bg-slate-900/85 p-6">
+        <div class="text-xs font-black uppercase tracking-[0.2em] text-emerald-200">World expansion picks</div>
+        <p class="mt-3 text-sm leading-7 text-slate-300">
+          This world did not have enough fully aligned looks, so StyleBridge sourced high-compatibility pieces to keep aesthetic continuity.
+        </p>
+        <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {% for item in world_expansion %}
+            <article class="rounded-3xl border border-white/10 bg-white/5 p-4">
+              {% if item.image_url %}
+                <img src="{{ item.image_url }}" alt="{{ item.title }}" class="h-52 w-full rounded-2xl object-cover" loading="lazy" referrerpolicy="no-referrer">
+              {% endif %}
+              <div class="mt-3 text-sm font-black text-white">{{ item.title }}</div>
+              <div class="mt-2 text-xs uppercase tracking-[0.14em] text-slate-400">{{ item.slot_name }} | {{ item.category }} | {{ item.source_type }}</div>
+              <div class="mt-2 text-xs font-black uppercase tracking-[0.12em] text-emerald-200">{{ item.confidence }}% world confidence</div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
   </div>
 {% endblock %}

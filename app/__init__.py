@@ -28,6 +28,8 @@ from flask_wtf.csrf import CSRFProtect
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import HTTPException
 
+from .style_worlds import STYLE_WORLD_OPTIONS, style_world_by_slug
+
 db = SQLAlchemy()
 migrate = Migrate()
 csrf = CSRFProtect()
@@ -262,6 +264,20 @@ def create_app(config_class=None) -> Flask:
     def inject_flow_state():
         cart = session.get("cart", [])
         cart_count = sum(int(item.get("quantity", 1)) for item in cart)
+        cart_avatar = {"top": False, "bottom": False, "shoes": False, "accessory": False}
+        for item in cart:
+            category = str(item.get("category", "")).strip().lower()
+            title = str(item.get("title", "")).strip().lower()
+            hint = f"{category} {title}"
+            if any(token in hint for token in ("top", "shirt", "blouse", "jacket", "hoodie", "sweater", "outerwear")):
+                cart_avatar["top"] = True
+            if any(token in hint for token in ("bottom", "trouser", "pants", "jean", "skirt", "shorts")):
+                cart_avatar["bottom"] = True
+            if any(token in hint for token in ("shoe", "sneaker", "boot", "loafer", "heel", "sandals")):
+                cart_avatar["shoes"] = True
+            if any(token in hint for token in ("accessory", "bag", "watch", "chain", "bracelet", "ring", "glasses", "hat", "cap")):
+                cart_avatar["accessory"] = True
+
         raw_profile = current_user.get_profile_data() if current_user.is_authenticated and hasattr(current_user, "get_profile_data") else {}
         raw_splash_preference = raw_profile.get("show_intro_splash") if isinstance(raw_profile, dict) else None
         if isinstance(raw_splash_preference, bool):
@@ -271,6 +287,18 @@ def create_app(config_class=None) -> Flask:
         else:
             show_intro_splash = str(raw_splash_preference).strip().lower() in {"1", "true", "yes", "on"}
         force_intro_splash = (request.args.get("splash") or "").strip().lower() in {"1", "true", "yes", "on"}
+        world_from_query = (request.args.get("style_world") or request.args.get("world") or "").strip().lower()
+        active_style_world = world_from_query if style_world_by_slug(world_from_query) else ""
+        style_world_theme_map = {
+            world["slug"]: {
+                "title": world.get("title", ""),
+                "lighting": world.get("lighting", ""),
+                "motion": world.get("motion", ""),
+                "typography": world.get("typography", ""),
+                "palette": world.get("palette", []),
+            }
+            for world in STYLE_WORLD_OPTIONS
+        }
         return {
             "cart_count": cart_count,
             "has_completed_onboarding": bool(
@@ -285,8 +313,11 @@ def create_app(config_class=None) -> Flask:
                 and getattr(getattr(current_user, "seller_profile", None), "onboarding_complete", False)
             ),
             "seller_brand_slug": getattr(getattr(current_user, "seller_profile", None), "slug", None),
+            "cart_avatar": cart_avatar,
             "show_intro_splash": show_intro_splash,
             "force_intro_splash": force_intro_splash,
+            "active_style_world": active_style_world,
+            "style_world_theme_map": style_world_theme_map,
         }
 
     @app.after_request
@@ -336,4 +367,3 @@ def create_app(config_class=None) -> Flask:
             pass
 
     return app
-

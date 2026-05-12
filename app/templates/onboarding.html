@@ -1,87 +1,314 @@
 {% extends "base.html" %}
-{% block title %}Onboarding | StyleBridge{% endblock %}
+{% block title %}Build Your Identity | StyleBridge{% endblock %}
 {% block content %}
-  <div class="mx-auto max-w-5xl rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
-    <div class="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-      <section>
-        <div class="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">Onboarding</div>
-        <h1 class="mt-3 text-4xl font-black text-white">Personalize once. Keep the feed relevant.</h1>
-        <p class="mt-4 text-base leading-8 text-slate-300">
-          This is the retention lever. The answers below become your style profile vector and shape the feed, search, and recommendations.
-        </p>
-      </section>
+  {% set fit = existing.get('fit_profile', {}) if existing.get('fit_profile') is mapping else {} %}
+  <div class="mx-auto max-w-6xl space-y-6">
+    <section class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 md:p-8">
+      <div class="text-xs font-black uppercase tracking-[0.24em] text-cyan-200">Build your identity</div>
+      <h1 class="mt-3 text-4xl font-black text-white md:text-5xl">Configure your style operating system.</h1>
+      <p class="mt-4 max-w-4xl text-base leading-8 text-slate-300">
+        We are not collecting a generic profile. We are learning your style energy, visual instincts, and fit behavior so recommendations feel authored for you.
+      </p>
+    </section>
 
-      <form method="post" class="grid gap-4 md:grid-cols-2">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div>
-          <label class="text-sm font-bold text-slate-300">Gender</label>
-          <select name="gender" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
-            <option value="">Prefer not to say</option>
-            {% for option in gender_options %}
-              <option value="{{ option }}" {% if existing.get('gender') == option %}selected{% endif %}>{{ option }}</option>
-            {% endfor %}
-          </select>
+    <form method="post" id="identityForm" class="space-y-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="identity_phase" value="{{ phase }}">
+      <input type="hidden" name="visual_training_json" id="visual_training_json" value="{{ existing.get('visual_training') | tojson }}">
+      <input type="hidden" name="style_preference" id="style_preference_hidden" value="{{ existing.get('style_preference', '') }}">
+
+      <section class="rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 md:p-8" data-step="1">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <div class="text-xs font-black uppercase tracking-[0.2em] text-fuchsia-200">Step 1 / Style energy</div>
+            <h2 class="mt-2 text-3xl font-black text-white">Choose your emotional aesthetics.</h2>
+          </div>
+          <div class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-300">Identity foundation</div>
         </div>
-        <div>
-          <label class="text-sm font-bold text-slate-300">Religion</label>
-          <select name="religion" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
-            <option value="">Prefer not to say</option>
-            {% for option in religion_options %}
-              <option value="{{ option }}" {% if existing.get('religion') == option %}selected{% endif %}>{{ option }}</option>
-            {% endfor %}
-          </select>
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {% for option in style_energy_options %}
+            <label class="group cursor-pointer rounded-[1.4rem] border border-white/10 bg-slate-950/60 p-4 transition hover:border-cyan-300/40 hover:bg-slate-900/80">
+              <input
+                type="checkbox"
+                name="style_energy"
+                value="{{ option }}"
+                class="peer sr-only"
+                {% if option in existing.get('style_energy', []) %}checked{% endif %}
+              >
+              <div class="flex items-center justify-between">
+                <div class="text-lg font-black text-white">{{ option }}</div>
+                <div class="h-3.5 w-3.5 rounded-full border border-white/40 bg-transparent transition peer-checked:border-cyan-300 peer-checked:bg-cyan-300"></div>
+              </div>
+              <div class="mt-2 text-sm text-slate-400 transition group-hover:text-slate-200">Signal this as part of your style identity.</div>
+            </label>
+          {% endfor %}
         </div>
-        <div>
-          <label class="text-sm font-bold text-slate-300">Primary style preference</label>
-          <select name="style_preference" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
-            {% for option in style_options %}
-              <option value="{{ option }}" {% if existing.get('style_preference') == option %}selected{% endif %}>{{ option }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div>
-          <label class="text-sm font-bold text-slate-300">Budget range</label>
-          <select name="budget_range" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
-            {% for option in budget_options %}
-              <option value="{{ option }}" {% if existing.get('budget_range') == option %}selected{% endif %}>{{ option }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div>
-          <label class="text-sm font-bold text-slate-300">Body type (optional)</label>
-          <select name="body_type" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
-            <option value="">Skip for now</option>
-            {% for option in body_type_options %}
-              <option value="{{ option }}" {% if existing.get('body_type') == option %}selected{% endif %}>{{ option }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="md:col-span-2">
-          <label class="text-sm font-bold text-slate-300">Favorite styles</label>
-          <div class="mt-3 flex flex-wrap gap-3">
-            {% for option in style_options %}
-              <label class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-slate-200">
-                <input type="checkbox" name="favorite_styles" value="{{ option }}" class="accent-cyan-300" {% if option in existing.get('favorite_styles', []) %}checked{% endif %}>
-                <span>{{ option }}</span>
-              </label>
-            {% endfor %}
+
+        <div class="mt-6 grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="text-sm font-bold text-slate-300">Gender</label>
+            <select name="gender" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="">Prefer not to say</option>
+              {% for option in gender_options %}
+                <option value="{{ option }}" {% if existing.get('gender') == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Religion</label>
+            <select name="religion" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="">Prefer not to say</option>
+              {% for option in religion_options %}
+                <option value="{{ option }}" {% if existing.get('religion') == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
           </div>
         </div>
-        <div class="md:col-span-2">
-          <label class="text-sm font-bold text-slate-300">Brands you like</label>
-          <input
-            type="text"
-            name="favorite_brands"
-            value="{{ existing.get('favorite_brands', []) | join(', ') }}"
-            placeholder="Nike, Mango, COS, Adidas"
-            class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white"
-          >
-          <div class="mt-2 text-sm text-slate-500">Separate multiple brands with commas.</div>
+        <label class="mt-4 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+          <input type="hidden" name="gender_fluid_recommendations" value="0">
+          <input type="checkbox" name="gender_fluid_recommendations" value="1" class="mt-1 h-4 w-4 accent-cyan-300" {% if existing.get('gender_fluid_recommendations', False) %}checked{% endif %}>
+          <span>
+            <span class="block font-black text-white">Enable gender-fluid recommendations</span>
+            <span class="mt-1 block text-slate-400">Turn this on only if you want cross-gender styling suggestions in suitable worlds.</span>
+          </span>
+        </label>
+      </section>
+
+      <section class="rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 md:p-8 hidden" data-step="2">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <div class="text-xs font-black uppercase tracking-[0.2em] text-emerald-200">Step 2 / Visual training</div>
+            <h2 class="mt-2 text-3xl font-black text-white">Swipe-like preference calibration.</h2>
+          </div>
+          <div class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-300">Signal learning</div>
         </div>
-        <div class="md:col-span-2 flex justify-end">
-          <button class="rounded-2xl bg-cyan-300 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-200" type="submit">Build my feed</button>
+
+        <div class="mt-5 text-sm leading-7 text-slate-300">
+          Tap <span class="font-black text-emerald-200">More like this</span> or <span class="font-black text-rose-200">Less like this</span>. This tunes silhouette preference, layering tolerance, color comfort, accessory interest, and risk appetite.
         </div>
-      </form>
-    </div>
+
+        <div class="mt-6 overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950/70">
+          <img id="trainingImage" src="" alt="Style training preview" class="h-80 w-full object-cover" loading="lazy" referrerpolicy="no-referrer">
+          <div class="p-5">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <div id="trainingTitle" class="text-2xl font-black text-white"></div>
+                <div id="trainingMeta" class="mt-2 text-xs font-black uppercase tracking-[0.18em] text-slate-400"></div>
+              </div>
+              <div id="trainingCounter" class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-300"></div>
+            </div>
+            <div class="mt-5 grid gap-3 sm:grid-cols-3">
+              <button type="button" id="trainingDislike" class="rounded-2xl border border-rose-200/30 bg-rose-500/10 px-4 py-3 text-sm font-black text-rose-100 transition hover:bg-rose-500/20">Less like this</button>
+              <button type="button" id="trainingSkip" class="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-black text-slate-100 transition hover:bg-white/10">Skip</button>
+              <button type="button" id="trainingLike" class="rounded-2xl border border-emerald-200/30 bg-emerald-500/10 px-4 py-3 text-sm font-black text-emerald-100 transition hover:bg-emerald-500/20">More like this</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 md:p-8 hidden" data-step="3">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <div class="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Step 3 / Fit profile</div>
+            <h2 class="mt-2 text-3xl font-black text-white">Capture fit behavior and system constraints.</h2>
+          </div>
+          <div class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-300">No photo upload required</div>
+        </div>
+
+        <div class="mt-6 grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="text-sm font-bold text-slate-300">Height (cm)</label>
+            <input name="height_cm" value="{{ fit.get('height_cm', '') }}" placeholder="e.g. 170" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Body shape</label>
+            <select name="body_type" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="">Prefer not to say</option>
+              {% for option in body_type_options %}
+                <option value="{{ option }}" {% if existing.get('body_type') == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Sizing baseline</label>
+            <input name="sizing" value="{{ fit.get('sizing', '') }}" placeholder="e.g. M top / 32 waist / 39 shoe" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Preferred fit</label>
+            <select name="fit_preference" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              <option value="">Select fit preference</option>
+              {% for option in fit_preference_options %}
+                <option value="{{ option }}" {% if fit.get('fit_preference') == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-sm font-bold text-slate-300">Fit notes (optional)</label>
+            <input name="body_shape" value="{{ fit.get('body_shape', '') }}" placeholder="Any fit notes you want the system to respect." class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Budget range</label>
+            <select name="budget_range" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+              {% for option in budget_options %}
+                <option value="{{ option }}" {% if existing.get('budget_range') == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-bold text-slate-300">Favorite brands</label>
+            <input type="text" name="favorite_brands" value="{{ existing.get('favorite_brands', []) | join(', ') }}" placeholder="Nike, Mango, COS, Adidas" class="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white">
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-sm font-bold text-slate-300">Favorite styles</label>
+            <div class="mt-3 flex flex-wrap gap-2">
+              {% for option in style_options %}
+                <label class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-slate-200">
+                  <input type="checkbox" name="favorite_styles" value="{{ option }}" class="accent-cyan-300" {% if option in existing.get('favorite_styles', []) %}checked{% endif %}>
+                  <span>{{ option }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 rounded-[1.4rem] border border-white/10 bg-slate-950/60 px-4 py-3">
+        <div id="stepLabel" class="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Step 1 of 3</div>
+        <div class="flex gap-2">
+          <button type="button" id="backStep" class="rounded-full border border-white/15 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:bg-white/10">Back</button>
+          <button type="button" id="nextStep" class="rounded-full bg-cyan-300 px-5 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-950 transition hover:bg-cyan-200">Continue</button>
+          <button type="submit" id="finishIdentity" class="hidden rounded-full bg-emerald-300 px-5 py-2 text-xs font-black uppercase tracking-[0.14em] text-emerald-950 transition hover:bg-emerald-200">Enter Identity Home</button>
+        </div>
+      </div>
+    </form>
   </div>
+
+  <script>
+    (() => {
+      const steps = Array.from(document.querySelectorAll("[data-step]"));
+      const back = document.getElementById("backStep");
+      const next = document.getElementById("nextStep");
+      const finish = document.getElementById("finishIdentity");
+      const stepLabel = document.getElementById("stepLabel");
+      const stylePreferenceInput = document.getElementById("style_preference_hidden");
+
+      let currentStep = 1;
+      const maxStep = steps.length;
+
+      const showStep = (target) => {
+        currentStep = Math.max(1, Math.min(maxStep, target));
+        steps.forEach((section, index) => {
+          section.classList.toggle("hidden", index + 1 !== currentStep);
+        });
+        stepLabel.textContent = `Step ${currentStep} of ${maxStep}`;
+        back.disabled = currentStep === 1;
+        back.classList.toggle("opacity-40", currentStep === 1);
+        next.classList.toggle("hidden", currentStep === maxStep);
+        finish.classList.toggle("hidden", currentStep !== maxStep);
+      };
+
+      back.addEventListener("click", () => showStep(currentStep - 1));
+      next.addEventListener("click", () => showStep(currentStep + 1));
+      showStep(1);
+
+      const energyInputs = Array.from(document.querySelectorAll("input[name='style_energy']"));
+      const syncStylePreference = () => {
+        const selected = energyInputs.find((input) => input.checked);
+        if (selected) {
+          stylePreferenceInput.value = selected.value;
+        }
+      };
+      energyInputs.forEach((input) => input.addEventListener("change", syncStylePreference));
+      syncStylePreference();
+
+      const trainingPool = {{ training_looks | tojson }};
+      const trainingImage = document.getElementById("trainingImage");
+      const trainingTitle = document.getElementById("trainingTitle");
+      const trainingMeta = document.getElementById("trainingMeta");
+      const trainingCounter = document.getElementById("trainingCounter");
+      const visualTrainingField = document.getElementById("visual_training_json");
+
+      const state = {
+        index: 0,
+        likes: 0,
+        dislikes: 0,
+        structured: 0,
+        fluid: 0,
+        palette: {},
+        accessory: 0,
+        risk: 0,
+      };
+
+      const renderTrainingCard = () => {
+        if (!trainingPool.length) {
+          trainingTitle.textContent = "Training library unavailable";
+          trainingMeta.textContent = "No look cards found";
+          trainingCounter.textContent = "0 / 0";
+          return;
+        }
+        const safeIndex = Math.min(state.index, trainingPool.length - 1);
+        const card = trainingPool[safeIndex];
+        trainingImage.src = card.image_url || "";
+        trainingImage.alt = card.title || "Style card";
+        trainingTitle.textContent = card.title || "Untitled";
+        trainingMeta.textContent = `${card.style_hint || "Style signal"} | ${card.silhouette || "Silhouette"} | ${card.color_energy || "Neutral"}`;
+        trainingCounter.textContent = `${safeIndex + 1} / ${trainingPool.length}`;
+      };
+
+      const commitVisualTraining = () => {
+        const silhouette_preference = state.structured >= state.fluid ? "Structured" : "Fluid";
+        const layering_tolerance = state.likes >= state.dislikes ? "High" : "Moderate";
+        const dominantPalette = Object.entries(state.palette).sort((a, b) => b[1] - a[1])[0];
+        const color_comfort = dominantPalette ? dominantPalette[0] : "Balanced";
+        const accessory_interest = state.accessory >= Math.max(1, state.likes / 2) ? "High" : "Selective";
+        const risk_appetite = state.risk >= 2 ? "Exploratory" : "Measured";
+        visualTrainingField.value = JSON.stringify({
+          silhouette_preference,
+          layering_tolerance,
+          color_comfort,
+          accessory_interest,
+          risk_appetite,
+          likes: state.likes,
+          dislikes: state.dislikes,
+        });
+      };
+
+      const stepTraining = (liked, skipped = false) => {
+        if (!trainingPool.length) {
+          return;
+        }
+        const card = trainingPool[state.index];
+        if (!skipped) {
+          if (liked) {
+            state.likes += 1;
+            state.risk += 1;
+          } else {
+            state.dislikes += 1;
+            state.risk -= 1;
+          }
+          if ((card.silhouette || "").toLowerCase().includes("structured")) {
+            state.structured += liked ? 1 : 0;
+          } else {
+            state.fluid += liked ? 1 : 0;
+          }
+          const color = (card.color_energy || "Balanced").toString();
+          state.palette[color] = (state.palette[color] || 0) + (liked ? 1 : 0);
+          if ((card.style_hint || "").toLowerCase().includes("streetwear") || (card.style_hint || "").toLowerCase().includes("athleisure")) {
+            state.accessory += liked ? 1 : 0;
+          }
+        }
+        state.index = (state.index + 1) % trainingPool.length;
+        renderTrainingCard();
+        commitVisualTraining();
+      };
+
+      document.getElementById("trainingLike")?.addEventListener("click", () => stepTraining(true));
+      document.getElementById("trainingDislike")?.addEventListener("click", () => stepTraining(false));
+      document.getElementById("trainingSkip")?.addEventListener("click", () => stepTraining(false, true));
+
+      renderTrainingCard();
+      commitVisualTraining();
+    })();
+  </script>
 {% endblock %}

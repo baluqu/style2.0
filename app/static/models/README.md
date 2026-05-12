@@ -2,6 +2,10 @@ Primary homepage reference asset:
 
 `toji-reference.glb`
 
+Homepage cinematic hero artifact:
+
+`jujutsu_kaisen_toji_fushiguro.glb`
+
 Poster companion:
 
 `../img/toji-reference-poster.png`
