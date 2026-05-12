@@ -94,6 +94,25 @@
         --sb-world-accent-rgb: 125, 211, 252;
         --sb-world-surface: rgba(15, 23, 42, 0.88);
         --sb-world-glow: rgba(125, 211, 252, 0.2);
+        --sb-ease-primary: cubic-bezier(0.22, 0.82, 0.22, 1);
+        --sb-ease-secondary: cubic-bezier(0.2, 0.78, 0.24, 1);
+        --sb-ease-tertiary: cubic-bezier(0.3, 0.72, 0.34, 1);
+        --sb-motion-primary-exit-ms: 340ms;
+        --sb-motion-primary-enter-ms: 500ms;
+        --sb-motion-secondary-ms: 320ms;
+        --sb-motion-tertiary-ms: 220ms;
+        --sb-motion-secondary-gain: 1;
+        --sb-motion-tertiary-gain: 1;
+      }
+
+      html[data-sb-motion-lane="primary"] {
+        --sb-motion-secondary-gain: 0.46;
+        --sb-motion-tertiary-gain: 0.08;
+      }
+
+      html[data-sb-motion-lane="secondary"] {
+        --sb-motion-secondary-gain: 1;
+        --sb-motion-tertiary-gain: 0.38;
       }
 
       html {
@@ -331,7 +350,7 @@
           radial-gradient(circle at 42% 36%, rgba(var(--sb-world-accent-rgb), 0.16), rgba(var(--sb-world-accent-rgb), 0) 52%),
           radial-gradient(circle at 78% 58%, rgba(212, 196, 176, 0.06), rgba(212, 196, 176, 0) 48%),
           linear-gradient(195deg, rgba(3, 5, 8, 0.5), rgba(15, 18, 24, 0.82));
-        transition: opacity 340ms ease;
+        transition: opacity var(--sb-motion-primary-exit-ms) var(--sb-ease-primary);
       }
 
       #sb-nav-overlay.sb-nav-overlay-active {
@@ -347,13 +366,17 @@
         transform: perspective(1200px) translate3d(0, 22px, -80px) rotateX(5deg) scale(0.96);
         transform-origin: 50% 12%;
         filter: blur(12px) saturate(0.88);
-        transition: opacity 320ms ease, transform 320ms ease, filter 320ms ease;
+        transition:
+          opacity var(--sb-motion-primary-exit-ms) var(--sb-ease-primary),
+          transform var(--sb-motion-primary-exit-ms) var(--sb-ease-primary),
+          filter var(--sb-motion-primary-exit-ms) var(--sb-ease-primary);
       }
 
       #sb-main.sb-main-exit.sb-tx-home-discover {
         transform: perspective(1100px) translate3d(-6%, 8px, -120px) rotateY(5deg) rotateX(3deg) scale(0.94);
         filter: blur(14px) saturate(0.85);
-        transition-duration: 380ms, 380ms, 380ms;
+        transition-duration: calc(var(--sb-motion-primary-exit-ms) + 60ms), calc(var(--sb-motion-primary-exit-ms) + 60ms),
+          calc(var(--sb-motion-primary-exit-ms) + 60ms);
       }
 
       #sb-main.sb-main-enter {
@@ -367,8 +390,10 @@
         opacity: 1;
         transform: perspective(1200px) translate3d(0, 0, 0) rotateX(0) scale(1);
         filter: blur(0);
-        transition: opacity 480ms cubic-bezier(0.22, 0.82, 0.22, 1), transform 480ms cubic-bezier(0.22, 0.82, 0.22, 1),
-          filter 480ms cubic-bezier(0.22, 0.82, 0.22, 1);
+        transition:
+          opacity var(--sb-motion-primary-enter-ms) var(--sb-ease-primary),
+          transform var(--sb-motion-primary-enter-ms) var(--sb-ease-primary),
+          filter var(--sb-motion-primary-enter-ms) var(--sb-ease-primary);
       }
 
       #sb-main.sb-main-enter.sb-tx-home-discover {
@@ -410,10 +435,10 @@
           0 18px 40px rgba(0, 0, 0, 0.35),
           0 0 0 1px rgba(255, 255, 255, 0.06) inset;
         transition:
-          transform 220ms ease,
-          box-shadow 320ms ease,
-          border-color 320ms ease,
-          background-color 320ms ease;
+          transform var(--sb-motion-tertiary-ms) var(--sb-ease-tertiary),
+          box-shadow var(--sb-motion-secondary-ms) var(--sb-ease-secondary),
+          border-color var(--sb-motion-secondary-ms) var(--sb-ease-secondary),
+          background-color var(--sb-motion-secondary-ms) var(--sb-ease-secondary);
       }
 
       .sb-glass-card:hover {
@@ -425,7 +450,7 @@
       }
 
       .sb-glass-card .sb-glass-card-media {
-        transition: transform 420ms cubic-bezier(0.22, 0.82, 0.22, 1);
+        transition: transform calc(var(--sb-motion-secondary-ms) + 100ms) var(--sb-ease-secondary);
         will-change: transform;
       }
 
@@ -434,7 +459,9 @@
       }
 
       .sb-glass-card .sb-glass-card-copy {
-        transition: transform 520ms cubic-bezier(0.18, 0.82, 0.22, 1), opacity 400ms ease;
+        transition:
+          transform calc(var(--sb-motion-secondary-ms) + 200ms) var(--sb-ease-secondary),
+          opacity calc(var(--sb-motion-secondary-ms) + 80ms) var(--sb-ease-secondary);
       }
 
       .sb-glass-card:hover .sb-glass-card-copy {
@@ -458,7 +485,7 @@
         position: relative;
         display: inline-block;
         transform-style: preserve-3d;
-        transition: transform 280ms ease, filter 280ms ease;
+        transition: transform var(--sb-motion-tertiary-ms) var(--sb-ease-tertiary), filter var(--sb-motion-tertiary-ms) var(--sb-ease-tertiary);
         text-shadow:
           0 1px 0 rgba(255, 255, 255, 0.12),
           0 6px 18px rgba(0, 0, 0, 0.55);
@@ -762,6 +789,98 @@
     </script>
 
     <script>
+      (function () {
+        const root = document.documentElement;
+        const laneRank = {
+          idle: 0,
+          tertiary: 1,
+          secondary: 2,
+          primary: 3,
+        };
+        const active = new Map();
+        let seq = 0;
+        let currentLane = "idle";
+
+        const normalizeLane = (lane) => {
+          const key = String(lane || "").trim().toLowerCase();
+          return Object.prototype.hasOwnProperty.call(laneRank, key) ? key : "idle";
+        };
+
+        const emitLaneChange = (lane) => {
+          window.dispatchEvent(
+            new CustomEvent("sb:motion-lane-change", {
+              detail: { lane, rank: laneRank[lane] || 0 },
+            })
+          );
+        };
+
+        const setLane = (lane) => {
+          if (lane === currentLane) {
+            return;
+          }
+          currentLane = lane;
+          root.dataset.sbMotionLane = lane;
+          emitLaneChange(lane);
+        };
+
+        const recompute = () => {
+          let nextLane = "idle";
+          let nextOrder = -1;
+          active.forEach((entry) => {
+            const rank = laneRank[entry.lane] || 0;
+            const currentRank = laneRank[nextLane] || 0;
+            if (rank > currentRank || (rank === currentRank && entry.order > nextOrder)) {
+              nextLane = entry.lane;
+              nextOrder = entry.order;
+            }
+          });
+          setLane(nextLane);
+        };
+
+        const begin = (lane, options = {}) => {
+          const normalized = normalizeLane(lane);
+          const token = `sb-motion-${Date.now()}-${++seq}`;
+          active.set(token, {
+            lane: normalized,
+            source: String(options.source || ""),
+            order: seq,
+            at: performance.now(),
+          });
+          recompute();
+          return token;
+        };
+
+        const end = (token) => {
+          if (!token) {
+            return;
+          }
+          if (active.delete(token)) {
+            recompute();
+          }
+        };
+
+        const pulse = (lane, duration = 420, options = {}) => {
+          const token = begin(lane, options);
+          const ms = Math.max(0, Number(duration) || 0);
+          window.setTimeout(() => end(token), ms);
+          return token;
+        };
+
+        root.dataset.sbMotionLane = "idle";
+        window.__sbMotion = {
+          begin,
+          end,
+          pulse,
+          rank: (lane) => laneRank[normalizeLane(lane)] || 0,
+          isAtLeast: (lane) => (laneRank[currentLane] || 0) >= (laneRank[normalizeLane(lane)] || 0),
+          get lane() {
+            return currentLane;
+          },
+        };
+      })();
+    </script>
+
+    <script>
       window.__sbWorldThemes = {{ style_world_theme_map|tojson|safe }};
       window.__sbApplyWorldTheme = function(slug) {
         const themes = window.__sbWorldThemes || {};
@@ -808,6 +927,10 @@
         const mark = document.getElementById("sb-brand-mark");
         if (!mark) return;
         mark.addEventListener("pointermove", (event) => {
+          if (window.__sbMotion?.isAtLeast("secondary")) {
+            mark.style.transform = "";
+            return;
+          }
           const rect = mark.getBoundingClientRect();
           const cx = rect.left + rect.width / 2;
           const cy = rect.top + rect.height / 2;
@@ -820,13 +943,19 @@
         mark.addEventListener("pointerleave", () => {
           mark.style.transform = "";
         });
+        window.addEventListener("sb:motion-lane-change", (event) => {
+          const lane = String(event?.detail?.lane || "");
+          if (lane === "primary" || lane === "secondary") {
+            mark.style.transform = "";
+          }
+        });
       })();
     </script>
 
     <script type="module">
-      import { bootSiteShell3D } from "{{ url_for('static', filename='js/site_shell_3d.js', v='20260512-cinema1') }}";
-      import { bootPageTransitions } from "{{ url_for('static', filename='js/page_transitions.js', v='20260512-cinema1') }}";
-      import { bootGlassCards } from "{{ url_for('static', filename='js/glass_cards.js', v='20260512-cinema1') }}";
+      import { bootSiteShell3D } from "{{ url_for('static', filename='js/site_shell_3d.js', v='20260512-cinema2') }}";
+      import { bootPageTransitions } from "{{ url_for('static', filename='js/page_transitions.js', v='20260512-cinema2') }}";
+      import { bootGlassCards } from "{{ url_for('static', filename='js/glass_cards.js', v='20260512-cinema2') }}";
 
       window.addEventListener("DOMContentLoaded", () => {
         const shell = bootSiteShell3D({

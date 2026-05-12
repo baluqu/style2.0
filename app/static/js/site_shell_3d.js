@@ -9,6 +9,14 @@ function smoothstep(edge0, edge1, x) {
   return t * t * (3 - 2 * t);
 }
 
+function createSeededRandom(seed = 1337) {
+  let value = seed >>> 0;
+  return () => {
+    value = (value * 1664525 + 1013904223) >>> 0;
+    return value / 4294967296;
+  };
+}
+
 function supportsWebGL() {
   try {
     const canvas = document.createElement("canvas");
@@ -52,17 +60,109 @@ function normalizeWorld(rawWorld) {
 function worldAtmosphere(worldKey) {
   const key = normalizeWorld(worldKey);
   const worlds = {
-    "neo-minimal": { accent: 0x8ec5ff, secondary: 0xbfd2e6, motionScale: 0.78, ambientScale: 1.06, keyScale: 1.02 },
-    "dark-academia": { accent: 0xd2b48c, secondary: 0x6f5943, motionScale: 0.66, ambientScale: 0.86, keyScale: 0.84 },
-    "monochrome-utility": { accent: 0xb6c2cf, secondary: 0x6b7480, motionScale: 1.08, ambientScale: 0.94, keyScale: 1.02 },
-    "tokyo-street": { accent: 0x6eb8ff, secondary: 0x8b5cf6, motionScale: 1.28, ambientScale: 0.96, keyScale: 1.14 },
-    "quiet-luxury": { accent: 0xe2c7a7, secondary: 0x8d765f, motionScale: 0.62, ambientScale: 1.04, keyScale: 0.92 },
-    "futuristic-editorial": { accent: 0x7fd7ff, secondary: 0x6b73ff, motionScale: 1.34, ambientScale: 0.98, keyScale: 1.18 },
-    "vintage-athletic": { accent: 0xe6a86f, secondary: 0x5f4a3b, motionScale: 1.12, ambientScale: 0.93, keyScale: 1.06 },
-    "nordic-clean": { accent: 0x9fc8be, secondary: 0x6d817a, motionScale: 0.72, ambientScale: 1.05, keyScale: 0.92 },
-    "avant-garde-structure": { accent: 0xd0d0df, secondary: 0x5f6072, motionScale: 1.24, ambientScale: 0.9, keyScale: 1.12 },
+    "neo-minimal": {
+      accent: 0x8ec5ff,
+      secondary: 0xbfd2e6,
+      motionScale: 0.78,
+      ambientScale: 1.06,
+      keyScale: 1.02,
+      driftScale: 0.68,
+      ringScale: 0.84,
+      particleScale: 0.74,
+    },
+    "dark-academia": {
+      accent: 0xd2b48c,
+      secondary: 0x6f5943,
+      motionScale: 0.66,
+      ambientScale: 0.86,
+      keyScale: 0.84,
+      driftScale: 0.58,
+      ringScale: 0.72,
+      particleScale: 0.66,
+    },
+    "monochrome-utility": {
+      accent: 0xb6c2cf,
+      secondary: 0x6b7480,
+      motionScale: 1.08,
+      ambientScale: 0.94,
+      keyScale: 1.02,
+      driftScale: 0.82,
+      ringScale: 1.06,
+      particleScale: 0.9,
+    },
+    "tokyo-street": {
+      accent: 0x6eb8ff,
+      secondary: 0x8b5cf6,
+      motionScale: 1.28,
+      ambientScale: 0.96,
+      keyScale: 1.14,
+      driftScale: 1.04,
+      ringScale: 1.2,
+      particleScale: 1.12,
+    },
+    "quiet-luxury": {
+      accent: 0xe2c7a7,
+      secondary: 0x8d765f,
+      motionScale: 0.62,
+      ambientScale: 1.04,
+      keyScale: 0.92,
+      driftScale: 0.52,
+      ringScale: 0.68,
+      particleScale: 0.58,
+    },
+    "futuristic-editorial": {
+      accent: 0x7fd7ff,
+      secondary: 0x6b73ff,
+      motionScale: 1.34,
+      ambientScale: 0.98,
+      keyScale: 1.18,
+      driftScale: 1.08,
+      ringScale: 1.26,
+      particleScale: 1.18,
+    },
+    "vintage-athletic": {
+      accent: 0xe6a86f,
+      secondary: 0x5f4a3b,
+      motionScale: 1.12,
+      ambientScale: 0.93,
+      keyScale: 1.06,
+      driftScale: 0.92,
+      ringScale: 1.04,
+      particleScale: 0.94,
+    },
+    "nordic-clean": {
+      accent: 0x9fc8be,
+      secondary: 0x6d817a,
+      motionScale: 0.72,
+      ambientScale: 1.05,
+      keyScale: 0.92,
+      driftScale: 0.58,
+      ringScale: 0.74,
+      particleScale: 0.66,
+    },
+    "avant-garde-structure": {
+      accent: 0xd0d0df,
+      secondary: 0x5f6072,
+      motionScale: 1.24,
+      ambientScale: 0.9,
+      keyScale: 1.12,
+      driftScale: 0.9,
+      ringScale: 1.22,
+      particleScale: 1.04,
+    },
   };
-  return worlds[key] || { accent: 0x6eb8e0, secondary: 0xc9b8a8, motionScale: 1, ambientScale: 1, keyScale: 1 };
+  return (
+    worlds[key] || {
+      accent: 0x6eb8e0,
+      secondary: 0xc9b8a8,
+      motionScale: 1,
+      ambientScale: 1,
+      keyScale: 1,
+      driftScale: 1,
+      ringScale: 1,
+      particleScale: 1,
+    }
+  );
 }
 
 function pickQuality() {
@@ -205,6 +305,7 @@ class SiteShell3D {
     this.pointer = { x: 0, y: 0 };
     this.navBoost = 0;
     this.sweepFromHome = false;
+    this.motionLane = "idle";
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(46, 1, 0.1, 80);
@@ -234,6 +335,10 @@ class SiteShell3D {
     this.targetRouteKey = normalizeRoute(this.getRoute());
     this.targetWorldKey = normalizeWorld(this.getWorld());
     this.targetWorld = worldAtmosphere(this.targetWorldKey);
+    this.lookVector = new THREE.Vector3(...initial.look);
+    this.tmpBgColor = new THREE.Color(initial.bg);
+    this.tmpAccentColor = new THREE.Color(this.targetWorld.accent);
+    this.tmpSecondaryColor = new THREE.Color(this.targetWorld.secondary);
 
     this.handleResize = () => this.resize();
     this.handlePointerMove = (event) => {
@@ -246,9 +351,16 @@ class SiteShell3D {
       if (document.visibilityState === "hidden") this.stop();
       else this.start();
     };
+    this.handleMotionLane = (event) => {
+      const lane = String(event?.detail?.lane || document.documentElement?.dataset?.sbMotionLane || "idle")
+        .trim()
+        .toLowerCase();
+      this.motionLane = lane || "idle";
+    };
 
     window.addEventListener("resize", this.handleResize, { passive: true });
     window.addEventListener("pointermove", this.handlePointerMove, { passive: true });
+    window.addEventListener("sb:motion-lane-change", this.handleMotionLane, { passive: true });
     document.addEventListener("visibilitychange", this.handleVisibility);
 
     this.resize();
@@ -258,6 +370,7 @@ class SiteShell3D {
     this.stop();
     window.removeEventListener("resize", this.handleResize);
     window.removeEventListener("pointermove", this.handlePointerMove);
+    window.removeEventListener("sb:motion-lane-change", this.handleMotionLane);
     document.removeEventListener("visibilitychange", this.handleVisibility);
     this.renderer.dispose();
   }
@@ -312,9 +425,17 @@ class SiteShell3D {
     }
 
     const panelGeo = new THREE.PlaneGeometry(1.2, 1.95, 12, 12);
+    const panelLayout = [
+      { pos: [-2.22, 0.62, -2.85], rot: [0.09, 1.18, 0.04], scale: 0.78, drift: 0.11, bob: 0.12 },
+      { pos: [2.05, -0.28, -3.5], rot: [0.06, 2.36, 0.08], scale: 0.92, drift: 0.07, bob: 0.1 },
+      { pos: [-0.28, -0.86, -4.25], rot: [0.04, 0.54, 0.06], scale: 0.84, drift: 0.06, bob: 0.09 },
+      { pos: [1.68, 0.82, -5.15], rot: [0.11, 1.72, 0.1], scale: 0.98, drift: 0.09, bob: 0.11 },
+      { pos: [-1.54, -0.04, -6.05], rot: [0.07, 2.78, 0.03], scale: 0.86, drift: 0.08, bob: 0.1 },
+    ];
     const panelTints = [0x9aacbc, 0x7d8fa3, 0x6eb8e0];
     this.panels = [];
-    for (let i = 0; i < 5; i += 1) {
+    for (let i = 0; i < panelLayout.length; i += 1) {
+      const layout = panelLayout[i];
       const mat = new THREE.MeshPhysicalMaterial({
         color: panelTints[i % panelTints.length],
         roughness: 0.48,
@@ -326,14 +447,10 @@ class SiteShell3D {
         side: THREE.DoubleSide,
       });
       const panel = new THREE.Mesh(panelGeo, mat);
-      panel.position.set(
-        (Math.random() - 0.5) * 5.2,
-        (Math.random() - 0.5) * 2.4,
-        -2.2 - Math.random() * 5.4
-      );
-      panel.rotation.set(Math.random() * 0.22, Math.random() * Math.PI, Math.random() * 0.18);
-      panel.scale.setScalar(0.65 + Math.random() * 0.45);
-      panel.userData = { drift: 0.04 + Math.random() * 0.08, bob: 0.06 + Math.random() * 0.14 };
+      panel.position.set(layout.pos[0], layout.pos[1], layout.pos[2]);
+      panel.rotation.set(layout.rot[0], layout.rot[1], layout.rot[2]);
+      panel.scale.setScalar(layout.scale);
+      panel.userData = { drift: layout.drift, bob: layout.bob };
       this.root.add(panel);
       this.panels.push(panel);
     }
@@ -341,12 +458,16 @@ class SiteShell3D {
 
   createParticles() {
     const count = this.quality.particleCount;
+    const random = createSeededRandom(44021);
     const geo = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
     for (let i = 0; i < count; i += 1) {
-      positions[i * 3] = (Math.random() - 0.5) * 18;
-      positions[i * 3 + 1] = (Math.random() - 0.35) * 12;
-      positions[i * 3 + 2] = -Math.random() * 14;
+      const angle = random() * Math.PI * 2;
+      const radius = 2.8 + random() * 8.6 + (i / Math.max(count, 1)) * 4.2;
+      const spread = 0.42 + random() * 0.5;
+      positions[i * 3] = Math.cos(angle) * radius * spread;
+      positions[i * 3 + 1] = (random() - 0.35) * 11.4;
+      positions[i * 3 + 2] = -Math.abs(Math.sin(angle) * radius) - random() * 4.4;
     }
     geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
@@ -394,7 +515,8 @@ class SiteShell3D {
     if (immediate) {
       this.currentChapter = { ...this.targetChapter };
       this.camera.position.set(...this.currentChapter.pos);
-      this.camera.lookAt(...this.currentChapter.look);
+      this.lookVector.set(...this.currentChapter.look);
+      this.camera.lookAt(this.lookVector);
       this.backdrop.material.color.setHex(this.currentChapter.bg);
       this.ambient.intensity = this.currentChapter.ambient;
       this.key.intensity = this.currentChapter.key;
@@ -436,7 +558,7 @@ class SiteShell3D {
     if (!this.running) return;
     this.rafId = requestAnimationFrame(this.animate);
 
-    const delta = this.clock.getDelta();
+    const delta = Math.min(this.clock.getDelta(), 0.05);
     const t = this.clock.getElapsedTime();
 
     const nowRouteKey = normalizeRoute(this.getRoute());
@@ -448,64 +570,90 @@ class SiteShell3D {
       this.setWorld(nowWorldKey);
     }
 
-    const pointerX = this.pointer.x * 0.18;
-    const pointerY = this.pointer.y * 0.09;
+    const lane = this.motionLane;
+    const primaryLane = lane === "primary";
+    const secondaryLane = lane === "secondary";
+    const secondaryGain = primaryLane ? 0.46 : 1;
+    const tertiaryGain = primaryLane ? 0.08 : secondaryLane ? 0.42 : 1;
+    const ambientGain = primaryLane ? 0.2 : secondaryLane ? 0.6 : 1;
 
-    const lerpSpeed = prefersReducedMotion() ? 0.12 : 0.048;
+    const pointerX = this.pointer.x * 0.18 * tertiaryGain;
+    const pointerY = this.pointer.y * 0.09 * tertiaryGain;
+
+    const lerpSpeed = prefersReducedMotion() ? 0.12 : primaryLane ? 0.066 : 0.048;
     const boost = prefersReducedMotion() ? 0 : this.navBoost;
     const navEase = smoothstep(0, 1, boost);
 
-    const pos = [...this.targetChapter.pos];
-    const look = [...this.targetChapter.look];
+    let posX = this.targetChapter.pos[0];
+    let posY = this.targetChapter.pos[1];
+    let posZ = this.targetChapter.pos[2];
+    let lookX = this.targetChapter.look[0];
+    let lookY = this.targetChapter.look[1];
+    let lookZ = this.targetChapter.look[2];
 
     if (this.sweepFromHome && navEase > 0.05) {
       const sweep = Math.sin(navEase * Math.PI) * 0.55;
-      pos[0] += sweep;
-      pos[2] += sweep * 0.22;
+      posX += sweep;
+      posZ += sweep * 0.22;
     }
 
-    const driftX = Math.sin(t * 0.35) * 0.04;
-    const driftY = Math.cos(t * 0.28) * 0.028;
+    const driftX = Math.sin(t * 0.35) * 0.04 * this.targetWorld.driftScale * tertiaryGain;
+    const driftY = Math.cos(t * 0.28) * 0.028 * this.targetWorld.driftScale * tertiaryGain;
 
     this.camera.position.x +=
-      (pos[0] + pointerX + driftX - this.camera.position.x) * (lerpSpeed + navEase * 0.04);
+      (posX + pointerX + driftX - this.camera.position.x) * (lerpSpeed + navEase * 0.04);
     this.camera.position.y +=
-      (pos[1] - pointerY + driftY - this.camera.position.y) * (lerpSpeed + navEase * 0.04);
-    this.camera.position.z += (pos[2] - this.camera.position.z) * (lerpSpeed + navEase * 0.038);
-    this.camera.lookAt(look[0], look[1], look[2]);
+      (posY - pointerY + driftY - this.camera.position.y) * (lerpSpeed + navEase * 0.04);
+    this.camera.position.z += (posZ - this.camera.position.z) * (lerpSpeed + navEase * 0.038);
 
-    const bg = new THREE.Color(this.targetChapter.bg);
-    this.backdrop.material.color.lerp(bg, 0.05 + navEase * 0.05);
+    lookX += this.pointer.x * 0.04 * tertiaryGain;
+    lookY += this.pointer.y * 0.018 * tertiaryGain;
+    this.lookVector.x += (lookX - this.lookVector.x) * (lerpSpeed + navEase * 0.03);
+    this.lookVector.y += (lookY - this.lookVector.y) * (lerpSpeed + navEase * 0.03);
+    this.lookVector.z += (lookZ - this.lookVector.z) * (lerpSpeed + navEase * 0.03);
+    this.camera.lookAt(this.lookVector);
+
+    this.tmpBgColor.setHex(this.targetChapter.bg);
+    this.backdrop.material.color.lerp(this.tmpBgColor, 0.05 + navEase * 0.05);
 
     this.ambient.intensity += (this.targetChapter.ambient * this.targetWorld.ambientScale - this.ambient.intensity) * 0.045;
     this.key.intensity += (this.targetChapter.key * this.targetWorld.keyScale - this.key.intensity) * 0.045;
     this.rim.intensity += (this.targetChapter.rim - this.rim.intensity) * 0.045;
     this.accent.intensity += (this.targetChapter.accent - this.accent.intensity) * 0.045;
-    this.accent.color.lerp(new THREE.Color(this.targetWorld.accent), 0.05);
-    this.rim.color.lerp(new THREE.Color(this.targetWorld.secondary), 0.04);
+    this.tmpAccentColor.setHex(this.targetWorld.accent);
+    this.tmpSecondaryColor.setHex(this.targetWorld.secondary);
+    this.accent.color.lerp(this.tmpAccentColor, 0.05);
+    this.rim.color.lerp(this.tmpSecondaryColor, 0.04);
 
-    const ringEnergy = (1 + navEase * 0.45) * this.targetWorld.motionScale;
+    const ringEnergy = (1 + navEase * 0.45) * this.targetWorld.motionScale * this.targetWorld.ringScale * secondaryGain;
     this.rings?.forEach((ring, index) => {
       ring.rotation.z += (ring.userData.speed || 0.06) * delta * ringEnergy;
-      ring.rotation.y += 0.022 * delta;
+      ring.rotation.y += 0.022 * delta * secondaryGain;
       ring.position.y =
         0.04 +
         index * 0.1 +
-        Math.sin(t * 0.75 + index) * (ring.userData.wobble || 0.06) * (0.65 + navEase * 0.4);
+        Math.sin(t * 0.75 + index) * (ring.userData.wobble || 0.06) * (0.65 + navEase * 0.4) * secondaryGain;
     });
 
     this.panels?.forEach((panel, index) => {
-      panel.rotation.y += (panel.userData.drift || 0.08) * delta * 0.28 * (0.7 + navEase * 0.5);
-      panel.rotation.x += 0.01 * delta;
-      panel.position.y += Math.sin(t * 0.48 + index) * (panel.userData.bob || 0.1) * delta * this.targetWorld.motionScale;
+      panel.rotation.y += (panel.userData.drift || 0.08) * delta * 0.28 * (0.7 + navEase * 0.5) * secondaryGain;
+      panel.rotation.x += 0.01 * delta * secondaryGain;
+      panel.position.y +=
+        Math.sin(t * 0.48 + index) *
+        (panel.userData.bob || 0.1) *
+        delta *
+        this.targetWorld.motionScale *
+        secondaryGain;
     });
 
     if (this.particles) {
-      this.particles.rotation.y = t * (0.014 + navEase * 0.028) * this.targetWorld.motionScale;
-      this.particles.rotation.x = Math.sin(t * 0.1) * (0.045 + navEase * 0.04) * this.targetWorld.motionScale;
+      this.particles.rotation.y =
+        t * (0.014 + navEase * 0.028) * this.targetWorld.motionScale * this.targetWorld.particleScale * ambientGain;
+      this.particles.rotation.x =
+        Math.sin(t * 0.1) * (0.045 + navEase * 0.04) * this.targetWorld.motionScale * this.targetWorld.particleScale * ambientGain;
     }
 
-    this.navBoost = Math.max(0, this.navBoost - delta * 0.85);
+    this.navBoost = Math.max(0, this.navBoost - delta * (primaryLane ? 0.62 : 0.85));
     this.renderer.render(this.scene, this.camera);
   };
 }

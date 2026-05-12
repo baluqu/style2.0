@@ -52,6 +52,46 @@ const WORLD_MOTION_PROFILES = {
     rotation: 0.72,
     zoom: 0.78,
   },
+  "monochrome-utility": {
+    tempo: 0.92,
+    drift: 0.74,
+    contrast: 1.04,
+    blur: 0.5,
+    rotation: 0.96,
+    zoom: 0.98,
+  },
+  "futuristic-editorial": {
+    tempo: 1.24,
+    drift: 0.62,
+    contrast: 1.28,
+    blur: 0.78,
+    rotation: 1.12,
+    zoom: 1.08,
+  },
+  "vintage-athletic": {
+    tempo: 1.08,
+    drift: 0.84,
+    contrast: 1.06,
+    blur: 0.58,
+    rotation: 0.98,
+    zoom: 1.02,
+  },
+  "nordic-clean": {
+    tempo: 0.66,
+    drift: 0.58,
+    contrast: 0.76,
+    blur: 0.36,
+    rotation: 0.74,
+    zoom: 0.84,
+  },
+  "avant-garde-structure": {
+    tempo: 1.16,
+    drift: 0.78,
+    contrast: 1.2,
+    blur: 0.7,
+    rotation: 1.14,
+    zoom: 1.05,
+  },
 };
 
 function clamp(value, min, max) {
@@ -110,6 +150,19 @@ function isLowMemoryDevice() {
   } catch {
     return false;
   }
+}
+
+function motionLaneGains() {
+  const lane = String(window.__sbMotion?.lane || document.documentElement?.dataset?.sbMotionLane || "idle")
+    .trim()
+    .toLowerCase();
+  if (lane === "primary") {
+    return { lane, secondary: 0.44, tertiary: 0.08 };
+  }
+  if (lane === "secondary") {
+    return { lane, secondary: 1, tertiary: 0.4 };
+  }
+  return { lane: "idle", secondary: 1, tertiary: 1 };
 }
 
 function pickQuality() {
@@ -324,18 +377,22 @@ function HeroScene({
     const phase = phaseRef.current;
     const t = frame.clock.getElapsedTime();
     const world = stageState.worldProfile || WORLD_MOTION_PROFILES.default;
+    const laneGains = motionLaneGains();
+    const secondaryGain = laneGains.secondary;
+    const tertiaryGain = laneGains.tertiary;
+    const stepDelta = Math.min(delta, 0.05);
 
-    stageState.pointer.x = damp(stageState.pointer.x, stageState.pointerTarget.x, 6.2, delta);
-    stageState.pointer.y = damp(stageState.pointer.y, stageState.pointerTarget.y, 6.2, delta);
+    stageState.pointer.x = damp(stageState.pointer.x, stageState.pointerTarget.x * tertiaryGain, 6.2, stepDelta);
+    stageState.pointer.y = damp(stageState.pointer.y, stageState.pointerTarget.y * tertiaryGain, 6.2, stepDelta);
 
-    const driftX = Math.sin(t * 0.23 * world.tempo) * 0.07 * world.drift;
-    const driftY = Math.cos(t * 0.17 * world.tempo) * 0.045 * world.drift;
-    const breath = Math.sin(t * 0.2 * world.tempo) * 0.07 * world.zoom;
+    const driftX = Math.sin(t * 0.23 * world.tempo) * 0.07 * world.drift * tertiaryGain;
+    const driftY = Math.cos(t * 0.17 * world.tempo) * 0.045 * world.drift * tertiaryGain;
+    const breath = Math.sin(t * 0.2 * world.tempo) * 0.07 * world.zoom * secondaryGain;
 
-    stageState.spin += delta * 0.104 * world.rotation;
-    const lift = Math.sin(t * 0.64 * world.tempo) * 0.052 * world.drift;
-    const wave = Math.sin(t * 0.44 * world.tempo) * 0.06 * world.rotation;
-    const roll = Math.sin(t * 0.34 * world.tempo) * 0.017 * world.rotation;
+    stageState.spin += stepDelta * 0.104 * world.rotation * secondaryGain;
+    const lift = Math.sin(t * 0.64 * world.tempo) * 0.052 * world.drift * secondaryGain;
+    const wave = Math.sin(t * 0.44 * world.tempo) * 0.06 * world.rotation * secondaryGain;
+    const roll = Math.sin(t * 0.34 * world.tempo) * 0.017 * world.rotation * secondaryGain;
 
     const width = size.width || window.innerWidth || 1280;
     const baseScale = width < 700 ? 0.84 : width < 1100 ? 0.95 : 1;
@@ -346,32 +403,32 @@ function HeroScene({
         orbitRef.current.rotation.y,
         stageState.spin + stageState.pointer.x * 0.1 + wave,
         3.1,
-        delta
+        stepDelta
       );
       orbitRef.current.rotation.x = damp(
         orbitRef.current.rotation.x,
         -0.02 + stageState.pointer.y * 0.05,
         3.0,
-        delta
+        stepDelta
       );
-      orbitRef.current.rotation.z = damp(orbitRef.current.rotation.z, roll, 2.7, delta);
+      orbitRef.current.rotation.z = damp(orbitRef.current.rotation.z, roll, 2.7, stepDelta);
       orbitRef.current.scale.setScalar(baseScale * revealScale);
     }
 
     if (floatRef.current) {
-      floatRef.current.position.y = damp(floatRef.current.position.y, lift, 3.7, delta);
-      floatRef.current.position.x = damp(floatRef.current.position.x, stageState.pointer.x * 0.045, 3.7, delta);
+      floatRef.current.position.y = damp(floatRef.current.position.y, lift, 3.7, stepDelta);
+      floatRef.current.position.x = damp(floatRef.current.position.x, stageState.pointer.x * 0.045, 3.7, stepDelta);
     }
 
     const targetCamX = 0.02 + stageState.pointer.x * 0.16 + driftX;
     const targetCamY = 0.18 - stageState.pointer.y * 0.09 + driftY + stageState.progress * 0.03;
     const targetCamZ = 4.95 - phase * 0.6 * world.zoom + breath + stageState.progress * 0.12;
 
-    camera.position.x = damp(camera.position.x, targetCamX, 3.9, delta);
-    camera.position.y = damp(camera.position.y, targetCamY, 3.9, delta);
-    camera.position.z = damp(camera.position.z, targetCamZ, 3.55, delta);
+    camera.position.x = damp(camera.position.x, targetCamX, 3.9, stepDelta);
+    camera.position.y = damp(camera.position.y, targetCamY, 3.9, stepDelta);
+    camera.position.z = damp(camera.position.z, targetCamZ, 3.55, stepDelta);
     camera.lookAt(
-      damp(0, stageState.pointer.x * 0.14, 3.4, delta),
+      damp(0, stageState.pointer.x * 0.14, 3.4, stepDelta),
       0.02 + stageState.pointer.y * 0.045,
       -0.08 - stageState.progress * 0.2
     );
@@ -388,22 +445,22 @@ function HeroScene({
     }
     if (glowRef.current?.material) {
       glowRef.current.rotation.z = -t * 0.035;
-      glowRef.current.material.opacity = (0.2 + Math.sin(t * 0.35 * world.tempo) * 0.035) * world.blur;
+      glowRef.current.material.opacity = (0.2 + Math.sin(t * 0.35 * world.tempo) * 0.035) * world.blur * secondaryGain;
     }
     if (sideGlowRef.current?.material) {
       sideGlowRef.current.rotation.z = t * 0.042;
-      sideGlowRef.current.material.opacity = (0.12 + Math.cos(t * 0.33 * world.tempo) * 0.03) * world.blur;
+      sideGlowRef.current.material.opacity = (0.12 + Math.cos(t * 0.33 * world.tempo) * 0.03) * world.blur * secondaryGain;
     }
 
-    const artifactX = clamp(stageState.pointer.x * 1.9 + Math.sin(t * 0.35) * 0.65, -5.6, 5.6);
-    const artifactY = clamp(stageState.pointer.y * 1.1 + Math.cos(t * 0.26) * 0.4, -3.1, 3.1);
+    const artifactX = clamp(stageState.pointer.x * 1.9 + Math.sin(t * 0.35) * 0.65 * secondaryGain, -5.6, 5.6);
+    const artifactY = clamp(stageState.pointer.y * 1.1 + Math.cos(t * 0.26) * 0.4 * secondaryGain, -3.1, 3.1);
     const spinDeg = ((stageState.spin % (Math.PI * 2)) * 180) / Math.PI;
-    const uiShiftX = clamp(stageState.pointer.x * 10 + Math.sin(t * 0.41) * 3, -14, 14);
-    const uiShiftY = clamp(stageState.pointer.y * 7 + Math.cos(t * 0.33) * 2.4, -10, 10);
-    const uiDepth = clamp(110 + phase * 78 + Math.sin(t * 0.28) * 10, 90, 220);
-    const uiTilt = clamp(stageState.pointer.x * -1.8 + Math.sin(t * 0.37) * 0.9, -3.2, 3.2);
+    const uiShiftX = clamp((stageState.pointer.x * 10 + Math.sin(t * 0.41) * 3) * tertiaryGain, -14, 14);
+    const uiShiftY = clamp((stageState.pointer.y * 7 + Math.cos(t * 0.33) * 2.4) * tertiaryGain, -10, 10);
+    const uiDepth = clamp(110 + phase * 78 + Math.sin(t * 0.28) * 10 * secondaryGain, 90, 220);
+    const uiTilt = clamp((stageState.pointer.x * -1.8 + Math.sin(t * 0.37) * 0.9) * tertiaryGain, -3.2, 3.2);
     const lightAlpha = clamp(
-      (0.1 + Math.sin(t * 0.3 * world.tempo + stageState.spin * 0.2) * 0.07) * world.contrast,
+      (0.1 + Math.sin(t * 0.3 * world.tempo + stageState.spin * 0.2) * 0.07) * world.contrast * secondaryGain,
       0.02,
       0.2
     );
@@ -744,10 +801,17 @@ export function bootHomeHeroScene({
       return;
     }
     revealed = true;
+    const revealToken = window.__sbMotion?.begin?.("primary", { source: "home-hero-reveal" }) || null;
     animate(uiDepthMV, 148, { duration: 1.85, ease: [0.22, 1, 0.36, 1] });
-    await runRevealSequence(stage, phaseRef, { intro, statusEl });
-    animate(uiDepthMV, 194, { duration: 1.7, ease: [0.22, 1, 0.36, 1] });
-    animate(lightMV, 0.12, { duration: 2.1, ease: "easeOut" });
+    try {
+      await runRevealSequence(stage, phaseRef, { intro, statusEl });
+      animate(uiDepthMV, 194, { duration: 1.7, ease: [0.22, 1, 0.36, 1] });
+      animate(lightMV, 0.12, { duration: 2.1, ease: "easeOut" });
+    } finally {
+      if (revealToken) {
+        window.__sbMotion?.end?.(revealToken);
+      }
+    }
   };
 
   const onLoadProgress = (percent, { fallback } = {}) => {
@@ -801,6 +865,9 @@ export function bootHomeHeroScene({
       typeof detail.slug === "string" && detail.slug.trim()
         ? detail.slug.trim().toLowerCase()
         : stageStateRef.current.worldSlug || DEFAULT_WORLD_SLUG;
+    if (nextSlug !== stageStateRef.current.worldSlug) {
+      window.__sbMotion?.pulse?.("primary", 640, { source: "home-world-entry" });
+    }
     const motionProfile =
       detail.motionProfile && typeof detail.motionProfile === "object" ? detail.motionProfile : detail;
     stageStateRef.current.worldSlug = nextSlug;

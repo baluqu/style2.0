@@ -62,6 +62,21 @@ function parseHtml(htmlText) {
   return parser.parseFromString(htmlText, "text/html");
 }
 
+function readDurationMs(varName, fallback) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  if (!value) return fallback;
+  if (value.endsWith("ms")) {
+    const parsed = Number.parseFloat(value.slice(0, -2));
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  if (value.endsWith("s")) {
+    const parsed = Number.parseFloat(value.slice(0, -1));
+    return Number.isFinite(parsed) ? parsed * 1000 : fallback;
+  }
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 function extractPayload(doc, mainId) {
   const nextMain = doc.getElementById(mainId);
   if (!nextMain) {
@@ -122,6 +137,7 @@ export function bootPageTransitions({ mainId = "sb-main", shell = null } = {}) {
   let currentUrl = window.location.href;
   const cache = new Map();
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const motion = window.__sbMotion || null;
 
   const setRouteDataset = (route) => {
     if (!document.body) return;
@@ -161,7 +177,8 @@ export function bootPageTransitions({ mainId = "sb-main", shell = null } = {}) {
     if (mode === "home-discover") {
       main.classList.add("sb-tx-home-discover");
     }
-    const ms = mode === "home-discover" ? 400 : 320;
+    const baseMs = readDurationMs("--sb-motion-primary-exit-ms", 340);
+    const ms = mode === "home-discover" ? baseMs + 60 : baseMs;
     return new Promise((resolve) => {
       window.setTimeout(resolve, ms);
     });
@@ -172,7 +189,8 @@ export function bootPageTransitions({ mainId = "sb-main", shell = null } = {}) {
     main.classList.remove("sb-main-exit", "sb-tx-home-discover");
     clearMainEnterState(main);
     setMainEnterState(main, mode);
-    const ms = mode === "home-discover" ? 520 : 500;
+    const baseMs = readDurationMs("--sb-motion-primary-enter-ms", 500);
+    const ms = mode === "home-discover" ? baseMs + 40 : baseMs;
     return new Promise((resolve) => {
       window.setTimeout(() => {
         overlay?.classList.remove("sb-nav-overlay-active");
@@ -217,11 +235,13 @@ export function bootPageTransitions({ mainId = "sb-main", shell = null } = {}) {
   const navigateTo = async (url, { push = true } = {}) => {
     if (navigating) return;
     navigating = true;
+    let motionToken = null;
 
     const nextUrl = new URL(url, window.location.href).toString();
     const fromRoute = document.body?.dataset?.sbRoute || "";
 
     document.documentElement.classList.add("sb-nav-freeze");
+    motionToken = motion?.begin?.("primary", { source: "route-transition" }) || null;
     emit("sb:navigate-start", { from: currentUrl, to: nextUrl, fromRoute });
 
     try {
@@ -254,6 +274,9 @@ export function bootPageTransitions({ mainId = "sb-main", shell = null } = {}) {
       console.warn("Transition navigation failed; falling back.", error);
       window.location.href = nextUrl;
     } finally {
+      if (motionToken) {
+        motion?.end?.(motionToken);
+      }
       document.documentElement.classList.remove("sb-nav-freeze");
       navigating = false;
     }

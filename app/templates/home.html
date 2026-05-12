@@ -20,6 +20,7 @@
       --sb-world-accent-soft-rgb: 225, 233, 241;
       --sb-world-contrast: 1;
       --sb-world-atmo-blur: 0.52;
+      --sb-typo-stagger: 48ms;
       position: relative;
       margin: -0.5rem;
       padding: clamp(0.75rem, 2vw, 2rem);
@@ -85,6 +86,28 @@
       max-width: 58ch;
       font: 500 clamp(0.92rem, 1.4vw, 1.04rem) / 1.84 "Manrope", "Space Grotesk", sans-serif;
       color: rgba(197, 209, 223, 0.9);
+    }
+
+    [data-sb-typo-node] {
+      opacity: 0;
+      transform: translate3d(0, 12px, -34px);
+      filter: blur(8px);
+      transition:
+        opacity calc(var(--sb-motion-secondary-ms) + 260ms) var(--sb-ease-secondary),
+        transform calc(var(--sb-motion-secondary-ms) + 300ms) var(--sb-ease-secondary),
+        filter calc(var(--sb-motion-secondary-ms) + 140ms) var(--sb-ease-secondary);
+      transition-delay: var(--sb-typo-delay, 0ms);
+      will-change: transform, opacity, filter;
+    }
+
+    [data-sb-typo-node][data-sb-typo-depth="deep"] {
+      transform: translate3d(0, 18px, -72px);
+    }
+
+    [data-sb-typo-node].is-live {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      filter: blur(0);
     }
 
     .sb-prelude-actions {
@@ -244,6 +267,20 @@
     .sb-cinema-stage.sb-hero-model-on .sb-hero-cinema-layer {
       opacity: 1;
       transform: translate3d(0, 0, -10px) scale(1);
+    }
+
+    .sb-cinema-stage.sb-world-transitioning .sb-hero-atmosphere {
+      opacity: 0.9;
+      filter: saturate(calc(var(--sb-world-contrast) * 1.08)) blur(calc((var(--sb-world-atmo-blur) + 0.12) * 5px));
+      transition:
+        opacity calc(var(--sb-motion-primary-enter-ms) - 60ms) var(--sb-ease-primary),
+        filter calc(var(--sb-motion-primary-enter-ms) - 60ms) var(--sb-ease-primary);
+    }
+
+    .sb-cinema-stage.sb-world-transitioning .sb-panel-stack,
+    .sb-cinema-stage.sb-world-transitioning .sb-cinema-hud,
+    .sb-cinema-stage.sb-world-transitioning .sb-chapter-rail {
+      transition-duration: calc(var(--sb-motion-primary-enter-ms) - 80ms);
     }
 
     .sb-hero-model-canvas {
@@ -817,6 +854,16 @@
       gap: 0.72rem;
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
+      transition:
+        border-color calc(var(--sb-motion-secondary-ms) + 80ms) var(--sb-ease-secondary),
+        background-color calc(var(--sb-motion-secondary-ms) + 80ms) var(--sb-ease-secondary),
+        transform calc(var(--sb-motion-secondary-ms) + 40ms) var(--sb-ease-secondary);
+    }
+
+    .sb-world-console.sb-world-transitioning .sb-world-hero {
+      border-color: rgba(var(--sb-world-accent-rgb), 0.4);
+      background: rgba(var(--sb-world-accent-rgb), 0.1);
+      transform: translate3d(0, -2px, 0);
     }
 
     .sb-world-meta {
@@ -1237,6 +1284,13 @@
         transform: none !important;
         filter: none !important;
       }
+
+      [data-sb-typo-node] {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+        transition: none !important;
+      }
     }
   </style>
 
@@ -1648,6 +1702,7 @@
       const stage = document.getElementById("sb-cinema-stage");
       const tabsWrap = document.getElementById("sb-world-tabs");
       const recList = document.getElementById("sb-rec-list");
+      const worldConsole = document.querySelector(".sb-world-console");
       const worldName = document.getElementById("sb-world-name");
       const worldMood = document.getElementById("sb-world-mood");
       const worldMotion = document.getElementById("sb-world-motion");
@@ -1738,6 +1793,7 @@
       const identityRuntime = {
         queue: [],
         flushTimer: 0,
+        worldTransitionTimer: 0,
         activeWorldSlug: "",
         worldEnteredAt: 0,
         visibleCards: new Set(),
@@ -1949,8 +2005,26 @@
         if (!world) {
           return;
         }
+        const previousWorldSlug = identityRuntime.activeWorldSlug;
+        const worldChanged = Boolean(previousWorldSlug && previousWorldSlug !== world.slug);
         if (identityRuntime.activeWorldSlug && identityRuntime.activeWorldSlug !== world.slug) {
           closeWorldDwell(world.slug);
+        }
+
+        if (worldChanged) {
+          window.__sbMotion?.pulse?.("primary", 760, { source: "home-world-shift" });
+          stage.classList.add("sb-world-transitioning");
+          if (worldConsole) {
+            worldConsole.classList.add("sb-world-transitioning");
+          }
+          if (identityRuntime.worldTransitionTimer) {
+            window.clearTimeout(identityRuntime.worldTransitionTimer);
+          }
+          identityRuntime.worldTransitionTimer = window.setTimeout(() => {
+            stage.classList.remove("sb-world-transitioning");
+            worldConsole?.classList.remove("sb-world-transitioning");
+            identityRuntime.worldTransitionTimer = 0;
+          }, 780);
         }
 
         stage.dataset.world = world.slug;
@@ -2107,10 +2181,81 @@
       window.addEventListener("beforeunload", () => {
         closeWorldDwell(identityRuntime.activeWorldSlug);
         flushIdentityQueue(true);
+        if (identityRuntime.worldTransitionTimer) {
+          window.clearTimeout(identityRuntime.worldTransitionTimer);
+          identityRuntime.worldTransitionTimer = 0;
+        }
       });
 
       const fallbackWorld = worldShowcase.length ? worldShowcase[0].slug : "quiet-luxury";
       applyWorld(selectedDefault || fallbackWorld || "quiet-luxury");
+    })();
+  </script>
+
+  <script>
+    (function () {
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const selectors = [
+        ".sb-prelude-tag",
+        ".sb-prelude-title",
+        ".sb-prelude-copy",
+        ".sb-panel-title",
+        ".sb-panel-copy",
+        ".sb-console-kicker",
+        ".sb-console-title",
+        ".sb-console-copy",
+        ".sb-home-tail h3",
+        ".sb-home-tail p",
+      ];
+      const nodes = [...document.querySelectorAll(selectors.join(","))];
+      if (!nodes.length) {
+        return;
+      }
+
+      nodes.forEach((node, index) => {
+        node.setAttribute("data-sb-typo-node", "1");
+        const isDeep =
+          node.classList.contains("sb-panel-title") ||
+          node.classList.contains("sb-console-title") ||
+          node.classList.contains("sb-prelude-title") ||
+          node.tagName === "H3";
+        node.setAttribute("data-sb-typo-depth", isDeep ? "deep" : "mid");
+        node.style.setProperty("--sb-typo-delay", `${(index % 8) * 48}ms`);
+      });
+
+      if (reduced) {
+        nodes.forEach((node) => node.classList.add("is-live"));
+        return;
+      }
+
+      const observer = new IntersectionObserver(
+        (entries, obs) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+              return;
+            }
+            const target = entry.target;
+            window.requestAnimationFrame(() => target.classList.add("is-live"));
+            obs.unobserve(target);
+          });
+        },
+        {
+          root: null,
+          threshold: 0.2,
+          rootMargin: "0px 0px -10% 0px",
+        }
+      );
+      nodes.forEach((node) => observer.observe(node));
+
+      window.addEventListener("sb:motion-lane-change", (event) => {
+        if (String(event?.detail?.lane || "") === "primary") {
+          nodes.forEach((node) => {
+            if (node.classList.contains("is-live")) {
+              node.style.setProperty("--sb-typo-delay", "0ms");
+            }
+          });
+        }
+      });
     })();
   </script>
 
@@ -2151,6 +2296,18 @@
 
       const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
       const ease = (x) => 1 - Math.pow(1 - x, 2.2);
+      const laneGains = () => {
+        const lane = String(window.__sbMotion?.lane || document.documentElement?.dataset?.sbMotionLane || "idle")
+          .trim()
+          .toLowerCase();
+        if (lane === "primary") {
+          return { lane, secondary: 0.46, tertiary: 0.1 };
+        }
+        if (lane === "secondary") {
+          return { lane, secondary: 1, tertiary: 0.42 };
+        }
+        return { lane: "idle", secondary: 1, tertiary: 1 };
+      };
       const normalizeMotion = (raw) => {
         const source = raw && typeof raw === "object" ? raw : {};
         return {
@@ -2182,6 +2339,7 @@
 
       const render = () => {
         ticking = false;
+        const gains = laneGains();
         const rect = wrap.getBoundingClientRect();
         const total = Math.max(1, rect.height - window.innerHeight);
         const raw = clamp(-rect.top / total, 0, 1);
@@ -2210,14 +2368,18 @@
           const eased = ease(clamp(1 - distance * (1.78 + worldMotion.tempo * 0.12), 0, 1));
           const side = index % 2 === 0 ? -1 : 1;
           const orbitBand = (22.5 + absDelta * 3.2) * (0.9 + worldMotion.contrast * 0.16);
-          const x = side * orbitBand + Math.sin((timeline + index) * 0.68 * worldMotion.tempo) * (1.8 * worldMotion.rotation);
-          const y = delta * (13.6 + worldMotion.drift * 2.2) + Math.cos(timeline * 0.9 * worldMotion.tempo + index) * 1.2;
-          const z = (-absDelta * 260 + eased * 135) * worldMotion.zoom;
-          const rotY = clamp((delta * -6 + side * 8) * worldMotion.rotation, -22, 22);
-          const rotX = clamp(absDelta * 3.5 * (0.86 + worldMotion.zoom * 0.18), 0, 8);
+          const x =
+            side * orbitBand * gains.secondary +
+            Math.sin((timeline + index) * 0.68 * worldMotion.tempo) * (1.8 * worldMotion.rotation) * gains.tertiary;
+          const y =
+            delta * (13.6 + worldMotion.drift * 2.2) * gains.secondary +
+            Math.cos(timeline * 0.9 * worldMotion.tempo + index) * 1.2 * gains.tertiary;
+          const z = (-absDelta * 260 + eased * 135) * worldMotion.zoom * (0.78 + gains.secondary * 0.22);
+          const rotY = clamp((delta * -6 + side * 8) * worldMotion.rotation * gains.secondary, -22, 22);
+          const rotX = clamp(absDelta * 3.5 * (0.86 + worldMotion.zoom * 0.18) * gains.secondary, 0, 8);
           const scale = clamp(1 - absDelta * 0.11, 0.64, 1);
           const opacity = clamp(1 - absDelta * 0.26, 0.12, 1);
-          const blur = clamp(absDelta * 2.8 * worldMotion.blur, 0, 12);
+          const blur = clamp(absDelta * 2.8 * worldMotion.blur * gains.secondary, 0, 12);
 
           panel.style.zIndex = String(300 - Math.round(absDelta * 40));
           panel.style.opacity = opacity.toFixed(3);
@@ -2256,6 +2418,7 @@
         },
         { passive: true }
       );
+      window.addEventListener("sb:motion-lane-change", requestRender, { passive: true });
 
       window.addEventListener("scroll", requestRender, { passive: true });
       window.addEventListener("resize", requestRender, { passive: true });
@@ -2279,7 +2442,7 @@
   </script>
 
   <script type="module">
-    import { bootHomeHeroScene } from "{{ url_for('static', filename='js/home_hero_scene.js', v='20260512-hero4') }}";
+    import { bootHomeHeroScene } from "{{ url_for('static', filename='js/home_hero_scene.js', v='20260512-hero5') }}";
 
     window.addEventListener("DOMContentLoaded", () => {
       bootHomeHeroScene({
