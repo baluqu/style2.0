@@ -54,6 +54,8 @@ def ensure_user_flow_schema() -> None:
         "profile_vector_json": "ALTER TABLE user ADD COLUMN profile_vector_json TEXT",
         "saved_looks_json": "ALTER TABLE user ADD COLUMN saved_looks_json TEXT",
         "order_history_json": "ALTER TABLE user ADD COLUMN order_history_json TEXT",
+        "password_reset_token": "ALTER TABLE user ADD COLUMN password_reset_token VARCHAR(120)",
+        "password_reset_expires_at": "ALTER TABLE user ADD COLUMN password_reset_expires_at DATETIME",
     }
 
     changed = False

@@ -1622,12 +1622,73 @@ def sanitize_url(url: str, max_length: int = 1200) -> str:
     return url
 
 
+def _load_cart_from_profile() -> list[dict]:
+    if not current_user.is_authenticated:
+        return []
+    profile = current_user.get_profile_data()
+    raw_cart = profile.get("cart", [])
+    if not isinstance(raw_cart, list):
+        return []
+    normalized: list[dict] = []
+    for item in raw_cart:
+        if isinstance(item, dict):
+            normalized.append(item)
+    return normalized
+
+
 def cart_items() -> list[dict]:
+    if current_user.is_authenticated:
+        if "cart" not in session:
+            session["cart"] = _load_cart_from_profile()
+            session.modified = True
+        return session.setdefault("cart", [])
     return session.setdefault("cart", [])
 
 
 def cart_total() -> float:
     return round(sum(item.get("price", 0) * item.get("quantity", 1) for item in cart_items()), 2)
+
+
+def persist_user_cart_to_profile() -> None:
+    if not current_user.is_authenticated:
+        return
+    profile = current_user.get_profile_data()
+    profile["cart"] = cart_items()
+    current_user.set_profile_data(profile)
+    db.session.commit()
+
+
+def merge_cart_items(existing: list[dict], incoming: list[dict]) -> list[dict]:
+    merged: dict[str, dict] = {}
+    for item in list(existing or []) + list(incoming or []):
+        if not isinstance(item, dict):
+            continue
+        item_id = str(item.get("id", "") or "").strip()
+        if not item_id:
+            continue
+        quantity = max(1, int(item.get("quantity", 1) or 1))
+        if item_id in merged:
+            merged[item_id]["quantity"] = max(1, merged[item_id].get("quantity", 1) + quantity)
+        else:
+            merged[item_id] = {**item, "quantity": quantity}
+    return list(merged.values())
+
+
+def merge_session_and_profile_cart() -> list[dict]:
+    if not current_user.is_authenticated:
+        return cart_items()
+    profile_cart = _load_cart_from_profile()
+    session_cart = session.get("cart") if isinstance(session.get("cart"), list) else []
+    merged = merge_cart_items(profile_cart, session_cart)
+    if merged != session_cart:
+        session["cart"] = merged
+        session.modified = True
+    if merged != profile_cart:
+        profile = current_user.get_profile_data()
+        profile["cart"] = merged
+        current_user.set_profile_data(profile)
+        db.session.commit()
+    return merged
 
 
 def parse_profile_bool(value, default: bool) -> bool:
@@ -4919,6 +4980,7 @@ def cart_add():
     )
     current_user.set_profile_data(data)
     db.session.commit()
+    persist_user_cart_to_profile()
 
     session.modified = True
     flash("Added to cart.", "success")
@@ -4940,6 +5002,7 @@ def cart_remove():
     item_id = request.form.get("item_id", "")
     session["cart"] = [item for item in cart_items() if item.get("id") != item_id]
     session.modified = True
+    persist_user_cart_to_profile()
     flash("Removed from cart.", "info")
     return redirect(url_for("main.cart"))
 
@@ -5000,6 +5063,7 @@ def checkout():
         session["last_order"] = order_payload
         session["cart"] = []
         session.modified = True
+        persist_user_cart_to_profile()
         flash("Order placed successfully.", "success")
         return redirect(url_for("main.order_success"))
 

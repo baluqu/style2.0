@@ -13,6 +13,16 @@
         {{ form.phone(class_="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white", placeholder="+254 7XX XXX XXX") }}
         {% for e in form.phone.errors %}<div class="mt-1 text-sm text-rose-300">{{ e }}</div>{% endfor %}
       </div>
+      {% if otp_required %}
+      <div>
+        <label class="text-sm font-bold text-slate-300">{{ form.otp_code.label.text }}</label>
+        {{ form.otp_code(class_="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white", placeholder="Enter one-time code") }}
+        {% for e in form.otp_code.errors %}<div class="mt-1 text-sm text-rose-300">{{ e }}</div>{% endfor %}
+        {% if phone_hint %}
+          <div class="mt-2 text-sm text-slate-400">Enter the code sent for {{ phone_hint }}.</div>
+        {% endif %}
+      </div>
+      {% endif %}
       <button class="w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-slate-100" type="submit">Continue with phone</button>
     </form>
   </div>

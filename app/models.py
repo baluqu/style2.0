@@ -32,6 +32,8 @@ class User(UserMixin, db.Model):
     profile_vector_json = db.Column(db.Text, nullable=True)
     saved_looks_json = db.Column(db.Text, nullable=True)
     order_history_json = db.Column(db.Text, nullable=True)
+    password_reset_token = db.Column(db.String(120), nullable=True, index=True)
+    password_reset_expires_at = db.Column(db.DateTime, nullable=True)
     # Legacy flag (kept for backward compatibility); RBAC uses roles.
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     roles = db.relationship("Role", secondary=user_roles, lazy="selectin")
