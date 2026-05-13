@@ -18,7 +18,7 @@ from flask import Blueprint, render_template, current_app, jsonify, request, abo
 from flask_login import login_required, current_user, logout_user
 
 from .. import db, limiter
-from ..models import Item, SellerOrder, SellerProduct, User
+from ..models import Item, SellerOrder, SellerProduct, User, WardrobeItem, SavedWorld, IdentityEvent, RecommendationHistory, UserOrder
 from ..security import assign_role, audit, require_permission
 from ..storage import UploadStorageError, save_uploaded_file
 from ..identity_engine import (
@@ -1691,6 +1691,290 @@ def merge_session_and_profile_cart() -> list[dict]:
     return merged
 
 
+def identity_memory_from_db() -> dict:
+    if not current_user.is_authenticated:
+        return normalize_identity_memory({})
+
+    raw_events = [event.to_dict() for event in current_user.get_identity_events()]
+    memory = normalize_identity_memory({"events": raw_events, "counters": {}})
+    return memory
+
+
+def merge_identity_memory(json_memory: dict, db_memory: dict) -> dict:
+    base = normalize_identity_memory(json_memory)
+    if not isinstance(db_memory, dict):
+        return base
+    combined_events = list(base.get("events", []) or []) + list(db_memory.get("events", []) or [])
+    base["events"] = combined_events[-720:]
+    combined_counters = base.get("counters", {}).copy()
+    db_counters = db_memory.get("counters", {}) or {}
+    for counter_name, counter_values in db_counters.items():
+        if not isinstance(counter_values, dict):
+            continue
+        combined = combined_counters.get(counter_name, {}).copy()
+        for key, value in counter_values.items():
+            combined[key] = combined.get(key, 0.0) + float(value or 0.0)
+        combined_counters[counter_name] = combined
+    base["counters"] = combined_counters
+    if isinstance(db_memory.get("state", {}), dict):
+        base["state"] = db_memory.get("state")
+    return base
+
+
+def migrate_profile_wardrobe_to_db(profile: dict) -> None:
+    if not current_user.is_authenticated:
+        return
+    if getattr(current_user, "wardrobe_items", []):
+        return
+    legacy_items = profile.get("wardrobe_items", []) if isinstance(profile.get("wardrobe_items"), list) else []
+    if not legacy_items:
+        return
+
+    migrated = False
+    for item in legacy_items:
+        if not isinstance(item, dict):
+            continue
+        title = sanitize_text(item.get("title", ""), 220) or "Wardrobe item"
+        wardrobe_item = WardrobeItem(
+            user_id=int(current_user.get_id()),
+            title=title,
+            category=sanitize_text(item.get("category", "Accessory"), 120) or "Accessory",
+            color=sanitize_text(item.get("color", ""), 80),
+            texture=sanitize_text(item.get("texture", ""), 120),
+            occasion=sanitize_text(item.get("occasion", ""), 120),
+            layer_role=sanitize_text(item.get("layer_role", ""), 120),
+            silhouette=sanitize_text(item.get("silhouette", ""), 80),
+            fit=sanitize_text(item.get("fit", ""), 80),
+            layering_potential=_to_float(item.get("layering_potential", ""), 0.0) if item.get("layering_potential", "") != "" else None,
+            color_palette=sanitize_text(item.get("color_palette", ""), 80),
+            material_appearance=sanitize_text(item.get("material_appearance", ""), 80),
+            formality_level=_to_float(item.get("formality_level", ""), 0.0) if item.get("formality_level", "") != "" else None,
+            visual_aggression=_to_float(item.get("visual_aggression", ""), 0.0) if item.get("visual_aggression", "") != "" else None,
+            aesthetic_category=sanitize_text(item.get("aesthetic_category", ""), 120),
+            fashion_era_influence=sanitize_text(item.get("fashion_era_influence", ""), 80),
+        )
+        db.session.add(wardrobe_item)
+        migrated = True
+
+    if migrated:
+        db.session.commit()
+        profile.pop("wardrobe_items", None)
+        current_user.set_profile_data(profile)
+        db.session.commit()
+
+
+def migrate_profile_saved_worlds_to_db(profile: dict) -> None:
+    if not current_user.is_authenticated:
+        return
+    if getattr(current_user, "saved_worlds", []):
+        return
+    legacy_worlds = profile.get("saved_worlds", []) if isinstance(profile.get("saved_worlds"), list) else []
+    if not legacy_worlds:
+        return
+
+    migrated = False
+    for raw_slug in legacy_worlds:
+        if not isinstance(raw_slug, str):
+            continue
+        slug = sanitize_text(raw_slug, 80)
+        if not slug:
+            continue
+        if slug in {entry.slug for entry in getattr(current_user, "saved_worlds", [])}:
+            continue
+        db.session.add(SavedWorld(user_id=int(current_user.get_id()), slug=slug, source="legacy_saved_world"))
+        migrated = True
+
+    if migrated:
+        db.session.commit()
+        profile.pop("saved_worlds", None)
+        current_user.set_profile_data(profile)
+        db.session.commit()
+
+
+def migrate_profile_orders_to_db(profile: dict) -> None:
+    if not current_user.is_authenticated:
+        return
+    if getattr(current_user, "user_orders", []):
+        return
+    legacy_orders = profile.get("order_history", []) if isinstance(profile.get("order_history", []), list) else []
+    if not legacy_orders:
+        return
+    migrated = False
+    for raw_order in legacy_orders:
+        if not isinstance(raw_order, dict):
+            continue
+        reference = sanitize_text(raw_order.get("reference", ""), 120) or f"LEGACY-{uuid.uuid4().hex[:8].upper()}"
+        order = UserOrder(
+            user_id=int(current_user.get_id()),
+            reference=reference,
+            items_json=json.dumps(raw_order.get("items", []) if isinstance(raw_order.get("items", []), list) else []),
+            total_amount=_to_float(raw_order.get("total", 0), 0.0),
+            payment_method=sanitize_text(raw_order.get("payment_method", ""), 80),
+            shipping_name=sanitize_text(raw_order.get("shipping_name", ""), 120),
+            shipping_address=sanitize_text(raw_order.get("shipping_address", ""), 240),
+            status=sanitize_text(raw_order.get("status", "Pending"), 40) or "Pending",
+        )
+        db.session.add(order)
+        migrated = True
+    if migrated:
+        db.session.commit()
+        profile.pop("order_history", None)
+        current_user.set_profile_data(profile)
+        db.session.commit()
+
+
+def profile_wardrobe_items() -> list[dict]:
+    if current_user.is_authenticated:
+        profile = current_user.get_profile_data()
+        migrate_profile_wardrobe_to_db(profile)
+        items = current_user.get_wardrobe_items()
+        if items:
+            return items
+    data = current_user.get_profile_data() if current_user.is_authenticated else {}
+    wardrobe_items = data.get("wardrobe_items", []) if isinstance(data.get("wardrobe_items"), list) else []
+    return [item for item in wardrobe_items if isinstance(item, dict)]
+
+
+def profile_saved_worlds() -> list[str]:
+    if current_user.is_authenticated:
+        profile = current_user.get_profile_data()
+        migrate_profile_saved_worlds_to_db(profile)
+        world_slugs = current_user.get_saved_world_slugs()
+        if world_slugs:
+            return world_slugs
+    data = current_user.get_profile_data() if current_user.is_authenticated else {}
+    return [slug for slug in (data.get("saved_worlds") or []) if isinstance(slug, str)]
+
+
+def profile_order_history() -> list[dict]:
+    if current_user.is_authenticated:
+        profile = current_user.get_profile_data()
+        migrate_profile_orders_to_db(profile)
+        orders = current_user.get_user_orders()
+        if orders:
+            return orders
+    return current_user.get_order_history() if current_user.is_authenticated else []
+
+
+def record_identity_event_to_db(event_payload: dict) -> None:
+    if not current_user.is_authenticated or not isinstance(event_payload, dict) or not event_payload.get("type"):
+        return
+    try:
+        meta = event_payload.get("meta", {})
+        if not isinstance(meta, dict):
+            meta = {}
+        db_event = IdentityEvent(
+            user_id=int(current_user.get_id()),
+            type=sanitize_text(event_payload.get("type", ""), 80),
+            source=sanitize_text(event_payload.get("source", ""), 80),
+            world_slug=sanitize_text(event_payload.get("world_slug", ""), 80),
+            look_slug=sanitize_text(event_payload.get("look_slug", ""), 80),
+            recommendation_slug=sanitize_text(event_payload.get("recommendation_slug", ""), 80),
+            duration_ms=max(0, int(event_payload.get("duration_ms", 0) or 0)),
+            hover_ms=max(0, int(event_payload.get("hover_ms", 0) or 0)),
+            meta_json=json.dumps(meta),
+        )
+        db.session.add(db_event)
+    except Exception:
+        current_app.logger.exception("Unable to record identity event to database.")
+
+
+def record_recommendation_history(user_id: int, look_slug: str, world_slug: str, score: float, source: str, details: dict) -> None:
+    if not user_id or not look_slug:
+        return
+    try:
+        db.session.add(
+            RecommendationHistory(
+                user_id=user_id,
+                look_slug=sanitize_text(look_slug, 120),
+                world_slug=sanitize_text(world_slug, 80),
+                score=float(score or 0.0),
+                source=sanitize_text(source, 80),
+                details_json=json.dumps(details or {}),
+            )
+        )
+    except Exception:
+        current_app.logger.exception("Unable to write recommendation history.")
+
+
+def record_saved_world(world_slug: str) -> None:
+    if not current_user.is_authenticated or not world_slug:
+        return
+    slug = sanitize_text(world_slug, 80)
+    existing = [entry.slug for entry in getattr(current_user, "saved_worlds", [])]
+    if slug in existing:
+        return
+    try:
+        db.session.add(SavedWorld(user_id=int(current_user.get_id()), slug=slug, source="saved_look"))
+    except Exception:
+        current_app.logger.exception("Unable to persist saved world %s", slug)
+
+
+def remove_saved_world(world_slug: str) -> None:
+    if not current_user.is_authenticated or not world_slug:
+        return
+    slug = sanitize_text(world_slug, 80)
+    for entry in list(getattr(current_user, "saved_worlds", [])):
+        if entry.slug == slug:
+            db.session.delete(entry)
+
+
+def wardrobe_signal_scores(data: dict) -> dict[str, float]:
+    scores: dict[str, float] = {}
+    wardrobe_items = profile_wardrobe_items()
+    if not wardrobe_items:
+        return scores
+    for item in wardrobe_items:
+        color = sanitize_text(item.get("color", ""), 40).lower()
+        silhouette = sanitize_text(item.get("silhouette", ""), 40).lower()
+        category = sanitize_text(item.get("category", ""), 40).lower()
+        for val in (color, silhouette, category):
+            if not val:
+                continue
+            scores[val] = scores.get(val, 0.0) + 1.0
+    return scores
+
+
+def wardrobe_match_bonus(look: dict, data: dict) -> int:
+    bonus = 0
+    wardrobe_items = profile_wardrobe_items()
+    if not wardrobe_items:
+        return bonus
+    signals = wardrobe_signal_scores(data)
+    color = sanitize_text(look.get("color", ""), 40).lower()
+    for signal in signals:
+        if signal and signal in color:
+            bonus += 4
+    look_styles_set = set(look_styles(look))
+    wardrobe_styles = {sanitize_text(item.get("aesthetic_category", ""), 80) for item in wardrobe_items}
+    if look_styles_set.intersection(wardrobe_styles):
+        bonus += 4
+    saved_worlds = set(profile_saved_worlds())
+    world_slug = look_primary_world_slug(look)
+    if world_slug and world_slug in saved_worlds:
+        bonus += 6
+    if saved_worlds and look.get("slug") in current_user.get_saved_looks():
+        bonus += 8
+    return min(bonus, 18)
+
+
+def profile_data() -> dict:
+    if not current_user.is_authenticated:
+        return {}
+    profile = normalized_profile_data(current_user.get_profile_data())
+    gender = sanitize_text(profile.get("gender", ""), 60)
+    profile["behavior_cross_gender_preference"] = saved_looks_cross_gender_signal(gender)
+    profile["identity_memory"] = merge_identity_memory(
+        profile.get("identity_memory", {}),
+        identity_memory_from_db(),
+    )
+    if current_user.is_authenticated:
+        profile["wardrobe_items"] = profile_wardrobe_items()
+        profile["saved_worlds"] = profile_saved_worlds()
+        profile["order_history"] = profile_order_history()
+    return profile
+
+
 def parse_profile_bool(value, default: bool) -> bool:
     if value is None:
         return default
@@ -1750,16 +2034,6 @@ def saved_looks_cross_gender_signal(selected_gender: str) -> bool:
         return False
     ratio = opposite_hits / max(observed, 1)
     return opposite_hits >= 2 and ratio >= 0.34
-
-
-def profile_data() -> dict:
-    if not current_user.is_authenticated:
-        return {}
-    profile = normalized_profile_data(current_user.get_profile_data())
-    gender = sanitize_text(profile.get("gender", ""), 60)
-    profile["behavior_cross_gender_preference"] = saved_looks_cross_gender_signal(gender)
-    profile["identity_memory"] = normalize_identity_memory(profile.get("identity_memory", {}))
-    return profile
 
 
 def profile_payload_from_form(existing: dict | None = None) -> dict:
@@ -3012,6 +3286,7 @@ def evaluate_look_hierarchy(look: dict, data: dict, *, world_slug: str = "") -> 
         identity_score += min(14, len(favorite_styles.intersection(style_set)) * 5)
     if favorite_brands:
         identity_score += min(12, len(favorite_brands.intersection(look_brands)) * 4)
+    identity_score += wardrobe_match_bonus(look, data)
 
     user_budget = sanitize_text(data.get("budget_range", ""), 80)
     if user_budget:
@@ -3598,6 +3873,15 @@ def look_behavior_event_meta(look: dict, *, world_slug_hint: str = "") -> dict:
 def apply_identity_event_to_profile(data: dict, event_payload: dict) -> dict:
     payload = dict(data or {})
     payload["identity_memory"] = record_identity_event(payload.get("identity_memory", {}), event_payload)
+
+    if current_user.is_authenticated:
+        record_identity_event_to_db(event_payload)
+        event_type = sanitize_text(event_payload.get("type", ""), 80)
+        if event_type == "look_saved":
+            record_saved_world(event_payload.get("world_slug", ""))
+        elif event_type == "look_unsaved":
+            remove_saved_world(event_payload.get("world_slug", ""))
+
     return payload
 
 
@@ -4159,24 +4443,50 @@ def personalized_looks() -> list[dict]:
     data = profile_data()
     enriched = [enrich_look(look, data) for look in LOOKS]
     enriched = [look for look in enriched if look.get("eligible", True)]
+    history_boosts = recommendation_history_boosts()
+
     ordered = sorted(
         enriched,
-        key=lambda look: (-look["match_score"], budget_distance(data.get("budget_range", ""), look["budget"]), look["title"]),
+        key=lambda look: (
+            -(
+                int(look.get("match_score", 0))
+                + int(history_boosts.get(look.get("slug", ""), 0))
+                + int(history_boosts.get(f"world:{look_primary_world_slug(look)}", 0))
+            ),
+            budget_distance(data.get("budget_range", ""), look["budget"]),
+            look["title"],
+        ),
     )
     return dedupe_looks_by_image(ordered)
+
+
+def recommendation_history_boosts() -> dict[str, int]:
+    if not current_user.is_authenticated:
+        return {}
+    boosts: dict[str, int] = {}
+    for entry in getattr(current_user, "recommendation_history", []):
+        if not getattr(entry, "look_slug", None):
+            continue
+        boosts[entry.look_slug] = boosts.get(entry.look_slug, 0) + 2
+        if getattr(entry, "world_slug", None):
+            world_key = f"world:{entry.world_slug}"
+            boosts[world_key] = boosts.get(world_key, 0) + 1
+    return boosts
 
 
 def saved_world_signals(data: dict) -> list[str]:
     if not current_user.is_authenticated:
         return []
     signals: list[str] = []
+    saved_worlds = profile_saved_worlds()
+    signals.extend(saved_worlds)
     for slug in current_user.get_saved_looks():
         raw = LOOKS_BY_SLUG.get(str(slug))
         if not raw:
             continue
         look = enrich_look(raw, data)
         world_slug = look_primary_world_slug(look)
-        if world_slug:
+        if world_slug and world_slug not in signals:
             signals.append(world_slug)
     return signals
 
@@ -4253,6 +4563,7 @@ def home_recommendation_cards(data: dict, world_slug: str, *, limit: int = 4, id
 
     cards = []
     seen = set()
+    history_added = False
     for look in catalog:
         image_url = sanitize_url(look.get("image_url", ""), MAX_URL_LENGTH)
         if not image_url:
@@ -4263,25 +4574,45 @@ def home_recommendation_cards(data: dict, world_slug: str, *, limit: int = 4, id
         seen.add(dedupe_key)
 
         structures = sorted(look_fit_structures(look))
-        cards.append(
-            {
-                "slug": look.get("slug", ""),
-                "title": look.get("title", ""),
-                "creator": look.get("creator", ""),
-                "image_url": image_url,
-                "detail_url": url_for("main.look_detail", slug=look.get("slug", "")),
-                "styles": list(look.get("styles", [])),
-                "match_reason": look.get("match_reason", ""),
-                "identity_guidance": look.get("identity_guidance", "coherent reinforcement"),
-                "world_confidence": int(look.get("world_confidence", 0) or 0),
-                "world_slug": world_slug or look_primary_world_slug(look),
-                "presentation": look_gender_presentation(look),
-                "fit_structures": structures[:3],
-                "budget": look.get("budget", ""),
-            }
-        )
+        card = {
+            "slug": look.get("slug", ""),
+            "title": look.get("title", ""),
+            "creator": look.get("creator", ""),
+            "image_url": image_url,
+            "detail_url": url_for("main.look_detail", slug=look.get("slug", "")),
+            "styles": list(look.get("styles", [])),
+            "match_reason": look.get("match_reason", ""),
+            "identity_guidance": look.get("identity_guidance", "coherent reinforcement"),
+            "world_confidence": int(look.get("world_confidence", 0) or 0),
+            "world_slug": world_slug or look_primary_world_slug(look),
+            "presentation": look_gender_presentation(look),
+            "fit_structures": structures[:3],
+            "budget": look.get("budget", ""),
+        }
+        cards.append(card)
+        if current_user.is_authenticated:
+            record_recommendation_history(
+                int(current_user.get_id()),
+                look.get("slug", ""),
+                card["world_slug"],
+                float(look.get("match_score", 0) or 0),
+                "home_preview",
+                {
+                    "world_confidence": card["world_confidence"],
+                    "identity_bonus": int(look.get("identity_bonus", 0) or 0),
+                },
+            )
+            history_added = True
         if len(cards) >= max(1, limit):
             break
+
+    if history_added:
+        try:
+            db.session.commit()
+        except Exception:
+            current_app.logger.exception("Unable to commit home recommendation history.")
+            db.session.rollback()
+
     return cards
 
 
@@ -4416,7 +4747,22 @@ def append_order_to_history(order_payload: dict) -> None:
     history = current_user.get_order_history()
     history.insert(0, order_payload)
     current_user.set_order_history(history[:20])
-    db.session.commit()
+    try:
+        order = UserOrder(
+            user_id=int(current_user.get_id()),
+            reference=sanitize_text(order_payload.get("reference", ""), 120) or f"SB-{uuid.uuid4().hex[:8].upper()}",
+            total_amount=float(order_payload.get("total", 0) or 0.0),
+            payment_method=sanitize_text(order_payload.get("payment_method", ""), 80),
+            shipping_name=sanitize_text(order_payload.get("shipping_name", ""), 120),
+            shipping_address=sanitize_text(order_payload.get("shipping_address", ""), 240),
+            status=sanitize_text(order_payload.get("status", "Pending"), 40) or "Pending",
+        )
+        order.set_items(order_payload.get("items", []) if isinstance(order_payload.get("items", []), list) else [])
+        db.session.add(order)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Unable to record user order to database.")
 
 
 def validate_seller_cart_items() -> str:
@@ -5129,8 +5475,16 @@ def wardrobe():
     if request.method == "POST":
         remove_item_id = sanitize_text(request.form.get("remove_item_id", ""), 64)
         if remove_item_id:
-            wardrobe_items = [item for item in wardrobe_items if str(item.get("id", "")) != remove_item_id]
-            flash("Item removed from your digital closet.", "info")
+            try:
+                item_id = int(remove_item_id)
+            except (TypeError, ValueError):
+                item_id = None
+            item = WardrobeItem.query.filter_by(user_id=int(current_user.get_id()), id=item_id).first() if item_id is not None else None
+            if item:
+                db.session.delete(item)
+                flash("Item removed from your digital closet.", "info")
+            else:
+                flash("Item not found in your wardrobe.", "error")
         else:
             title = sanitize_text(request.form.get("title", ""), 140)
             if not title:
@@ -5173,35 +5527,29 @@ def wardrobe():
                 except (TypeError, ValueError):
                     visual_aggression = ""
 
-            wardrobe_items.insert(
-                0,
-                {
-                    "id": uuid.uuid4().hex[:10],
-                    "title": title,
-                    "category": category,
-                    "color": color,
-                    "texture": texture,
-                    "occasion": occasion,
-                    "layer_role": layer_role,
-                    "silhouette": silhouette,
-                    "fit": fit,
-                    "layering_potential": layering_potential,
-                    "color_palette": color_palette,
-                    "material_appearance": material_appearance,
-                    "formality_level": formality_level,
-                    "visual_aggression": visual_aggression,
-                    "aesthetic_category": aesthetic_category,
-                    "fashion_era_influence": fashion_era_influence,
-                    "added_at": datetime.utcnow().strftime("%Y-%m-%d"),
-                },
+            wardrobe_item = WardrobeItem(
+                user_id=int(current_user.get_id()),
+                title=title,
+                category=category,
+                color=color,
+                texture=texture,
+                occasion=occasion,
+                layer_role=layer_role,
+                silhouette=silhouette,
+                fit=fit,
+                layering_potential=layering_potential if layering_potential != "" else None,
+                color_palette=color_palette,
+                material_appearance=material_appearance,
+                formality_level=formality_level if formality_level != "" else None,
+                visual_aggression=visual_aggression if visual_aggression != "" else None,
+                aesthetic_category=aesthetic_category,
+                fashion_era_influence=fashion_era_influence,
             )
+            db.session.add(wardrobe_item)
             flash("Item added to your digital closet.", "success")
 
-        data["wardrobe_items"] = wardrobe_items[:240]
-        current_user.set_profile_data(data)
-        current_user.set_profile_vector(profile_vector_from(data))
         db.session.commit()
-        audit("wardrobe.updated", target=f"user:{current_user.id}", meta={"count": len(wardrobe_items)})
+        audit("wardrobe.updated", target=f"user:{current_user.id}", meta={"action": "remove" if remove_item_id else "add"})
         return redirect(url_for("main.wardrobe"))
 
     wardrobe_analysis = analyze_wardrobe_worlds(wardrobe_items)

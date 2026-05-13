@@ -84,6 +84,167 @@ class User(UserMixin, db.Model):
     def set_order_history(self, data: list[dict]) -> None:
         self.order_history_json = json.dumps(data)
 
+    def get_wardrobe_items(self) -> list[dict]:
+        return [item.to_dict() for item in getattr(self, "wardrobe_items", []) if hasattr(item, "to_dict")]
+
+    def get_saved_world_slugs(self) -> list[str]:
+        return [entry.slug for entry in getattr(self, "saved_worlds", []) if getattr(entry, "slug", None)]
+
+    def get_user_orders(self) -> list[dict]:
+        return [order.to_dict() for order in getattr(self, "user_orders", []) if hasattr(order, "to_dict")]
+
+    def get_identity_events(self) -> list[dict]:
+        return [event.to_dict() for event in getattr(self, "identity_events", []) if hasattr(event, "to_dict")]
+
+
+class WardrobeItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    title = db.Column(db.String(220), nullable=False)
+    category = db.Column(db.String(120), nullable=False, default="Accessory")
+    color = db.Column(db.String(80), nullable=True)
+    texture = db.Column(db.String(120), nullable=True)
+    occasion = db.Column(db.String(120), nullable=True)
+    layer_role = db.Column(db.String(120), nullable=True)
+    silhouette = db.Column(db.String(80), nullable=True)
+    fit = db.Column(db.String(80), nullable=True)
+    layering_potential = db.Column(db.Float, nullable=True)
+    color_palette = db.Column(db.String(80), nullable=True)
+    material_appearance = db.Column(db.String(80), nullable=True)
+    formality_level = db.Column(db.Float, nullable=True)
+    visual_aggression = db.Column(db.Float, nullable=True)
+    aesthetic_category = db.Column(db.String(120), nullable=True)
+    fashion_era_influence = db.Column(db.String(80), nullable=True)
+    image_url = db.Column(db.String(1200), nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship("User", backref=db.backref("wardrobe_items", lazy=True, cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "title": self.title or "",
+            "category": self.category or "Accessory",
+            "color": self.color or "",
+            "texture": self.texture or "",
+            "occasion": self.occasion or "",
+            "layer_role": self.layer_role or "",
+            "silhouette": self.silhouette or "",
+            "fit": self.fit or "",
+            "layering_potential": float(self.layering_potential) if self.layering_potential is not None else "",
+            "color_palette": self.color_palette or "",
+            "material_appearance": self.material_appearance or "",
+            "formality_level": float(self.formality_level) if self.formality_level is not None else "",
+            "visual_aggression": float(self.visual_aggression) if self.visual_aggression is not None else "",
+            "aesthetic_category": self.aesthetic_category or "",
+            "fashion_era_influence": self.fashion_era_influence or "",
+            "image_url": self.image_url or "",
+            "added_at": self.created_at.strftime("%Y-%m-%d") if self.created_at else "",
+        }
+
+
+class SavedWorld(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    slug = db.Column(db.String(120), nullable=False, index=True)
+    source = db.Column(db.String(80), nullable=False, default="user_action")
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship("User", backref=db.backref("saved_worlds", lazy=True, cascade="all, delete-orphan"))
+
+
+class IdentityEvent(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    type = db.Column(db.String(80), nullable=False, index=True)
+    source = db.Column(db.String(80), nullable=True)
+    world_slug = db.Column(db.String(80), nullable=True, index=True)
+    look_slug = db.Column(db.String(80), nullable=True, index=True)
+    recommendation_slug = db.Column(db.String(80), nullable=True, index=True)
+    duration_ms = db.Column(db.Integer, nullable=False, default=0)
+    hover_ms = db.Column(db.Integer, nullable=False, default=0)
+    meta_json = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    user = db.relationship("User", backref=db.backref("identity_events", lazy=True, cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type or "",
+            "source": self.source or "",
+            "world_slug": self.world_slug or "",
+            "look_slug": self.look_slug or "",
+            "recommendation_slug": self.recommendation_slug or "",
+            "duration_ms": int(self.duration_ms or 0),
+            "hover_ms": int(self.hover_ms or 0),
+            "meta": json.loads(self.meta_json) if self.meta_json else {},
+            "timestamp": self.created_at.strftime("%Y-%m-%dT%H:%M:%SZ") if self.created_at else "",
+        }
+
+
+class RecommendationHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    world_slug = db.Column(db.String(80), nullable=True, index=True)
+    recommendation_slug = db.Column(db.String(120), nullable=True, index=True)
+    look_slug = db.Column(db.String(120), nullable=True, index=True)
+    score = db.Column(db.Float, nullable=False, default=0.0)
+    source = db.Column(db.String(80), nullable=True)
+    details_json = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    user = db.relationship("User", backref=db.backref("recommendation_history", lazy=True, cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        return {
+            "world_slug": self.world_slug or "",
+            "recommendation_slug": self.recommendation_slug or "",
+            "look_slug": self.look_slug or "",
+            "score": float(self.score or 0.0),
+            "source": self.source or "",
+            "details": json.loads(self.details_json) if self.details_json else {},
+            "created_at": self.created_at.strftime("%Y-%m-%dT%H:%M:%SZ") if self.created_at else "",
+        }
+
+
+class UserOrder(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    reference = db.Column(db.String(120), nullable=False, unique=True, index=True)
+    items_json = db.Column(db.Text, nullable=True)
+    total_amount = db.Column(db.Float, nullable=False, default=0.0)
+    payment_method = db.Column(db.String(80), nullable=True)
+    shipping_name = db.Column(db.String(120), nullable=True)
+    shipping_address = db.Column(db.String(240), nullable=True)
+    status = db.Column(db.String(40), nullable=False, default="Pending")
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    user = db.relationship("User", backref=db.backref("user_orders", lazy=True, cascade="all, delete-orphan"))
+
+    def get_items(self) -> list[dict]:
+        if not self.items_json:
+            return []
+        try:
+            return json.loads(self.items_json)
+        except (TypeError, ValueError):
+            return []
+
+    def set_items(self, items: list[dict]) -> None:
+        self.items_json = json.dumps(items)
+
+    def to_dict(self) -> dict:
+        return {
+            "reference": self.reference,
+            "items": self.get_items(),
+            "total": float(self.total_amount or 0.0),
+            "payment_method": self.payment_method or "",
+            "shipping_name": self.shipping_name or "",
+            "shipping_address": self.shipping_address or "",
+            "status": self.status or "",
+            "created_at": self.created_at.strftime("%Y-%m-%d %H:%M UTC") if self.created_at else "",
+        }
+
 
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
