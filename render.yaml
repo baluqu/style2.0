@@ -6,7 +6,7 @@ services:
     region: oregon
     autoDeployTrigger: commit
     buildCommand: pip install -r requirements.txt && flask db upgrade
-    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    startCommand: gunicorn "app:create_app()" --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120
     healthCheckPath: /health
     envVars:
       - key: FLASK_ENV
