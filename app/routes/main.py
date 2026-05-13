@@ -5470,7 +5470,7 @@ def wardrobe():
         return maybe_redirect
 
     data = profile_data()
-    wardrobe_items = data.get("wardrobe_items", []) if isinstance(data.get("wardrobe_items"), list) else []
+    wardrobe_items = profile_wardrobe_items()
 
     if request.method == "POST":
         remove_item_id = sanitize_text(request.form.get("remove_item_id", ""), 64)

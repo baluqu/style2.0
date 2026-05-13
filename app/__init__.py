@@ -116,6 +116,23 @@ def configure_database_engine_options(app: Flask) -> None:
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_options
 
 
+def configure_app_logging(app: Flask) -> None:
+    raw_level = str(os.environ.get("LOG_LEVEL", app.config.get("LOG_LEVEL", "INFO"))).upper()
+    level = getattr(logging, raw_level, logging.INFO)
+
+    formatter = logging.Formatter("[%(asctime)s] %(levelname)s in %(module)s: %(message)s")
+    if not app.logger.handlers:
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        app.logger.addHandler(handler)
+    else:
+        for handler in app.logger.handlers:
+            handler.setFormatter(formatter)
+
+    app.logger.setLevel(level)
+    app.logger.propagate = False
+
+
 def validate_production_config(app: Flask) -> None:
     """Validate critical security settings in production.
     
