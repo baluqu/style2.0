@@ -21,10 +21,12 @@ def env_int(name: str, default: int) -> int:
 
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-change-me"
-    ADMIN_KEY = os.environ.get("ADMIN_KEY") or ""
-    ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL") or ""
-    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD") or ""
+    _secret_key = os.environ.get("SECRET_KEY", "").strip()
+    SECRET_KEY = _secret_key if _secret_key and len(_secret_key) >= 32 else "dev-change-me-insecure-default"
+    
+    ADMIN_KEY = os.environ.get("ADMIN_KEY", "").strip()
+    ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "").strip()
+    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "").strip()
 
     # SQLALCHEMY_DATABASE_URI is finalized in create_app() so we can safely use app.instance_path.
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "")
@@ -51,17 +53,18 @@ class Config:
     TESTING = False
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
     
-    # Session & Cookie Security
+    # Session & Cookie Security (enforced in production)
     SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", True)
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'Strict'  # Stricter than Lax
     SESSION_COOKIE_NAME = "__Secure-Session" if SESSION_COOKIE_SECURE else "stylebridge-session"
+    SESSION_REFRESH_EACH_REQUEST = True  # Refresh session timeout on each request
     PERMANENT_SESSION_LIFETIME = int(os.environ.get("PERMANENT_SESSION_LIFETIME", "3600"))  # 1 hour
 
     # Remember-me cookie security
     REMEMBER_COOKIE_SECURE = env_bool("REMEMBER_COOKIE_SECURE", True)
     REMEMBER_COOKIE_HTTPONLY = True
-    REMEMBER_COOKIE_SAMESITE = 'Lax'
+    REMEMBER_COOKIE_SAMESITE = 'Strict'  # Stricter than Lax
     REMEMBER_COOKIE_NAME = "__Secure-Remember" if REMEMBER_COOKIE_SECURE else "stylebridge-remember"
     REMEMBER_COOKIE_DURATION = int(os.environ.get("REMEMBER_COOKIE_DURATION", "2592000"))  # 30 days max
 
@@ -87,7 +90,14 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     FLASK_ENV = "production"
     DEBUG = False
+    TESTING = False
     SQLALCHEMY_ECHO = False
+    
+    # Enforce secure production settings
+    SESSION_COOKIE_SECURE = True  # No override in production
+    REMEMBER_COOKIE_SECURE = True  # No override in production
+    FORCE_HTTPS = True  # No override in production
+    PREFER_HTTPS = True
 
 
 config = {

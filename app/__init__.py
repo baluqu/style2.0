@@ -116,21 +116,48 @@ def configure_database_engine_options(app: Flask) -> None:
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_options
 
 
-def configure_app_logging(app: Flask) -> None:
-    raw_level = str(os.environ.get("LOG_LEVEL", app.config.get("LOG_LEVEL", "INFO"))).upper()
-    level = getattr(logging, raw_level, logging.INFO)
-
-    formatter = logging.Formatter("[%(asctime)s] %(levelname)s in %(module)s: %(message)s")
-    if not app.logger.handlers:
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-        app.logger.addHandler(handler)
-    else:
-        for handler in app.logger.handlers:
-            handler.setFormatter(formatter)
-
-    app.logger.setLevel(level)
-    app.logger.propagate = False
+def validate_production_config(app: Flask) -> None:
+    """Validate critical security settings in production.
+    
+    Raises RuntimeError if production environment lacks required secure configuration.
+    """
+    is_production = app.config.get("FLASK_ENV") == "production"
+    if not is_production:
+        return
+    
+    errors = []
+    
+    # SECRET_KEY validation
+    secret_key = app.config.get("SECRET_KEY", "").strip()
+    if not secret_key or len(secret_key) < 32 or secret_key == "dev-change-me-insecure-default":
+        errors.append("SECRET_KEY must be set to a strong random string (32+ chars). Use: python -c \"import secrets; print(secrets.token_urlsafe(32))\"")
+    
+    # Database validation
+    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "").strip()
+    if not db_uri:
+        errors.append("DATABASE_URL environment variable is required in production")
+    elif db_uri.startswith("sqlite://"):
+        errors.append("SQLite is not supported in production. Set DATABASE_URL to a PostgreSQL connection string.")
+    
+    # HTTPS enforcement
+    if not app.config.get("FORCE_HTTPS"):
+        errors.append("FORCE_HTTPS must be True in production")
+    
+    # Session cookie security
+    if not app.config.get("SESSION_COOKIE_SECURE"):
+        errors.append("SESSION_COOKIE_SECURE must be True in production")
+    
+    # ADMIN_KEY if used
+    admin_key = app.config.get("ADMIN_KEY", "").strip()
+    if admin_key and len(admin_key) < 32:
+        errors.append("ADMIN_KEY should be a strong random string (32+ chars) if used")
+    
+    if errors:
+        error_msg = "Production configuration errors:\\n" + "\\n".join(f"  - {e}" for e in errors)
+        app.logger.error(error_msg)
+        raise RuntimeError(error_msg)
+    
+    app.logger.info("Production security validation passed")
 
 
 def create_app(config_class=None) -> Flask:
@@ -154,7 +181,11 @@ def create_app(config_class=None) -> Flask:
 
     app.config.from_object(config_class)
     configure_app_logging(app)
-    if app.config.get("FLASK_ENV") == "production" and app.config.get("SECRET_KEY") in {"", "dev-change-me"}:
+    
+    # Validate production configuration
+    validate_production_config(app)
+    
+    if app.config.get("FLASK_ENV") == "production" and app.config.get("SECRET_KEY") == "dev-change-me-insecure-default":
         app.logger.warning("SECRET_KEY is using a development default. Set a strong SECRET_KEY in production.")
 
     if app.config.get("TRUST_PROXY_HEADERS"):
@@ -354,11 +385,12 @@ def create_app(config_class=None) -> Flask:
             return jsonify({"error": "internal_server_error"}), 500
         return render_template("error.html", title="Server error", message="Something went wrong. Please try again."), 500
 
-    # Ensure default roles exist once tables are present.
-    # In dev, tables may be created via db.create_all() before migrations are set up.
+    # Ensure default roles and admin bootstrap exist once tables are present.
+    # In production, rely on migrations rather than create_all().
     with app.app_context():
         try:
-            db.create_all()
+            if app.config.get("FLASK_ENV") != "production":
+                db.create_all()
             ensure_user_flow_schema()
             ensure_system_roles()
             ensure_bootstrap_admin(
@@ -366,6 +398,6 @@ def create_app(config_class=None) -> Flask:
                 app.config.get("ADMIN_PASSWORD", ""),
             )
         except Exception:
-            pass
+            app.logger.exception("Database initialization failed")
 
     return app
