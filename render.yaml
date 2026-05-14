@@ -31,6 +31,8 @@ services:
         value: "true"
       - key: REMEMBER_COOKIE_SECURE
         value: "true"
+      - key: DATABASE_URL
+        value: ""
       - key: DATABASE_SSL_MODE
         value: require
       - key: SUPABASE_USE_STORAGE
